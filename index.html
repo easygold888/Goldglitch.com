@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Easy Gold Glitch | Stop trading... Start Printing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-pure: #FFD700;
+            --gold-shadow: #8B6914;
+            --void: #020202;
+            --platinum: #E5E4E2;
+        }
+
+        body {
+            background-color: var(--void);
+            color: var(--platinum);
+            font-family: 'Space Grotesk', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1, h2, h3, .serif {
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* --- TICKET-001: Molten Gold Canvas --- */
+        #molten-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: auto;
+        }
+
+        /* --- Glassmorphism 2.0 (1.2 Reqs) --- */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid transparent;
+            border-image: linear-gradient(to bottom, rgba(212, 175, 55, 0.3), transparent) 1;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.03);
+            border-image: linear-gradient(to bottom, var(--gold-primary), transparent) 1;
+            transform: translateY(-8px);
+        }
+
+        /* --- Button Sheen Animation --- */
+        .btn-gold-sheen {
+            background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 50%, #b38728 100%);
+            color: #000;
+            font-weight: 800;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-gold-sheen::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -150%;
+            width: 50%;
+            height: 200%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transform: rotate(30deg);
+            transition: none;
+        }
+
+        .btn-gold-sheen:hover::after {
+            left: 150%;
+            transition: all 0.8s ease-in-out;
+        }
+
+        /* --- Live Ledger (TICKET-004) --- */
+        .ledger-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            z-index: 1000;
+            background: rgba(2, 2, 2, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 15px 25px;
+            font-family: monospace;
+            transform: translateX(-150%);
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .ledger-notification.active { transform: translateX(0); }
+
+        /* Mobile Adjustments (TICKET-005) */
+        @media (max-width: 768px) {
+            .bot-grid { grid-template-columns: 1fr; }
+            .hero-title { font-size: 3rem; }
+            .btn-action { min-height: 52px; }
+        }
+
+        .module { display: none; }
+        .module.active { display: block; animation: fadeInUp 0.8s ease-out forwards; }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { width: 0; }
+    </style>
+</head>
+<body>
+
+    <!-- Molten Flow Canvas Engine -->
+    <canvas id="molten-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5">
+        <div class="flex items-center gap-4 cursor-pointer" onclick="showModule('home')">
+            <div class="w-8 h-8 bg-gradient-to-tr from-yellow-700 to-yellow-200 rounded-sm rotate-45"></div>
+            <span class="serif font-black text-xs tracking-[0.5em] text-gold-primary">Easy Gold Glitch</span>
+        </div>
+        <div class="hidden md:flex gap-12 text-[10px] uppercase tracking-[0.4em] font-bold text-zinc-500">
+            <button onclick="showModule('home')" class="hover:text-white transition">Network</button>
+            <button onclick="showModule('shop')" class="hover:text-white transition">Exploits</button>
+            <button onclick="showModule('community')" class="hover:text-white transition">Sovereign</button>
+        </div>
+        <div class="flex items-center gap-3">
+            <span class="text-[9px] text-zinc-600 uppercase tracking-widest">Protocol V4.0.5</span>
+            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_#22c55e]"></div>
+        </div>
+    </nav>
+
+    <!-- SECTION: HERO (TICKET-002) -->
+    <main id="home" class="module active pt-48 pb-20 px-6">
+        <section class="max-w-6xl mx-auto flex flex-col items-center text-center">
+            <div class="mb-10 opacity-60">
+                <span class="text-[10px] uppercase tracking-[0.8em] text-zinc-400">Secure Environment Established</span>
+            </div>
+
+            <h1 class="hero-title serif text-5xl md:text-8xl font-black mb-10 leading-none text-white tracking-tighter">
+                Stop Trading<br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-700">Start printing.</span>
+            </h1>
+            
+            <p class="text-zinc-500 text-lg md:text-xl max-w-3xl mb-16 font-light leading-relaxed">
+                The market is chaos <br class="hidden md:block">
+                We provide the peace to <span class="text-white italic">unlock the profits</span>.
+            </p>
+
+            <button onclick="showModule('shop')" class="btn-gold-sheen btn-action px-20 py-6 rounded-sm uppercase tracking-[0.4em] text-xs shadow-2xl">
+                Initialize Protocol
+            </button>
+
+            <div class="mt-40 grid grid-cols-2 md:grid-cols-4 gap-12 w-full opacity-30">
+                <div class="text-center"><div class="text-2xl font-bold">0.01ms</div><div class="text-[9px] uppercase tracking-widest mt-2">Latency</div></div>
+                <div class="text-center"><div class="text-2xl font-bold">60FPS</div><div class="text-[9px] uppercase tracking-widest mt-2">Viscosity</div></div>
+                <div class="text-center"><div class="text-2xl font-bold">100%</div><div class="text-[9px] uppercase tracking-widest mt-2">Encryption</div></div>
+                <div class="text-center"><div class="text-2xl font-bold">XAU</div><div class="text-[9px] uppercase tracking-widest mt-2">Asset focus</div></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- SECTION: Xploid (TICKET-003) -->
+    <main id="shop" class="module pt-40 pb-20 px-6">
+        <section class="max-w-7xl mx-auto">
+            <div class="text-center mb-24">
+                <h2 class="serif text-4xl md:text-6xl text-white mb-4">Exploits</h2>
+                <p class="text-zinc-500 uppercase tracking-widest text-[10px]">Deploy algorithmic solutions to command the market</p>
+            </div>
+
+            <div id="arsenal-grid" class="bot-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Injected via JavaScript botInventory -->
+            </div>
+        </section>
+    </main>
+
+    <!-- SECTION: COMMUNITY -->
+    <main id="community" class="module pt-40 pb-20 px-6">
+        <section class="max-w-4xl mx-auto text-center">
+            <h2 class="serif text-5xl md:text-7xl mb-8 italic">Sovereign Intel</h2>
+            <p class="text-zinc-400 text-lg mb-16 leading-relaxed">
+                Enter the restricted zone. Real-time signal nodes, neural analysis, and direct access to the source code.
+            </p>
+            
+            <div class="glass-card p-16 rounded-sm relative overflow-hidden group">
+                <div class="absolute inset-0 bg-yellow-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <h3 class="serif text-2xl mb-8 text-gold-primary">Join the Network</h3>
+                <a href="https://t.me/easygoldglitch" target="_blank" class="inline-flex items-center gap-6 bg-white text-black px-12 py-6 rounded-sm font-black uppercase tracking-[0.2em] text-xs hover:bg-gold-primary transition-colors">
+                    Access Telegram <i data-lucide="zap" class="w-4 h-4"></i>
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- LIVE LEDGER (TICKET-004) -->
+    <div id="live-ledger" class="ledger-notification">
+        <div class="flex items-center gap-4">
+            <div id="ledger-icon" class="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <div class="flex flex-col">
+                <p id="ledger-text" class="text-[10px] text-zinc-200 tracking-wider uppercase"></p>
+                <p class="text-[8px] text-zinc-500 tracking-[0.2em] uppercase mt-1">Sovereign Validation Success</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-20 border-t border-white/5 px-10 text-[9px] text-zinc-700 uppercase tracking-[0.6em] flex flex-col md:flex-row justify-between gap-10">
+        <div>© 2026 Easy Gold Glitch PROTOCOL // The chart is chaos Keep your mind in peace</div>
+        <div class="flex gap-10">
+            <a href="#" class="hover:text-white transition">Nodes</a>
+            <a href="#" class="hover:text-white transition">Terms</a>
+            <a href="#" class="hover:text-white transition">Vault</a>
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // --- TICKET-001: Molten Gold Canvas Engine ---
+        const canvas = document.getElementById('molten-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouse = { x: null, y: null };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = (Math.random() - 0.5) * 0.4;
+                this.speedY = (Math.random() - 0.5) * 0.4;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Repel from mouse
+                if (mouse.x && mouse.y) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+                    if (distance < 120) {
+                        this.x -= dx * 0.01;
+                        this.y -= dy * 0.01;
+                    }
+                }
+
+                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+            }
+            draw() {
+                ctx.fillStyle = '#D4AF37';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initCanvas() {
+            const count = window.innerWidth < 768 ? 60 : 150;
+            for (let i = 0; i < count; i++) particles.push(new Particle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.update();
+                p.draw();
+                
+                // Draw connections
+                for (let j = i; j < particles.length; j++) {
+                    const dx = p.x - particles[j].x;
+                    const dy = p.y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 100) {
+                        ctx.strokeStyle = `rgba(212, 175, 55, ${0.2 - dist/500})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animateCanvas);
+        }
+        initCanvas();
+        animateCanvas();
+
+        // --- TICKET-003: Dynamic Product Grid ---
+        const botInventory = [
+            { id: 1, name: "Glitch 1.0", icon: "🧛", desc: "Specialized in pre-market volume spikes. Extracts liquidity during the London Open volatility window.", linkDemo: "#", linkFull: "#" },
+            { id: 2, name: "Glitch 2.0 ", icon: "✋", desc: "Trend-following logic with a 78% historical win rate. Capitalizes on sustained XAUUSD momentum.", linkDemo: "#", linkFull: "#" },
+            { id: 3, name: "little Glitcher", icon: "🖨️", desc: "Your own copy trading bot for your glitches.", linkDemo: "#", linkFull: "#" },
+            { id: 4, name: "Glitch 3.0 ", icon: "🕯️", desc: "Inert logic. Activates only during institutional liquidity injections. Zero-lag entry.", linkDemo: "#", linkFull: "#" },
+            { id: 5, name: "Glitch 4.0", icon: "⚖️", desc: "Event-driven architecture. Designed to navigate high-impact news folders and volatility.", linkDemo: "#", linkFull: "#" },
+            { id: 6, name: "Glitch 5.0", icon: "🎯", desc: "Executes orders inside the broker's spread. Invisible to liquidity providers.", linkDemo: "#", linkFull: "#" },
+            { id: 7, name: "Glitch 6.0", icon: "🏛️", desc: "Correlation arbitrage. Buys and Sells simultaneously to lock in profit via mathematical hedging.", linkDemo: "#", linkFull: "#" },
+            { id: 8, name: "Glitch 7.0", icon: "🏎️", desc: "Asian Session specialist. Exploits low-volatility ranging markets for consistent yield.", linkDemo: "#", linkFull: "#" },
+            { id: 9, name: "Glitch 8.0", icon: "🐕", desc: "Recovery algorithm. Designed to manage drawdown through martingale adaptation.", linkDemo: "#", linkFull: "#" },
+            { id: 10, name: "Glitch 9.0", icon: "🐋", desc: "Volume profile analysis. Detects institutional block orders and piggybacks direction.", linkDemo: "#", linkFull: "#" }
+        ];
+
+        function renderArsenal() {
+            const grid = document.getElementById('arsenal-grid');
+            grid.innerHTML = botInventory.map(bot => `
+                <div class="glass-card p-10 rounded-sm flex flex-col justify-between">
+                    <div>
+                        <div class="text-3xl mb-6">${bot.icon}</div>
+                        <h3 class="serif text-lg mb-4 text-white font-bold tracking-widest">${bot.name}</h3>
+                        <p class="text-zinc-500 text-[11px] leading-relaxed italic mb-10">${bot.desc}</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-[9px] uppercase tracking-widest text-zinc-500">Validation Access</span>
+                            <span class="text-white font-bold">$10</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-[9px] uppercase tracking-widest text-gold-primary">Sovereign License</span>
+                            <span class="text-gold-primary font-bold">$100</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button class="border border-zinc-800 py-3 text-[8px] font-bold uppercase tracking-widest hover:bg-white/5 transition btn-action">Try ($10)</button>
+                            <button class="btn-gold-sheen py-3 text-[8px] font-bold uppercase tracking-widest btn-action">Full ($100)</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        renderArsenal();
+
+        // --- Navigation ---
+        function showModule(id) {
+            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- TICKET-004: Live Ledger Engine ---
+        const ledgerEl = document.getElementById('live-ledger');
+        const ledgerText = document.getElementById('ledger-text');
+        const ledgerItems = [
+            "🟢 New Node Active: London, UK",
+            "⚡ Liquidity Extracted: $840.50 (UID: 882)",
+            "💎 License Distributed: The Midas Algorithm",
+            "🟢 New Node Active: Dubai, UAE",
+            "⚡ Liquidity Extracted: $1,240.00 (UID: 104)",
+            "💎 License Distributed: Quantum Printer",
+            "🟢 New Node Active: Zurich, CH"
+        ];
+
+        function triggerLedger() {
+            const item = ledgerItems[Math.floor(Math.random() * ledgerItems.length)];
+            ledgerText.innerText = item;
+            ledgerEl.classList.add('active');
+            setTimeout(() => ledgerEl.classList.remove('active'), 5000);
+        }
+
+        setInterval(() => {
+            if (Math.random() > 0.6) triggerLedger();
+        }, 12000);
+        setTimeout(triggerLedger, 3000);
+    </script>
+</body>
+</html>
