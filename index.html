@@ -2,361 +2,418 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>EasyGoldGlitch</title>
   <meta name="theme-color" content="#0b0b0f" />
   <style>
     :root{
-      --bg:#07070a;
-      --panel: rgba(20,20,26,.55);
-      --panel2: rgba(20,20,26,.35);
+      --bg0:#07070a;
+      --bg1:#0b0c10;
+      --glass: rgba(255,255,255,.06);
+      --glass2: rgba(255,255,255,.09);
       --stroke: rgba(255,255,255,.10);
-      --stroke2: rgba(255,255,255,.07);
+      --stroke2: rgba(255,255,255,.14);
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.62);
-      --gold: #d6b35c;
-      --gold2:#8f7a3b;
-      --shadow: 0 20px 60px rgba(0,0,0,.55);
+      --muted2: rgba(255,255,255,.45);
+      --gold: #d7b56a;
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
       --r: 22px;
+      --r2: 28px;
+      --max: 1080px;
     }
-
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0;
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: radial-gradient(1200px 800px at 20% 10%, rgba(214,179,92,.14), transparent 55%),
-                  radial-gradient(900px 700px at 80% 25%, rgba(120,110,180,.10), transparent 55%),
-                  var(--bg);
+      background:
+        radial-gradient(1200px 700px at 25% 10%, rgba(215,181,106,.10), transparent 55%),
+        radial-gradient(900px 600px at 70% 25%, rgba(110,130,255,.09), transparent 60%),
+        linear-gradient(180deg,var(--bg0),var(--bg1));
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       overflow-x:hidden;
     }
 
-    /* FX canvas */
+    /* FX */
     #fx{
-      position:fixed;
-      inset:0;
-      width:100vw;
-      height:100vh;
+      position:fixed; inset:0;
+      width:100%; height:100%;
       z-index:0;
       pointer-events:none;
     }
+    .wrap{ position:relative; z-index:2; }
 
-    /* app shell */
-    .wrap{
-      position:relative;
-      z-index:2;
-      min-height:100%;
-      padding: 18px 16px 80px;
+    /* Top */
+    .top{
+      position:sticky; top:0; z-index:10;
+      padding: 14px 14px 10px;
+      backdrop-filter: blur(16px) saturate(1.2);
     }
-
     .topbar{
-      max-width:1100px;
-      margin: 0 auto 18px;
-      padding: 14px 14px;
-      border:1px solid var(--stroke);
+      max-width: var(--max);
+      margin:0 auto;
       border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid var(--stroke);
       box-shadow: var(--shadow);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
+      padding: 10px 12px;
+      display:flex; align-items:center; justify-content:space-between;
       gap:12px;
     }
-
     .brand{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      min-width: 220px;
+      display:flex; align-items:center; gap:10px;
+      min-width:0;
     }
     .brand img{
-      width:34px;height:34px;border-radius:10px;
-      border:1px solid var(--stroke2);
-      background: rgba(255,255,255,.03);
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      width:34px; height:34px; border-radius: 12px;
+      border:1px solid rgba(215,181,106,.25);
+      background: rgba(0,0,0,.25);
       object-fit: cover;
     }
-    .brand .name{ font-weight:800; letter-spacing:.4px; line-height:1; }
-    .brand .tag{ color:var(--muted); font-size:12.5px; margin-top:4px; }
-
-    .nav{
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-      justify-content:center;
-      flex: 1;
-    }
-    .pill{
-      border:1px solid var(--stroke2);
-      background: rgba(255,255,255,.04);
-      padding: 9px 14px;
+    .brand b{ font-size:15px; letter-spacing:.4px; white-space:nowrap; }
+    .seg{
+      display:flex; gap:6px; align-items:center;
+      padding:6px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
       border-radius: 999px;
-      color: var(--text);
-      font-size: 13px;
-      cursor:pointer;
-      user-select:none;
-      transition: transform .12s ease, border-color .12s ease, background .12s ease;
     }
-    .pill:hover{ transform: translateY(-1px); border-color: rgba(214,179,92,.35); }
-    .pill.active{ border-color: rgba(214,179,92,.55); background: rgba(214,179,92,.10); }
-
-    .right{
-      display:flex; align-items:center; gap:10px; min-width: 150px; justify-content:flex-end;
-    }
-    .chip{
-      border:1px solid var(--stroke2);
-      background: rgba(255,255,255,.04);
+    .seg button{
+      border:0; cursor:pointer;
       padding: 9px 12px;
       border-radius: 999px;
-      color: var(--muted);
+      background: transparent;
+      color: rgba(255,255,255,.78);
+      font-weight: 650;
+      font-size: 13px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .seg button.active{
+      background: rgba(215,181,106,.14);
+      border:1px solid rgba(215,181,106,.24);
+      color: var(--text);
+    }
+
+    .chip{
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      border-radius: 999px;
+      padding: 9px 12px;
+      color: rgba(255,255,255,.78);
       font-size: 12.5px;
       white-space:nowrap;
     }
-    .chip strong{ color: var(--text); font-weight:700; }
 
-    .grid{
-      max-width:1100px;
-      margin: 0 auto;
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
-    }
-    @media (max-width: 900px){
-      .grid{ grid-template-columns: 1fr; }
-      .brand{ min-width: unset; }
-      .right{ min-width: unset; }
+    main{
+      max-width: var(--max);
+      margin:0 auto;
+      padding: 12px 14px 110px;
     }
 
-    .card{
-      border:1px solid var(--stroke);
-      border-radius: var(--r);
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      backdrop-filter: blur(16px);
+    .panel{
+      border-radius: var(--r2);
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       box-shadow: var(--shadow);
+      padding: 22px 18px;
       overflow:hidden;
     }
-    .card .inner{ padding: 18px; }
-
     .kicker{
-      display:inline-flex;
-      gap:10px;
-      align-items:center;
-      font-size: 12.5px;
-      color: var(--muted);
-      border:1px solid var(--stroke2);
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 8px 12px;
       border-radius: 999px;
-      padding: 7px 10px;
-      background: rgba(0,0,0,.18);
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.78);
+      font-size: 13px;
+      margin-bottom: 12px;
     }
     h1{
-      margin: 14px 0 8px;
-      font-size: clamp(34px, 4.6vw, 56px);
-      letter-spacing: -0.8px;
-      line-height: 1.02;
+      margin:0;
+      font-size: clamp(34px, 5.5vw, 60px);
+      letter-spacing: -1px;
+      line-height: .98;
     }
     .sub{
-      margin:0;
+      margin: 10px 0 0;
       color: var(--muted);
-      font-size: 16px;
-      line-height: 1.45;
+      font-size: 15.5px;
+      max-width: 64ch;
     }
 
-    .btns{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 16px; }
+    .grid{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 12px;
+    }
+    .card{
+      border-radius: var(--r);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      box-shadow: 0 16px 55px rgba(0,0,0,.45);
+      padding: 14px;
+      cursor:pointer;
+      transition: transform .15s ease, border-color .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
+    .card:active{ transform: translateY(0px) scale(.99); }
+    .card b{ display:block; font-size: 14.5px; letter-spacing:.2px; }
+    .muted{ color: var(--muted); font-size: 13px; line-height:1.35; }
+    .price{ color: rgba(215,181,106,.92); font-weight: 900; margin-top: 10px; }
+
+    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
     .btn{
       padding: 11px 14px;
-      border-radius: 14px;
-      border:1px solid var(--stroke2);
-      background: rgba(255,255,255,.04);
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
       color: var(--text);
+      font-weight: 750;
       cursor:pointer;
-      transition: transform .12s ease, border-color .12s ease, background .12s ease;
-      font-weight:700;
-      font-size: 13.5px;
+      transition: transform .15s ease, border-color .15s ease;
+      -webkit-tap-highlight-color: transparent;
     }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(214,179,92,.35); }
-    .btn.gold{
-      border-color: rgba(214,179,92,.45);
-      background: linear-gradient(180deg, rgba(214,179,92,.20), rgba(214,179,92,.08));
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(215,181,106,.20), rgba(215,181,106,.10));
+      border-color: rgba(215,181,106,.35);
     }
 
-    .sectionTitle{
-      display:flex; align-items:baseline; justify-content:space-between; gap:10px;
-      margin: 14px 0 10px;
+    /* Modal */
+    .shade{
+      position:fixed; inset:0; z-index:30;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(10px);
+      display:none;
+    }
+    .modal{
+      position:fixed; z-index:31;
+      left:50%; transform: translateX(-50%);
+      top: 14px;
+      width: min(720px, calc(100vw - 28px));
+      max-height: calc(100vh - 28px);
+      overflow:auto;
+      border-radius: 26px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(20,20,24,.74);
+      backdrop-filter: blur(18px) saturate(1.2);
+      box-shadow: var(--shadow);
+      display:none;
+    }
+    .modal .hd{
+      padding: 14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      position: sticky; top:0;
+      background: rgba(20,20,24,.74);
+      backdrop-filter: blur(18px) saturate(1.2);
+    }
+    .modal .bd{ padding: 14px 16px 16px; }
+    .x{
+      width:38px; height:38px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      cursor:pointer;
+    }
+    .list{
+      margin: 10px 0 0;
+      padding-left: 18px;
       color: var(--muted);
       font-size: 13px;
-    }
-
-    .list{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-    }
-
-    .item{
-      padding: 14px;
-      border-radius: 18px;
-      border:1px solid var(--stroke2);
-      background: rgba(0,0,0,.20);
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:12px;
-      cursor:pointer;
-      transition: transform .12s ease, border-color .12s ease;
-    }
-    .item:hover{ transform: translateY(-1px); border-color: rgba(214,179,92,.25); }
-
-    .item h3{ margin:0; font-size: 16px; letter-spacing: -.2px; }
-    .item p{ margin:6px 0 0; color: var(--muted); font-size: 13px; line-height:1.35; }
-
-    .price{
-      text-align:right;
-      min-width: 110px;
-    }
-    .price .usd{
-      font-weight:900;
-      font-size: 18px;
-      color: var(--gold);
-    }
-    .price .eth{
-      margin-top:4px;
-      font-size: 12.5px;
-      color: var(--muted);
-    }
-
-    .side{
-      display:grid;
-      gap:14px;
+      line-height: 1.5;
     }
 
     .walletBox{
-      display:flex;
-      gap:12px;
-      align-items:center;
-    }
-    .qr{
-      width: 86px; height: 86px;
+      display:flex; gap:12px; align-items:center;
+      padding: 12px;
       border-radius: 18px;
-      border: 1px solid var(--stroke2);
-      background: rgba(255,255,255,.03);
-      overflow:hidden;
-      flex:0 0 auto;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      margin-top: 10px;
     }
-    .qr img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .walletBox img{
+      width:90px; height:90px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background:#0b0b0f;
+      object-fit:cover;
+    }
     .addr{
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 12.5px;
-      color: var(--text);
+      font-size: 12px;
+      color: rgba(255,255,255,.82);
       word-break: break-all;
-      line-height:1.3;
+      margin-top: 6px;
     }
-    .addr small{ display:block; color:var(--muted); margin-top:6px; font-family:inherit; }
+    input{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      outline:none;
+      margin-top: 8px;
+    }
+    input:focus{ border-color: rgba(215,181,106,.28); }
+    .checkrow{
+      display:flex; gap:10px; align-items:flex-start;
+      margin-top: 12px;
+      color: rgba(255,255,255,.72);
+      font-size: 12.5px;
+    }
+    .checkrow input{ width:auto; margin-top: 2px; }
 
     .toast{
-      position: fixed;
-      left: 50%;
-      bottom: 18px;
-      transform: translateX(-50%);
-      z-index: 50;
+      position:fixed; left:50%; transform: translateX(-50%);
+      bottom: 18px; z-index:40;
       padding: 10px 12px;
-      border-radius: 999px;
-      border: 1px solid var(--stroke2);
-      background: rgba(0,0,0,.55);
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(15,15,18,.75);
       backdrop-filter: blur(14px);
-      color: var(--text);
+      color: rgba(255,255,255,.86);
+      display:none;
+      box-shadow: 0 18px 70px rgba(0,0,0,.55);
       font-size: 13px;
-      opacity: 0;
-      pointer-events:none;
-      transition: opacity .18s ease, transform .18s ease;
     }
-    .toast.show{ opacity: 1; transform: translateX(-50%) translateY(-3px); }
 
-    /* Mobile spacing so it doesn't feel "stacked" */
-    @media (max-width: 520px){
-      .topbar{ border-radius: 26px; padding: 12px; }
-      .pill{ padding: 9px 12px; }
-      .grid{ gap: 12px; }
-      .card .inner{ padding: 16px; }
-      .qr{ width:78px; height:78px; border-radius: 16px; }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .chip{ display:none; }
+      .modal{ top:auto; bottom: 14px; transform: translateX(-50%); }
     }
   </style>
 </head>
-
 <body>
   <canvas id="fx"></canvas>
 
   <div class="wrap">
-    <div class="topbar">
-      <div class="brand">
-        <img src="/logo.png" alt="EasyGoldGlitch"
-             onerror="this.style.display='none';" />
-        <div>
-          <div class="name">EasyGoldGlitch</div>
-          <div class="tag">Stop trading. Start printing.</div>
+    <header class="top">
+      <div class="topbar">
+        <div class="brand">
+          <!-- Put your logo at /logo.png OR change to /assets/logo.png -->
+          <img src="/logo.png" alt="logo" onerror="this.style.display='none';">
+          <b>EasyGoldGlitch</b>
         </div>
+
+        <div class="seg" aria-label="views">
+          <button id="tabHome" class="active">Home</button>
+          <button id="tabGlitches">Exploits</button>
+          <button id="tabTerms">Terms</button>
+        </div>
+
+        <div class="chip" id="ethChip">ETH: —</div>
+      </div>
+    </header>
+
+    <main>
+      <!-- VIEW: HOME -->
+      <section id="viewHome" class="panel">
+        <div class="kicker">Crypto-native • No sign-up</div>
+        <h1>Stop trading.<br/>Start printing.</h1>
+        <p class="sub">Pick a glitch. Pay in ETH. Get delivery.</p>
+
+        <div class="btnrow">
+          <button class="btn primary" id="homeCta">Browse exploits</button>
+          <button class="btn" id="homeTerms">Terms</button>
+        </div>
+      </section>
+
+      <!-- VIEW: GLITCHES -->
+      <section id="viewGlitches" class="panel" style="display:none">
+        <div class="kicker">Exploits</div>
+        <h1>Choose your glitch.</h1>
+        <p class="sub">Minimal text. Maximum signal.</p>
+
+        <div class="grid" id="glitchGrid"></div>
+      </section>
+
+      <!-- VIEW: TERMS -->
+      <section id="viewTerms" class="panel" style="display:none">
+        <div class="kicker">Terms</div>
+        <h1>Risk disclosure.</h1>
+        <p class="sub">
+          Trading is high-risk. You can lose part or all of your capital. Past performance does not guarantee future results.
+          This site provides digital software and informational material only — not financial advice.
+          All sales are final (no refunds) due to instant digital delivery.
+          Demo license: 2 months, single account.
+        </p>
+      </section>
+    </main>
+  </div>
+
+  <!-- DETAILS MODAL -->
+  <div class="shade" id="shade"></div>
+  <div class="modal" id="detailsModal">
+    <div class="hd">
+      <div>
+        <div style="font-weight:900" id="dTitle">Glitch</div>
+        <div class="muted" id="dPrice">—</div>
+      </div>
+      <button class="x" id="closeDetails">✕</button>
+    </div>
+    <div class="bd">
+      <div class="muted" id="dDesc">—</div>
+      <ul class="list" id="dBullets"></ul>
+
+      <div class="btnrow">
+        <button class="btn primary" id="dCheckoutBtn">Proceed to pay</button>
+        <button class="btn" id="dBackBtn">Back</button>
       </div>
 
-      <nav class="nav" aria-label="Primary">
-        <div class="pill active" data-view="home">Home</div>
-        <div class="pill" data-view="glitches">Glitches</div>
-        <div class="pill" data-view="philosophy">Philosophy</div>
-        <div class="pill" data-view="terms">Terms</div>
-      </nav>
-
-      <div class="right">
-        <div class="chip">ETH weekly high: <strong id="ethUsd">—</strong></div>
+      <div class="muted" style="margin-top:10px">
+        License: Demo (2 months, 1 account). Delivery via email after payment.
       </div>
     </div>
+  </div>
 
-    <div class="grid">
-      <!-- Main -->
-      <div class="card">
-        <div class="inner" id="view">
-          <!-- content injected by JS -->
+  <!-- CHECKOUT MODAL -->
+  <div class="modal" id="checkoutModal">
+    <div class="hd">
+      <div>
+        <div style="font-weight:900">Checkout</div>
+        <div class="muted" id="cSub">Pay in ETH</div>
+      </div>
+      <button class="x" id="closeCheckout">✕</button>
+    </div>
+    <div class="bd">
+      <div class="muted">
+        Selected: <b id="cItem">—</b><br/>
+        Price: <b id="cUsd">$0</b> · Pay: <b id="cEth">—</b>
+      </div>
+
+      <div class="walletBox">
+        <img src="/assets/wallet.png" alt="wallet qr" onerror="this.style.opacity=.35;">
+        <div style="min-width:0">
+          <div class="muted">Send ETH to:</div>
+          <div class="addr" id="cAddr">Loading address…</div>
+          <div class="btnrow" style="margin-top:10px">
+            <button class="btn" id="copyAddr">Copy address</button>
+          </div>
         </div>
       </div>
 
-      <!-- Side -->
-      <div class="side">
-        <div class="card">
-          <div class="inner">
-            <div class="sectionTitle">
-              <span>Wallet</span>
-              <span style="color:rgba(214,179,92,.8)">ETH</span>
-            </div>
+      <div style="margin-top:12px">
+        <div class="muted">Email (delivery)</div>
+        <input id="cEmail" type="email" placeholder="you@domain.com" autocomplete="email" />
+      </div>
 
-            <div class="walletBox">
-              <div class="qr">
-                <img src="assets/wallet.png" alt="Wallet QR"
-                     onerror="this.style.opacity='.35';" />
-              </div>
-              <div>
-                <div class="addr" id="walletAddr">Loading…</div>
-                <small class="addr" style="color:var(--muted)" id="addrHint"></small>
-                <div class="btns" style="margin-top:10px">
-                  <button class="btn" id="copyAddrBtn" type="button">Copy</button>
-                  <button class="btn gold" id="openCheckoutBtn" type="button">Checkout</button>
-                </div>
-              </div>
-            </div>
+      <div class="checkrow">
+        <input id="cAgree" type="checkbox" />
+        <div>I agree to the Terms & risk disclosure.</div>
+      </div>
 
-          </div>
-        </div>
+      <div class="btnrow">
+        <button class="btn primary" id="cPaidBtn">I sent ETH</button>
+        <button class="btn" id="cCloseBtn">Close</button>
+      </div>
 
-        <div class="card">
-          <div class="inner">
-            <div class="sectionTitle">
-              <span>Quick rules</span>
-              <span>Low text • High signal</span>
-            </div>
-            <div style="color:var(--muted); font-size:13px; line-height:1.45">
-              Pick a glitch. Pay in ETH. Paste TxHash. Get delivery.
-            </div>
-          </div>
-        </div>
+      <div class="muted" style="margin-top:10px">
+        (MVP UI: verification + secure download link comes next.)
       </div>
     </div>
   </div>
@@ -364,370 +421,311 @@
   <div class="toast" id="toast"></div>
 
   <script>
-    // ---------- Utils ----------
-    const $ = (s, el=document) => el.querySelector(s);
-    const $$ = (s, el=document) => Array.from(el.querySelectorAll(s));
-    const toast = (msg) => {
-      const t = $("#toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      clearTimeout(toast._tm);
-      toast._tm = setTimeout(()=>t.classList.remove("show"), 1400);
-    };
-
-    const USD = (n)=> new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(n);
-
-    // ---------- Data ----------
+    // --------------------
+    // Config
+    // --------------------
     const PRODUCTS = [
-      { id:"g1", name:"Glitch 1.0 — Simple Sample", usd:50,  tags:["Demo • 2 months","1 trade at a time"], desc:"Low-noise execution." },
-      { id:"g2", name:"Glitch 2.0 — Wealth Builder", usd:70, tags:["Demo • 2 months","Buy & hold+"], desc:"Steady compounding behavior." },
-      { id:"pro", name:"Glitch PRO — F*ck Gold", usd:500, tags:["One-time","Lifetime"], desc:"Aggressive mode. For killers." },
-      { id:"lg", name:"Little Glitcher", usd:150, tags:["Utility","Extends demo"], desc:"Demo extender. Multi-terminal helper." },
+      {
+        id:"g1",
+        name:"Glitch 1.0 — Simple Sample",
+        usd: 50,
+        desc:"Conservative execution. One trade at a time.",
+        bullets:[
+          "Best for: trending / calmer markets",
+          "Use on: majors, gold, large caps",
+          "Goal: controlled exposure"
+        ]
+      },
+      {
+        id:"g2",
+        name:"Glitch 2.0 — Wealth Builder",
+        usd: 70,
+        desc:"Buy & hold bias with smarter re-entries.",
+        bullets:[
+          "Best for: long-bias markets",
+          "Use on: indices, gold, strong majors",
+          "Goal: smoother compounding"
+        ]
+      },
+      {
+        id:"g3",
+        name:"Glitch PRO — F*ck Gold",
+        usd: 100,
+        desc:"Aggressive mode. Minimal opinion. Maximum execution.",
+        bullets:[
+          "Best for: fast markets (high volatility)",
+          "Use on: gold / crypto / volatile FX pairs",
+          "Goal: capture expansion moves"
+        ]
+      }
     ];
 
-    let ETH_WEEKLY_HIGH = null; // usd per eth (weekly high)
-    let currentView = "home";
-    let selectedId = "g1";
+    const $ = (id)=>document.getElementById(id);
+    const toast = (msg)=>{
+      const t = $("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      clearTimeout(toast._k);
+      toast._k = setTimeout(()=> t.style.display="none", 2200);
+    };
 
-    // ---------- Views ----------
-    function renderHome(){
-      const p = PRODUCTS.find(x=>x.id===selectedId) || PRODUCTS[0];
-      $("#view").innerHTML = `
-        <div class="kicker">Crypto-native • No sign-up</div>
-        <h1>Stop trading.<br/>Start printing.</h1>
-        <p class="sub">Choose a glitch. Pay in ETH. Get it delivered.</p>
+    // State
+    let view = "home";
+    let selected = PRODUCTS[0];
+    let ethUsdSpot = null;
 
-        <div class="btns">
-          <button class="btn gold" id="goGlitches">Browse glitches</button>
-          <button class="btn" id="goCheckout">Checkout</button>
-        </div>
+    // --------------------
+    // View router (Step 2)
+    // --------------------
+    function setView(next){
+      view = next;
+      $("viewHome").style.display = (view==="home") ? "block" : "none";
+      $("viewGlitches").style.display = (view==="glitches") ? "block" : "none";
+      $("viewTerms").style.display = (view==="terms") ? "block" : "none";
 
-        <div class="sectionTitle" style="margin-top:18px">
-          <span>Fast picks</span>
-          <span id="ethInfo">ETH price uses weekly high</span>
-        </div>
+      $("tabHome").classList.toggle("active", view==="home");
+      $("tabGlitches").classList.toggle("active", view==="glitches");
+      $("tabTerms").classList.toggle("active", view==="terms");
+    }
 
-        <div class="list" id="plist"></div>
-      `;
-
-      const list = $("#plist");
-      for(const it of PRODUCTS){
-        const eth = ETH_WEEKLY_HIGH ? (it.usd / ETH_WEEKLY_HIGH) : null;
-        const ethTxt = eth ? `${eth.toFixed(4)} ETH` : "— ETH";
-        const tags = it.tags.map(t=>`<span class="chip" style="padding:7px 10px">${t}</span>`).join(" ");
-        const active = it.id===selectedId ? 'style="border-color: rgba(214,179,92,.35)"' : "";
-        const html = `
-          <div class="item" data-pick="${it.id}" ${active}>
-            <div>
-              <h3>${it.name}</h3>
-              <p>${it.desc}</p>
-              <div class="btns" style="margin-top:10px">${tags}</div>
-            </div>
-            <div class="price">
-              <div class="usd">${USD(it.usd)}</div>
-              <div class="eth">${ethTxt}</div>
-            </div>
-          </div>
+    // --------------------
+    // Render glitches
+    // --------------------
+    function renderGlitches(){
+      const grid = $("glitchGrid");
+      grid.innerHTML = "";
+      PRODUCTS.forEach(p=>{
+        const div = document.createElement("div");
+        div.className = "card";
+        div.onclick = ()=> openDetails(p.id);
+        div.innerHTML = `
+          <b>${p.name}</b>
+          <div class="muted">${p.desc}</div>
+          <div class="price">$${p.usd}</div>
         `;
-        list.insertAdjacentHTML("beforeend", html);
+        grid.appendChild(div);
+      });
+    }
+
+    // --------------------
+    // Modals
+    // --------------------
+    function openModal(id){
+      $("shade").style.display = "block";
+      $(id).style.display = "block";
+    }
+    function closeModals(){
+      $("shade").style.display = "none";
+      $("detailsModal").style.display = "none";
+      $("checkoutModal").style.display = "none";
+    }
+
+    function openDetails(id){
+      selected = PRODUCTS.find(x=>x.id===id) || PRODUCTS[0];
+      $("dTitle").textContent = selected.name;
+      $("dPrice").textContent = `$${selected.usd} · Demo license (2 months, 1 account)`;
+      $("dDesc").textContent = selected.desc;
+      $("dBullets").innerHTML = selected.bullets.map(x=>`<li>${x}</li>`).join("");
+      openModal("detailsModal");
+    }
+
+    async function openCheckout(){
+      // ensure ETH quote loaded
+      if (!ethUsdSpot) await loadEth();
+
+      $("cItem").textContent = selected.name;
+      $("cUsd").textContent = `$${selected.usd}`;
+
+      if (ethUsdSpot){
+        const eth = selected.usd / ethUsdSpot;
+        $("cEth").textContent = `${eth.toFixed(5)} ETH`;
+        $("ethChip").textContent = `ETH: $${ethUsdSpot.toFixed(2)}`;
+      } else {
+        $("cEth").textContent = "—";
       }
 
-      $("#goGlitches").onclick = ()=> setView("glitches");
-      $("#goCheckout").onclick = ()=> openCheckout();
-      $$("#plist .item").forEach(el=>{
-        el.onclick = ()=> { selectedId = el.dataset.pick; renderHome(); };
-      });
+      // load address.txt safely
+      await loadAddress();
+
+      openModal("checkoutModal");
     }
 
-    function renderGlitches(){
-      const p = PRODUCTS.find(x=>x.id===selectedId) || PRODUCTS[0];
-      const eth = ETH_WEEKLY_HIGH ? (p.usd / ETH_WEEKLY_HIGH) : null;
-
-      $("#view").innerHTML = `
-        <div class="kicker">Pick your glitch</div>
-        <h1>${p.name}</h1>
-        <p class="sub">${p.desc}</p>
-
-        <div class="btns" style="margin-top:14px">
-          ${PRODUCTS.map(x=>`
-            <button class="btn ${x.id===selectedId?'gold':''}" data-sel="${x.id}">
-              ${x.id===selectedId ? "Selected" : "Select"}
-            </button>
-          `).join("")}
-        </div>
-
-        <div class="sectionTitle" style="margin-top:18px">
-          <span>Price</span>
-          <span>${USD(p.usd)} • <strong style="color:var(--gold)">${eth ? eth.toFixed(4)+" ETH" : "— ETH"}</strong></span>
-        </div>
-
-        <div class="btns" style="margin-top:12px">
-          <button class="btn gold" id="glCheckout">Checkout</button>
-          <button class="btn" id="glBack">Back</button>
-        </div>
-      `;
-
-      $$("[data-sel]").forEach(b=>{
-        b.onclick = ()=> { selectedId = b.dataset.sel; renderGlitches(); };
-      });
-      $("#glCheckout").onclick = ()=> openCheckout();
-      $("#glBack").onclick = ()=> setView("home");
-    }
-
-    function renderPhilosophy(){
-      $("#view").innerHTML = `
-        <div class="kicker">Philosophy</div>
-        <h1>The market is automated.</h1>
-        <p class="sub">
-          The creator watched the tape and realized the truth: most flow is machine-driven.
-          Manual traders get farmed by execution, latency, and psychology.
-          So we built glitches — small, repeatable edges that don’t care about feelings.
-        </p>
-      `;
-    }
-
-    function renderTerms(){
-      $("#view").innerHTML = `
-        <div class="kicker">Terms</div>
-        <h1>Disclaimers.</h1>
-        <p class="sub">
-          Trading is high-risk. You can lose part or all of your capital. Past performance does not guarantee future results.
-          Digital goods are final sale. No refunds.
-          Demo licenses last <strong>2 months</strong>. Little Glitcher is a utility product that may extend demo usability.
-          PRO is one-time payment, lifetime license.
-        </p>
-      `;
-    }
-
-    function setView(v){
-      currentView = v;
-      $$(".pill").forEach(p=>p.classList.toggle("active", p.dataset.view===v));
-      if(v==="home") renderHome();
-      else if(v==="glitches") renderGlitches();
-      else if(v==="philosophy") renderPhilosophy();
-      else renderTerms();
-    }
-
-    // ---------- Checkout (MVP UI stub) ----------
-    function openCheckout(){
-      const p = PRODUCTS.find(x=>x.id===selectedId) || PRODUCTS[0];
-      const eth = ETH_WEEKLY_HIGH ? (p.usd / ETH_WEEKLY_HIGH) : null;
-
-      // Minimal “modal” prompt for now (fast). Later we make a real modal.
-      const ok = confirm(
-        `Checkout:\n\n${p.name}\n${USD(p.usd)} (${eth ? eth.toFixed(4) : "—"} ETH)\n\nProceed?`
-      );
-      if(ok) toast("Next: TxHash screen (backend step)");
-    }
-
-    // ---------- Load wallet address safely ----------
-    async function loadWalletAddress(){
-      const el = $("#walletAddr");
-      const hint = $("#addrHint");
-
+    async function loadAddress(){
       try{
-        const res = await fetch("assets/address.txt", { cache: "no-store" });
-        const text = await res.text();
+        const r = await fetch("/assets/address.txt", { cache:"no-store" });
+        const t = (await r.text()).trim();
 
-        // Protect UI from HTML injection / wrong URL (GitHub blob / fallback HTML)
-        if (text.includes("<!DOCTYPE") || text.includes("<html")) throw new Error("address.txt returned HTML (wrong path or wrong source)");
+        // protect against HTML (wrong path / fallback)
+        if (t.includes("<html") || t.includes("<!DOCTYPE")) throw new Error("address.txt returned HTML");
 
-        const m = text.match(/0x[a-fA-F0-9]{40}/);
-        if(!m) throw new Error("No 0x address found in address.txt");
-
-        const addr = m[0];
-        el.textContent = addr;
-        hint.textContent = "Send ETH here (then paste TxHash).";
-      }catch(e){
-        el.textContent = "Wallet address unavailable";
-        hint.textContent = "Fix: /address.txt must contain ONLY the 0x address.";
+        const m = t.match(/0x[a-fA-F0-9]{40}/);
+        if (!m) throw new Error("No 0x address found");
+        $("cAddr").textContent = m[0];
+      } catch(e){
+        $("cAddr").textContent = "Address unavailable — check /assets/address.txt";
         console.warn(e);
       }
     }
 
-    // ---------- ETH quote ----------
-    async function loadEthQuote(){
+    async function loadEth(){
       try{
-        const res = await fetch("/api/eth-quote", { cache:"no-store" });
-        const data = await res.json();
-        if(!data?.ok) throw new Error(data?.error || "quote error");
-        ETH_WEEKLY_HIGH = Number(data.ethUsdWeeklyHigh) || null;
-        $("#ethUsd").textContent = ETH_WEEKLY_HIGH ? USD(ETH_WEEKLY_HIGH) : "—";
-      }catch(e){
-        $("#ethUsd").textContent = "—";
-        console.warn("ETH quote failed:", e);
+        const r = await fetch("/api/eth-quote", { cache:"no-store" });
+        const j = await r.json();
+        if (!j.ok) throw new Error(j.error || "quote failed");
+        ethUsdSpot = Number(j.ethUsdSpot) || null;
+        if (ethUsdSpot) $("ethChip").textContent = `ETH: $${ethUsdSpot.toFixed(2)}`;
+      } catch(e){
+        ethUsdSpot = null;
+        $("ethChip").textContent = "ETH: —";
+        console.warn(e);
       }
     }
 
-    // ---------- Copy ----------
-    $("#copyAddrBtn").onclick = async () => {
-      const addr = $("#walletAddr").textContent.trim();
-      if(!addr.startsWith("0x")) return toast("No address to copy");
-      await navigator.clipboard.writeText(addr);
-      toast("Copied");
+    // --------------------
+    // Events
+    // --------------------
+    $("tabHome").onclick = ()=> setView("home");
+    $("tabGlitches").onclick = ()=> setView("glitches");
+    $("tabTerms").onclick = ()=> setView("terms");
+
+    $("homeCta").onclick = ()=> { setView("glitches"); };
+    $("homeTerms").onclick = ()=> { setView("terms"); };
+
+    $("closeDetails").onclick = closeModals;
+    $("dBackBtn").onclick = closeModals;
+    $("dCheckoutBtn").onclick = ()=> { closeModals(); openCheckout(); };
+
+    $("closeCheckout").onclick = closeModals;
+    $("cCloseBtn").onclick = closeModals;
+    $("shade").onclick = closeModals;
+
+    $("copyAddr").onclick = async ()=>{
+      const a = $("cAddr").textContent.trim();
+      if (!a.startsWith("0x")) return toast("No address to copy");
+      await navigator.clipboard.writeText(a);
+      toast("Address copied");
     };
 
-    $("#openCheckoutBtn").onclick = ()=> openCheckout();
+    $("cPaidBtn").onclick = ()=>{
+      const email = $("cEmail").value.trim();
+      if (!email) return toast("Email required");
+      if (!$("cAgree").checked) return toast("Accept Terms first");
+      toast("MVP: next step is TxHash verification + secure delivery");
+    };
 
-    $$(".pill").forEach(p => p.onclick = ()=> setView(p.dataset.view));
-
-    // ---------- FX (interactive particles) ----------
-    (function(){
+    // --------------------
+    // Particles (visible + tap burst)
+    // --------------------
+    (function fx(){
       const canvas = document.getElementById("fx");
       const ctx = canvas.getContext("2d", { alpha:true });
+      let w=0,h=0,dpr=1;
 
-      let W=0,H=0, DPR=1;
-      const isMobile = matchMedia("(max-width: 700px)").matches;
-      const PCOUNT = isMobile ? 70 : 130;
-      const CLUSTERS = isMobile ? 3 : 5;
+      const isMobile = matchMedia("(max-width: 900px)").matches;
+      const baseCount = isMobile ? 70 : 120;
 
-      const pointer = { x:0,y:0, down:false, t:0 };
+      const pointer = { x:-9999, y:-9999, down:false };
 
-      const clusters = Array.from({length:CLUSTERS}, ()=>({
-        x: Math.random(), y: Math.random(),
-        vx:(Math.random()*2-1)*0.00025, vy:(Math.random()*2-1)*0.00025,
-      }));
-
-      const parts = Array.from({length:PCOUNT}, (_,i)=>makeParticle(i));
-      function makeParticle(i){
-        return {
-          x: Math.random(),
-          y: Math.random(),
-          vx:(Math.random()*2-1)*0.0015,
-          vy:(Math.random()*2-1)*0.0015,
-          r: 0.7 + Math.random()*1.7,
-          a: 0.20 + Math.random()*0.55,
-          c: i % CLUSTERS
-        };
-      }
+      const particles = [];
+      function rand(a,b){ return a + Math.random()*(b-a); }
 
       function resize(){
-        DPR = Math.min(2, window.devicePixelRatio || 1);
-        W = Math.floor(innerWidth);
-        H = Math.floor(innerHeight);
-        canvas.width = Math.floor(W * DPR);
-        canvas.height = Math.floor(H * DPR);
-        canvas.style.width = W+"px";
-        canvas.style.height = H+"px";
-        ctx.setTransform(DPR,0,0,DPR,0,0);
+        dpr = Math.min(2, window.devicePixelRatio || 1);
+        w = canvas.width = Math.floor(innerWidth * dpr);
+        h = canvas.height = Math.floor(innerHeight * dpr);
+        canvas.style.width = innerWidth + "px";
+        canvas.style.height = innerHeight + "px";
+        ctx.setTransform(1,0,0,1,0,0);
       }
-      addEventListener("resize", resize, { passive:true });
-      resize();
-
-      function spawnBurst(px,py){
-        const cx = px / W, cy = py / H;
-        for(let i=0;i<18;i++){
-          const p = makeParticle(i);
-          p.x = cx; p.y = cy;
-          const ang = Math.random()*Math.PI*2;
-          const sp = 0.006 + Math.random()*0.010;
-          p.vx = Math.cos(ang)*sp;
-          p.vy = Math.sin(ang)*sp;
-          p.a = 0.40 + Math.random()*0.40;
-          p.r = 0.9 + Math.random()*2.2;
-          parts.push(p);
+      function spawn(n, cx=rand(0,w), cy=rand(0,h), burst=false){
+        for(let i=0;i<n;i++){
+          const ang = rand(0, Math.PI*2);
+          const sp = burst ? rand(0.6, 2.2) : rand(0.2, 0.9);
+          particles.push({
+            x: cx + rand(-80,80)*dpr,
+            y: cy + rand(-80,80)*dpr,
+            vx: Math.cos(ang)*sp*dpr,
+            vy: Math.sin(ang)*sp*dpr,
+            r: rand(0.8, 2.2)*dpr,
+            a: rand(0.25, 0.85),
+          });
         }
-        // cap
-        while(parts.length > (PCOUNT + 40)) parts.shift();
+        while(particles.length > baseCount + 30) particles.shift();
       }
 
-      function onPointer(e){
-        const t = e.touches?.[0] || e;
-        pointer.x = t.clientX;
-        pointer.y = t.clientY;
-      }
-      addEventListener("pointermove", onPointer, { passive:true });
-      addEventListener("touchmove", onPointer, { passive:true });
+      resize();
+      spawn(baseCount);
 
-      addEventListener("pointerdown", (e)=>{
-        pointer.down = true; pointer.t = performance.now();
-        onPointer(e);
-        spawnBurst(pointer.x, pointer.y);
-        // make canvas feel “alive” on taps
-        canvas.style.filter = "drop-shadow(0 0 14px rgba(214,179,92,.08))";
-        setTimeout(()=>canvas.style.filter="none", 180);
+      window.addEventListener("resize", ()=>{ resize(); }, { passive:true });
+      window.addEventListener("pointermove",(e)=>{
+        pointer.x = e.clientX*dpr;
+        pointer.y = e.clientY*dpr;
       }, { passive:true });
-
-      addEventListener("pointerup", ()=> pointer.down=false, { passive:true });
+      window.addEventListener("pointerdown",(e)=>{
+        pointer.down = true;
+        spawn(isMobile ? 12 : 18, e.clientX*dpr, e.clientY*dpr, true);
+      }, { passive:true });
+      window.addEventListener("pointerup",()=> pointer.down=false, { passive:true });
 
       function step(){
-        // clear w/ slight trail
-        ctx.clearRect(0,0,W,H);
+        ctx.clearRect(0,0,w,h);
 
-        // drift clusters
-        for(const c of clusters){
-          c.x += c.vx; c.y += c.vy;
-          if(c.x<0.05||c.x>0.95) c.vx*=-1;
-          if(c.y<0.05||c.y>0.95) c.vy*=-1;
-        }
+        // subtle vignette
+        const vg = ctx.createRadialGradient(w*.5,h*.4, 0, w*.5,h*.4, Math.max(w,h)*.7);
+        vg.addColorStop(0, "rgba(255,255,255,0.02)");
+        vg.addColorStop(1, "rgba(0,0,0,0)");
+        ctx.fillStyle = vg;
+        ctx.fillRect(0,0,w,h);
 
-        // update particles
-        for(const p of parts){
-          const c = clusters[p.c];
-          const tx = c.x - p.x;
-          const ty = c.y - p.y;
-
-          // attraction to cluster
-          p.vx += tx * 0.0009;
-          p.vy += ty * 0.0009;
-
-          // gentle noise
-          p.vx += (Math.random()*2-1)*0.00035;
-          p.vy += (Math.random()*2-1)*0.00035;
-
-          // pointer interaction (tap “pull”)
-          const px = pointer.x / W, py = pointer.y / H;
-          const dx = px - p.x, dy = py - p.y;
+        for(const p of particles){
+          // pointer pull
+          const dx = pointer.x - p.x;
+          const dy = pointer.y - p.y;
           const d2 = dx*dx + dy*dy;
-          if(d2 < 0.020){
-            const k = pointer.down ? 0.0032 : 0.0012;
+          if (d2 < (260*260)*dpr*dpr){
+            const k = pointer.down ? 0.0009 : 0.00045;
             p.vx += dx * k;
             p.vy += dy * k;
           }
 
-          // damping
-          p.vx *= 0.965;
-          p.vy *= 0.965;
+          p.vx *= 0.985;
+          p.vy *= 0.985;
 
           p.x += p.vx;
           p.y += p.vy;
 
-          // wrap
-          if(p.x<0) p.x+=1;
-          if(p.x>1) p.x-=1;
-          if(p.y<0) p.y+=1;
-          if(p.y>1) p.y-=1;
+          if (p.x < -40*dpr) p.x = w + 40*dpr;
+          if (p.x > w + 40*dpr) p.x = -40*dpr;
+          if (p.y < -40*dpr) p.y = h + 40*dpr;
+          if (p.y > h + 40*dpr) p.y = -40*dpr;
         }
 
-        // draw
-        for(let i=0;i<parts.length;i++){
-          const a = parts[i];
-          const ax = a.x*W, ay=a.y*H;
-
-          // lines (clustered feel)
-          for(let j=i+1;j<parts.length;j++){
-            const b=parts[j];
-            const bx=b.x*W, by=b.y*H;
-            const dx=ax-bx, dy=ay-by;
+        // links + glow dots
+        for(let i=0;i<particles.length;i++){
+          const a = particles[i];
+          // links
+          for(let j=i+1;j<particles.length;j++){
+            const b = particles[j];
+            const dx = a.x-b.x, dy=a.y-b.y;
             const d = Math.hypot(dx,dy);
-            if(d < (isMobile ? 70 : 92)){
-              const alpha = (1 - d/(isMobile ? 70 : 92)) * 0.10;
-              ctx.strokeStyle = `rgba(214,179,92,${alpha})`;
-              ctx.lineWidth = 1;
+            const max = (isMobile? 105: 140)*dpr;
+            if (d < max){
+              const alpha = (1 - d/max) * 0.12 * (a.a+b.a)*0.5;
+              ctx.strokeStyle = `rgba(215,181,106,${alpha})`;
+              ctx.lineWidth = 1*dpr;
               ctx.beginPath();
-              ctx.moveTo(ax,ay);
-              ctx.lineTo(bx,by);
+              ctx.moveTo(a.x,a.y);
+              ctx.lineTo(b.x,b.y);
               ctx.stroke();
             }
           }
-
-          // particle glow
-          const g = ctx.createRadialGradient(ax,ay,0, ax,ay, a.r*10);
-          g.addColorStop(0, `rgba(214,179,92,${a.a})`);
-          g.addColorStop(1, `rgba(214,179,92,0)`);
+          // glow
+          const g = ctx.createRadialGradient(a.x,a.y,0, a.x,a.y, a.r*10);
+          g.addColorStop(0, `rgba(215,181,106,${0.16*a.a})`);
+          g.addColorStop(1, `rgba(215,181,106,0)`);
           ctx.fillStyle = g;
           ctx.beginPath();
-          ctx.arc(ax,ay, a.r*6, 0, Math.PI*2);
+          ctx.arc(a.x,a.y,a.r*6,0,Math.PI*2);
           ctx.fill();
         }
 
@@ -736,12 +734,10 @@
       requestAnimationFrame(step);
     })();
 
-    // ---------- Init ----------
-    (async function init(){
-      await loadEthQuote();
-      await loadWalletAddress();
-      setView("home");
-    })();
+    // Init
+    renderGlitches();
+    loadEth();
+    setView("home");
   </script>
 </body>
 </html>
