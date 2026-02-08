@@ -1,389 +1,1381 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Easy Gold Glitch | Stop trading... Start Printing</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --gold-primary: #D4AF37;
-            --gold-pure: #FFD700;
-            --gold-shadow: #8B6914;
-            --void: #020202;
-            --platinum: #E5E4E2;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EasyGoldGlitch | Stop trading. Start printing.</title>
 
-        body {
-            background-color: var(--void);
-            color: var(--platinum);
-            font-family: 'Space Grotesk', sans-serif;
-            margin: 0;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        h1, h2, h3, .serif {
-            font-family: 'Cinzel', serif;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-        }
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        /* --- TICKET-001: Molten Gold Canvas --- */
-        #molten-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            pointer-events: auto;
-        }
+  <!-- tsParticles (CDN) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js"></script>
 
-        /* --- Glassmorphism 2.0 (1.2 Reqs) --- */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.01);
-            backdrop-filter: blur(16px) saturate(180%);
-            -webkit-backdrop-filter: blur(16px) saturate(180%);
-            border: 1px solid transparent;
-            border-image: linear-gradient(to bottom, rgba(212, 175, 55, 0.3), transparent) 1;
-            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+  <!-- QRCode.js (CDN) -->
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-        .glass-card:hover {
-            background: rgba(255, 255, 255, 0.03);
-            border-image: linear-gradient(to bottom, var(--gold-primary), transparent) 1;
-            transform: translateY(-8px);
-        }
+  <style>
+    :root{
+      --bg0:#05040a;
+      --bg1:#0b0720;
+      --gold:#f7d37b;
+      --gold2:#f2b84b;
+      --ink:#f4f3ff;
 
-        /* --- Button Sheen Animation --- */
-        .btn-gold-sheen {
-            background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 50%, #b38728 100%);
-            color: #000;
-            font-weight: 800;
-            position: relative;
-            overflow: hidden;
-        }
+      --r-xl:24px;
+      --r-2xl:32px;
+      --r-3xl:40px;
 
-        .btn-gold-sheen::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -150%;
-            width: 50%;
-            height: 200%;
-            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.4), transparent);
-            transform: rotate(30deg);
-            transition: none;
-        }
+      --glass-weak: rgba(255,255,255,.06);
+      --glass-mid:  rgba(255,255,255,.10);
+      --glass-strong: rgba(255,255,255,.14);
 
-        .btn-gold-sheen:hover::after {
-            left: 150%;
-            transition: all 0.8s ease-in-out;
-        }
+      --border: rgba(247, 211, 123, .22);
+      --shadow: 0 18px 50px rgba(0,0,0,.45);
+      --blur: 16px;
+      --blur-strong: 26px;
+    }
 
-        /* --- Live Ledger (TICKET-004) --- */
-        .ledger-notification {
-            position: fixed;
-            bottom: 30px;
-            left: 30px;
-            z-index: 1000;
-            background: rgba(2, 2, 2, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(212, 175, 55, 0.2);
-            padding: 15px 25px;
-            font-family: monospace;
-            transform: translateX(-150%);
-            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+    html,body{ height:100%; }
+    body{
+      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--ink);
+      background: radial-gradient(1200px 900px at 20% 10%, rgba(247,211,123,.12), transparent 60%),
+                  radial-gradient(900px 700px at 80% 20%, rgba(120,90,255,.16), transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
 
-        .ledger-notification.active { transform: translateX(0); }
+    /* Liquid glass */
+    .glass{
+      background: var(--glass-mid);
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      border-radius: var(--r-2xl);
+      position: relative;
+      overflow: hidden;
+    }
+    .glass::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(400px 240px at 20% 20%, rgba(247,211,123,.22), transparent 60%),
+                  radial-gradient(360px 260px at 80% 30%, rgba(120,90,255,.18), transparent 58%),
+                  linear-gradient(120deg, rgba(255,255,255,.10), rgba(255,255,255,0));
+      pointer-events:none;
+      opacity:.75;
+      filter: blur(6px);
+    }
+    .glass > *{ position: relative; }
 
-        /* Mobile Adjustments (TICKET-005) */
-        @media (max-width: 768px) {
-            .bot-grid { grid-template-columns: 1fr; }
-            .hero-title { font-size: 3rem; }
-            .btn-action { min-height: 52px; }
-        }
+    .glass-weak{ background: var(--glass-weak); backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur)); }
+    .glass-mid{ background: var(--glass-mid); backdrop-filter: blur(var(--blur-strong)); -webkit-backdrop-filter: blur(var(--blur-strong)); }
+    .glass-strong{ background: var(--glass-strong); backdrop-filter: blur(calc(var(--blur-strong) + 10px)); -webkit-backdrop-filter: blur(calc(var(--blur-strong) + 10px)); }
 
-        .module { display: none; }
-        .module.active { display: block; animation: fadeInUp 0.8s ease-out forwards; }
+    /* Fallback si backdrop-filter no aplica */
+    @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
+      .glass-weak,.glass-mid,.glass-strong{ background: rgba(18,14,30,.86); }
+    }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+    /* Buttons */
+    .btn{
+      border-radius: 999px;
+      padding: .85rem 1.15rem;
+      font-weight: 700;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.55rem;
+      transition: transform .14s ease, filter .14s ease, box-shadow .14s ease, background .18s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn:active{ transform: scale(.98); }
+    .btn-primary{
+      background: linear-gradient(90deg, rgba(247,211,123,.95), rgba(242,184,75,.9));
+      color: #1b1230;
+      box-shadow: 0 14px 40px rgba(247,211,123,.18);
+    }
+    .btn-primary:hover{ filter: brightness(1.05); box-shadow: 0 16px 55px rgba(247,211,123,.24); }
+    .btn-ghost{
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--ink);
+    }
+    .btn-ghost:hover{ background: rgba(255,255,255,.10); }
 
-        /* Hide Scrollbar */
-        ::-webkit-scrollbar { width: 0; }
-    </style>
+    .chip{
+      border-radius:999px;
+      padding:.4rem .75rem;
+      font-weight:700;
+      font-size:.85rem;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      transition: background .14s ease, transform .14s ease;
+    }
+    .chip:hover{ background: rgba(255,255,255,.10); }
+    .chip[data-on="1"]{ background: rgba(247,211,123,.18); border-color: rgba(247,211,123,.28); }
+
+    /* Page container */
+    .wrap{ max-width: 1120px; margin: 0 auto; padding: 22px; }
+    .hfont{ font-family:"Cinzel", serif; letter-spacing: .02em; }
+
+    /* Particles layer */
+    #particles{
+      position:fixed; inset:0;
+      z-index:-1;
+    }
+
+    /* Dialog */
+    dialog{
+      border:none;
+      padding:0;
+      background: transparent;
+      max-width: min(880px, 92vw);
+    }
+    dialog::backdrop{
+      background: radial-gradient(900px 600px at 30% 20%, rgba(247,211,123,.12), rgba(0,0,0,.62));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce){
+      *{ scroll-behavior:auto !important; transition:none !important; animation:none !important; }
+    }
+  </style>
 </head>
+
 <body>
+  <div id="particles" aria-hidden="true"></div>
 
-    <!-- Molten Flow Canvas Engine -->
-    <canvas id="molten-canvas"></canvas>
-
-    <!-- Navigation -->
-    <nav class="fixed top-0 w-full z-50 p-6 flex justify-between items-center bg-black/40 backdrop-blur-md border-b border-white/5">
-        <div class="flex items-center gap-4 cursor-pointer" onclick="showModule('home')">
-            <div class="w-8 h-8 bg-gradient-to-tr from-yellow-700 to-yellow-200 rounded-sm rotate-45"></div>
-            <span class="serif font-black text-xs tracking-[0.5em] text-gold-primary">Easy Gold Glitch</span>
+  <!-- Header -->
+  <header class="wrap">
+    <div class="glass glass-strong px-5 py-4 flex items-center justify-between">
+      <a href="#/home" class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl grid place-items-center glass glass-mid">
+          <span class="text-xl">⚡</span>
         </div>
-        <div class="hidden md:flex gap-12 text-[10px] uppercase tracking-[0.4em] font-bold text-zinc-500">
-            <button onclick="showModule('home')" class="hover:text-white transition">Network</button>
-            <button onclick="showModule('shop')" class="hover:text-white transition">Exploits</button>
-            <button onclick="showModule('community')" class="hover:text-white transition">Sovereign</button>
+        <div>
+          <div class="hfont text-lg font-black">EasyGoldGlitch</div>
+          <div class="text-xs opacity-70 -mt-0.5">Stop trading. Start printing.</div>
         </div>
-        <div class="flex items-center gap-3">
-            <span class="text-[9px] text-zinc-600 uppercase tracking-widest">Protocol V4.0.5</span>
-            <div class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_#22c55e]"></div>
-        </div>
-    </nav>
+      </a>
 
-    <!-- SECTION: HERO (TICKET-002) -->
-    <main id="home" class="module active pt-48 pb-20 px-6">
-        <section class="max-w-6xl mx-auto flex flex-col items-center text-center">
-            <div class="mb-10 opacity-60">
-                <span class="text-[10px] uppercase tracking-[0.8em] text-zinc-400">Secure Environment Established</span>
-            </div>
+      <nav class="hidden md:flex items-center gap-2">
+        <a class="chip" href="#/home">Home</a>
+        <a class="chip" href="#/exploits">Glitches</a>
+        <a class="chip" href="#/community">Community</a>
+        <a class="chip" href="#/terms">Terms</a>
+      </nav>
 
-            <h1 class="hero-title serif text-5xl md:text-8xl font-black mb-10 leading-none text-white tracking-tighter">
-                Stop Trading<br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-b from-yellow-200 to-yellow-700">Start printing.</span>
-            </h1>
-            
-            <p class="text-zinc-500 text-lg md:text-xl max-w-3xl mb-16 font-light leading-relaxed">
-                The market is chaos <br class="hidden md:block">
-                We provide the peace to <span class="text-white italic">unlock the profits</span>.
-            </p>
-
-            <button onclick="showModule('shop')" class="btn-gold-sheen btn-action px-20 py-6 rounded-sm uppercase tracking-[0.4em] text-xs shadow-2xl">
-                Initialize Protocol
-            </button>
-
-            <div class="mt-40 grid grid-cols-2 md:grid-cols-4 gap-12 w-full opacity-30">
-                <div class="text-center"><div class="text-2xl font-bold">0.01ms</div><div class="text-[9px] uppercase tracking-widest mt-2">Latency</div></div>
-                <div class="text-center"><div class="text-2xl font-bold">60FPS</div><div class="text-[9px] uppercase tracking-widest mt-2">Viscosity</div></div>
-                <div class="text-center"><div class="text-2xl font-bold">100%</div><div class="text-[9px] uppercase tracking-widest mt-2">Encryption</div></div>
-                <div class="text-center"><div class="text-2xl font-bold">XAU</div><div class="text-[9px] uppercase tracking-widest mt-2">Asset focus</div></div>
-            </div>
-        </section>
-    </main>
-
-    <!-- SECTION: Xploid (TICKET-003) -->
-    <main id="shop" class="module pt-40 pb-20 px-6">
-        <section class="max-w-7xl mx-auto">
-            <div class="text-center mb-24">
-                <h2 class="serif text-4xl md:text-6xl text-white mb-4">Exploits</h2>
-                <p class="text-zinc-500 uppercase tracking-widest text-[10px]">Deploy algorithmic solutions to command the market</p>
-            </div>
-
-            <div id="arsenal-grid" class="bot-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- Injected via JavaScript botInventory -->
-            </div>
-        </section>
-    </main>
-
-    <!-- SECTION: COMMUNITY -->
-    <main id="community" class="module pt-40 pb-20 px-6">
-        <section class="max-w-4xl mx-auto text-center">
-            <h2 class="serif text-5xl md:text-7xl mb-8 italic">Sovereign Intel</h2>
-            <p class="text-zinc-400 text-lg mb-16 leading-relaxed">
-                Enter the restricted zone. Real-time signal nodes, neural analysis, and direct access to the source code.
-            </p>
-            
-            <div class="glass-card p-16 rounded-sm relative overflow-hidden group">
-                <div class="absolute inset-0 bg-yellow-600/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <h3 class="serif text-2xl mb-8 text-gold-primary">Join the Network</h3>
-                <a href="https://t.me/easygoldglitch" target="_blank" class="inline-flex items-center gap-6 bg-white text-black px-12 py-6 rounded-sm font-black uppercase tracking-[0.2em] text-xs hover:bg-gold-primary transition-colors">
-                    Access Telegram <i data-lucide="zap" class="w-4 h-4"></i>
-                </a>
-            </div>
-        </section>
-    </main>
-
-    <!-- LIVE LEDGER (TICKET-004) -->
-    <div id="live-ledger" class="ledger-notification">
-        <div class="flex items-center gap-4">
-            <div id="ledger-icon" class="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <div class="flex flex-col">
-                <p id="ledger-text" class="text-[10px] text-zinc-200 tracking-wider uppercase"></p>
-                <p class="text-[8px] text-zinc-500 tracking-[0.2em] uppercase mt-1">Sovereign Validation Success</p>
-            </div>
-        </div>
+      <div class="flex items-center gap-2">
+        <button id="btnSettings" class="btn btn-ghost" type="button">⚙️</button>
+        <button id="btnCart" class="btn btn-ghost" type="button">
+          🛒 <span id="cartCount" class="text-sm font-bold">0</span>
+        </button>
+      </div>
     </div>
+  </header>
 
-    <!-- Footer -->
-    <footer class="py-20 border-t border-white/5 px-10 text-[9px] text-zinc-700 uppercase tracking-[0.6em] flex flex-col md:flex-row justify-between gap-10">
-        <div>© 2026 Easy Gold Glitch PROTOCOL // The chart is chaos Keep your mind in peace</div>
-        <div class="flex gap-10">
-            <a href="#" class="hover:text-white transition">Nodes</a>
-            <a href="#" class="hover:text-white transition">Terms</a>
-            <a href="#" class="hover:text-white transition">Vault</a>
-        </div>
-    </footer>
+  <!-- App -->
+  <main id="app" class="wrap"></main>
 
-    <script>
-        lucide.createIcons();
+  <!-- Toasts -->
+  <div id="toasts" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
 
-        // --- TICKET-001: Molten Gold Canvas Engine ---
-        const canvas = document.getElementById('molten-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-        let mouse = { x: null, y: null };
+  <!-- Modals -->
+  <dialog id="dlg">
+    <div class="glass glass-strong p-5 md:p-6">
+      <div class="flex items-start justify-between gap-4">
+        <div id="dlgTitle" class="hfont text-xl font-black"></div>
+        <button id="dlgClose" class="btn btn-ghost" type="button">✕</button>
+      </div>
+      <div id="dlgBody" class="mt-4"></div>
+    </div>
+  </dialog>
 
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+  <script>
+    /***********************
+     * CONFIG (EDIT ME)
+     ************************/
+    const DEST_WALLET = "0xYOUR_WALLET_HERE";  // <-- cambia esto
+    const CHAIN = {
+      name: "Ethereum",
+      chainIdHex: "0x1"
+    };
+
+    /***********************
+     * UTILITIES
+     ************************/
+    const $ = (sel, el=document) => el.querySelector(sel);
+    const $$ = (sel, el=document) => Array.from(el.querySelectorAll(sel));
+
+    function toast(msg, type="info"){
+      const box = document.createElement("div");
+      box.className = "glass glass-mid px-4 py-3 text-sm max-w-[340px]";
+      box.style.borderRadius = "20px";
+      box.style.borderColor = type === "error" ? "rgba(255,80,80,.35)" : "rgba(247,211,123,.25)";
+      box.innerHTML = `<div class="font-semibold">${escapeHtml(msg)}</div>`;
+      $("#toasts").appendChild(box);
+      setTimeout(()=> box.remove(), 2800);
+    }
+
+    function escapeHtml(s){
+      return String(s).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        toast("Copiado ✅");
+      }catch(e){
+        toast("No se pudo copiar. Selecciona y copia manual.", "error");
+      }
+    }
+
+    function fmtUSD(n){ return new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(n); }
+    function fmtETH(n){ return `${Number(n).toFixed(6)} ETH`; }
+
+    function uid(prefix="id"){
+      return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
+    }
+
+    function getQueryFlag(name){
+      const u = new URL(location.href);
+      return u.searchParams.get(name);
+    }
+
+    const MOCK_MODE = getQueryFlag("mock") === "1";
+
+    /***********************
+     * DATA: Products
+     ************************/
+    const PRODUCTS = [
+      {
+        sku: "EXP-1",
+        name: "Aurum Drift",
+        tier: "Vaultmind",
+        vibe: "Buy & Hold (conservador)",
+        desc: "Exposición simple a tendencia. Menos decisiones. Más disciplina.",
+        tags: ["buy&hold","trend"],
+        plans: [
+          { code:"DEMO", label:"Demo", priceUSD:20, blurb:"1 mes • 1 trade • lot mínimo" },
+          { code:"PRO",  label:"Pro",  priceUSD:200, blurb:"Full unlock • parámetros completos" }
+        ]
+      },
+      {
+        sku: "EXP-2",
+        name: "Dip Reclaimer",
+        tier: "Edgewalker",
+        vibe: "Buy & Hold + Recompra",
+        desc: "Entra con tendencia. Recompra estratégica si el precio cae.",
+        tags: ["recovery","re-entry"],
+        plans: [
+          { code:"DEMO", label:"Demo", priceUSD:20, blurb:"1 mes • 1 trade • lot mínimo" },
+          { code:"PRO",  label:"Pro",  priceUSD:200, blurb:"Recovery control • condiciones avanzadas" }
+        ]
+      },
+      {
+        sku: "EXP-3",
+        name: "Pyramid Protocol",
+        tier: "Overclock",
+        vibe: "Grid + Pyramiding (agresivo)",
+        desc: "Recuperación + expansión controlada. Solo para tolerancia alta.",
+        tags: ["grid","pyramiding"],
+        plans: [
+          { code:"DEMO", label:"Demo", priceUSD:20, blurb:"1 mes • 1 trade • lot mínimo" },
+          { code:"PRO",  label:"Pro",  priceUSD:200, blurb:"Grid + pyramiding • control granular" }
+        ]
+      },
+      {
+        sku: "EXP-4",
+        name: "Little Glitcher",
+        tier: "Operator",
+        vibe: "Multi-terminal management",
+        desc: "Gestiona tu paquete en varias terminales y estandariza despliegues.",
+        tags: ["ops","multi-terminal"],
+        plans: [
+          { code:"PRO", label:"Pro", priceUSD:100, blurb:"Toolkit • multi terminal workflow" }
+        ]
+      }
+    ];
+
+    const TIERS = {
+      Vaultmind:  { badge:"rgba(120,90,255,.22)", label:"Conservador"},
+      Edgewalker: { badge:"rgba(247,211,123,.22)", label:"Balanceado"},
+      Overclock:  { badge:"rgba(255,90,120,.18)", label:"Agresivo"},
+      Operator:   { badge:"rgba(180,220,255,.18)", label:"Tooling"}
+    };
+
+    /***********************
+     * STATE
+     ************************/
+    const store = {
+      cart: loadLS("eg_cart", []),  // [{sku, planCode, qty}]
+      survey: loadLS("eg_survey", null), // {exp,dd,horizon} or null
+      ui: loadLS("eg_ui", { reduceMotion: false, lowPower: false, dopamine: true }),
+      quote: null, // {quoteId, requiredWei, requiredEth, expiresAt}
+      payment: null // {status, downloadUrl, credentials, txHash}
+    };
+
+    function saveLS(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+    function loadLS(key, fallback){
+      try{ const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; }catch{ return fallback; }
+    }
+
+    function setCart(next){ store.cart = next; saveLS("eg_cart", next); renderCartCount(); }
+    function setSurvey(next){ store.survey = next; saveLS("eg_survey", next); }
+    function setUI(next){ store.ui = next; saveLS("eg_ui", next); applyMotionPrefs(); initParticles(); }
+
+    function renderCartCount(){
+      $("#cartCount").textContent = store.cart.reduce((a,i)=>a+(i.qty||1),0);
+    }
+
+    function getProduct(sku){ return PRODUCTS.find(p=>p.sku===sku); }
+    function getPlan(prod, code){ return prod.plans.find(p=>p.code===code); }
+
+    function cartLines(){
+      return store.cart.map(line=>{
+        const p = getProduct(line.sku);
+        const plan = getPlan(p, line.planCode);
+        return { ...line, product:p, plan, lineUSD: plan.priceUSD * (line.qty||1) };
+      });
+    }
+    function cartSubtotalUSD(){
+      return cartLines().reduce((a,l)=>a+l.lineUSD,0);
+    }
+
+    /***********************
+     * API (real or mock)
+     ************************/
+    const api = {
+      async quote(items){
+        if(MOCK_MODE){
+          // fake ETH price: 3000 USD
+          const subtotal = cartSubtotalUSD();
+          const ethUsd = 3000;
+          const requiredEth = subtotal / ethUsd;
+          return {
+            quoteId: uid("q"),
+            requiredWei: String(BigInt(Math.floor(requiredEth * 1e18))),
+            requiredEth,
+            expiresAt: Date.now() + 10*60*1000
+          };
         }
-        window.addEventListener('resize', resize);
-        resize();
+        const res = await fetch("/api/quote", {
+          method:"POST",
+          headers:{ "content-type":"application/json" },
+          body: JSON.stringify({ items })
+        });
+        if(!res.ok) throw new Error("Quote failed");
+        return await res.json();
+      },
 
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.x;
-            mouse.y = e.y;
+      async verify({quoteId,email,txHash,turnstileToken}){
+        if(MOCK_MODE){
+          // deterministic mock: if last hex char even -> PAID else PENDING once
+          const last = txHash?.slice(-1) || "0";
+          const even = parseInt(last, 16) % 2 === 0;
+          if(!store.payment || store.payment.status !== "PENDING_CONFIRMATION"){
+            return { status: "PENDING_CONFIRMATION" };
+          }
+          if(even){
+            return {
+              status: "PAID",
+              downloadUrl: "#/success",
+              credentials: "fuego-casa-azul-perro-sol-luna"
+            };
+          }
+          return { status:"UNDERPAID" };
+        }
+
+        const res = await fetch("/api/tx/verify", {
+          method:"POST",
+          headers:{ "content-type":"application/json" },
+          body: JSON.stringify({ quoteId, email, txHash, turnstileToken })
+        });
+        if(!res.ok) throw new Error("Verify failed");
+        return await res.json();
+      }
+    };
+
+    /***********************
+     * ROUTER
+     ************************/
+    const routes = {
+      "/home": renderHome,
+      "/exploits": renderExploits,
+      "/community": renderCommunity,
+      "/terms": renderTerms,
+      "/checkout": renderCheckout,
+      "/success": renderSuccess
+    };
+
+    function currentPath(){
+      const h = location.hash || "#/home";
+      const path = h.replace("#", "");
+      return path.startsWith("/") ? path : "/home";
+    }
+
+    function navigate(path){
+      location.hash = path;
+    }
+
+    window.addEventListener("hashchange", render);
+    document.addEventListener("DOMContentLoaded", () => {
+      renderCartCount();
+      applyMotionPrefs();
+      initParticles();
+      wireHeader();
+      render();
+    });
+
+    function render(){
+      const path = currentPath();
+      const base = path.split("?")[0];
+
+      // simple guards
+      if(base === "/checkout" && store.cart.length === 0){
+        toast("Tu carrito está vacío. Elige un glitch primero.", "error");
+        return navigate("/exploits");
+      }
+
+      const view = routes[base] || renderNotFound;
+      $("#app").innerHTML = view();
+      wireView(base);
+      highlightNav(base);
+      window.scrollTo({ top:0, behavior: store.ui.reduceMotion ? "auto" : "smooth" });
+    }
+
+    function highlightNav(base){
+      $$(".chip").forEach(a=>{
+        const href = a.getAttribute("href") || "";
+        const on = href === `#${base}` ? "1" : "0";
+        a.dataset.on = on;
+      });
+    }
+
+    /***********************
+     * VIEWS
+     ************************/
+    function renderHome(){
+      return `
+        <section class="glass glass-mid p-6 md:p-8">
+          <div class="flex flex-col md:flex-row gap-6 items-start md:items-center justify-between">
+            <div>
+              <div class="hfont text-3xl md:text-4xl font-black leading-tight">
+                Stop trading.<br/>Start printing.
+              </div>
+              <p class="mt-3 opacity-80 max-w-[62ch]">
+                Los mercados tienden a moverse con sesgos. El sistema está diseñado para jugar con tu mente:
+                te vende “control” mientras compra tu atención. Nosotros hacemos lo contrario:
+                <span class="text-[var(--gold)] font-semibold">glitches anti-sistema</span> para operar con reglas frías.
+              </p>
+
+              <div class="mt-5 flex flex-wrap gap-2">
+                <button class="btn btn-primary" id="ctaExplore">Ver Glitches</button>
+                <button class="btn btn-ghost" id="ctaSurvey">3-click Survey (opcional)</button>
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+                ${pill("Time-to-Value", "Explora primero. Paga al final.")}
+                ${pill("Crypto-native", "Wallet o Exchange. TxHash validado.")}
+                ${pill("Liquid glass UX", "Redondeado, suave, dopamínico.")}
+              </div>
+            </div>
+
+            <div class="w-full md:w-[360px] glass glass-weak p-5">
+              <div class="text-sm opacity-80">Quick start</div>
+              <div class="mt-2 text-sm leading-relaxed opacity-90">
+                1) Elige un glitch<br/>
+                2) Selecciona Demo/Pro<br/>
+                3) Checkout (wallet o manual)<br/>
+                4) Verifica TxHash → descarga
+              </div>
+              <div class="mt-4">
+                <a href="#/exploits" class="btn btn-primary w-full">Entrar al Arsenal</a>
+              </div>
+              <div class="mt-2 text-xs opacity-70">
+                * Actividad de alto riesgo. Lee términos antes de pagar.
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderExploits(){
+      const chips = [
+        {key:"all", label:"Todos"},
+        {key:"Vaultmind", label:"Vaultmind"},
+        {key:"Edgewalker", label:"Edgewalker"},
+        {key:"Overclock", label:"Overclock"},
+        {key:"Operator", label:"Operator"},
+      ];
+
+      return `
+        <section class="glass glass-mid p-6 md:p-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div class="hfont text-2xl md:text-3xl font-black">Glitches Arsenal</div>
+              <p class="mt-2 opacity-80 max-w-[70ch]">
+                Selecciona tu paquete. Mira la filosofía. Decide después.
+              </p>
+            </div>
+
+            <div class="flex flex-wrap gap-2" id="tierChips">
+              ${chips.map(c=>`<button class="chip" data-tier="${c.key}" type="button">${c.label}</button>`).join("")}
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" id="cards">
+            ${PRODUCTS.map(p=>exploitCard(p)).join("")}
+          </div>
+
+          <div class="mt-6 glass glass-weak p-4 text-xs opacity-80">
+            Disclaimer: Los resultados históricos no garantizan resultados futuros. Sin reembolsos. Mantén tu terminal/ejecutable activo para la gestión de la estrategia.
+          </div>
+        </section>
+      `;
+    }
+
+    function renderCommunity(){
+      return `
+        <section class="glass glass-mid p-6 md:p-8">
+          <div class="hfont text-2xl md:text-3xl font-black">Community</div>
+          <p class="mt-2 opacity-80 max-w-[70ch]">
+            Drops de inteligencia, guías de despliegue y configuraciones.
+            (Vista teaser — el acceso completo se activa post-compra.)
+          </p>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
+            ${pill("Intel Drops", "Configuraciones y parches de mercado.")}
+            ${pill("Deploy Guides", "Cómo instalar sin romper tu stack.")}
+            ${pill("Ops Rituals", "Disciplina, logs, y gestión de riesgo.")}
+          </div>
+
+          <div class="mt-6">
+            <a href="#/exploits" class="btn btn-primary">Volver a Glitches</a>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderTerms(){
+      return `
+        <section class="glass glass-mid p-6 md:p-8">
+          <div class="hfont text-2xl md:text-3xl font-black">Terms & Risk</div>
+
+          <div class="mt-4 space-y-3 opacity-85">
+            ${accordion("Actividad de alto riesgo", "Operar en mercados financieros implica riesgo de pérdida parcial o total del capital. Este software es una herramienta; no hay garantía de resultados.")}
+            ${accordion("No refunds", "Por tratarse de activos digitales y licencias, no hay reembolsos una vez entregado el acceso o el link de descarga.")}
+            ${accordion("Software must remain running", "Para operar y gestionar correctamente, tu terminal/plataforma debe permanecer activa durante la ejecución.")}
+            ${accordion("No financial advice", "Este contenido no constituye asesoría financiera.")}
+            ${accordion("Privacidad", "El email se usa para entrega y soporte del activo digital.")}
+          </div>
+
+          <div class="mt-6">
+            <a href="#/exploits" class="btn btn-primary">Entendido — ir al Arsenal</a>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderCheckout(){
+      const subtotal = cartSubtotalUSD();
+      const lines = cartLines();
+
+      return `
+        <section class="glass glass-mid p-6 md:p-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div class="hfont text-2xl md:text-3xl font-black">Checkout</div>
+              <p class="mt-2 opacity-80 max-w-[70ch]">Email requerido para entrega. Elige método: Wallet o pago manual desde Exchange.</p>
+            </div>
+            <div class="glass glass-weak px-4 py-3 text-sm">
+              <div class="opacity-70">Subtotal</div>
+              <div class="font-black text-lg">${fmtUSD(subtotal)}</div>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <div class="lg:col-span-3 glass glass-weak p-5">
+              <div class="font-bold">1) Email</div>
+              <input id="email" class="mt-2 w-full rounded-2xl px-4 py-3 bg-white/5 border border-white/10 outline-none focus:border-[var(--border)]"
+                     placeholder="tu@email.com" type="email" autocomplete="email" />
+
+              <div class="mt-5 font-bold">2) Método</div>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <button id="methodWallet" class="chip" data-on="1" type="button">Conectar Wallet</button>
+                <button id="methodManual" class="chip" data-on="0" type="button">Pago Manual (Exchange)</button>
+              </div>
+
+              <div class="mt-5 glass glass-mid p-4">
+                <div class="flex items-center justify-between gap-3">
+                  <div>
+                    <div class="text-xs opacity-70">Red</div>
+                    <div class="font-bold">${escapeHtml(CHAIN.name)}</div>
+                  </div>
+                  <div class="text-right">
+                    <div class="text-xs opacity-70">Destino</div>
+                    <div class="font-mono text-xs md:text-sm">${escapeHtml(DEST_WALLET)}</div>
+                  </div>
+                </div>
+
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <button id="btnCopyWallet" class="btn btn-ghost" type="button">Copiar address</button>
+                  <button id="btnQuote" class="btn btn-primary" type="button">Calcular monto ETH</button>
+                </div>
+
+                <div id="quoteBox" class="mt-4 hidden">
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="glass glass-weak p-3">
+                      <div class="text-xs opacity-70">Monto (ETH)</div>
+                      <div class="font-black" id="ethAmount">—</div>
+                      <button id="btnCopyAmount" class="mt-2 btn btn-ghost w-full" type="button">Copiar monto</button>
+                    </div>
+                    <div class="glass glass-weak p-3">
+                      <div class="text-xs opacity-70">Expira</div>
+                      <div class="font-black" id="quoteTTL">—</div>
+                      <div class="text-xs opacity-70 mt-1">Si expira, recalcula.</div>
+                    </div>
+                  </div>
+
+                  <div id="manualBox" class="mt-4 hidden">
+                    <div class="font-bold">Pago manual</div>
+                    <div class="mt-2 grid grid-cols-1 md:grid-cols-2 gap-3 items-start">
+                      <div class="glass glass-weak p-3">
+                        <div class="text-xs opacity-70">QR</div>
+                        <div id="qr" class="mt-2"></div>
+                      </div>
+                      <div class="glass glass-weak p-3">
+                        <div class="text-xs opacity-70">TxHash</div>
+                        <input id="txhash" class="mt-2 w-full rounded-2xl px-4 py-3 bg-white/5 border border-white/10 outline-none focus:border-[var(--border)] font-mono text-sm"
+                              placeholder="0x..." />
+                        <div class="mt-2 text-xs opacity-70">Formato: 0x + 64 hex chars</div>
+                        <button id="btnVerify" class="mt-3 btn btn-primary w-full" type="button">Verificar pago</button>
+                        <div class="mt-2 text-xs opacity-70">
+                          Si tarda, espera confirmaciones y reintenta (polling automático).
+                        </div>
+                        <div id="statusBox" class="mt-3 hidden glass glass-weak p-3 text-sm"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div id="walletBox" class="mt-4 hidden">
+                    <div class="font-bold">Wallet</div>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                      <button id="btnConnectWallet" class="btn btn-ghost" type="button">Conectar MetaMask</button>
+                      <button id="btnPayWallet" class="btn btn-primary" type="button" disabled>Pagar con Wallet</button>
+                    </div>
+                    <div class="mt-2 text-xs opacity-70" id="walletHint">
+                      Conecta tu wallet. Luego podrás enviar la transacción.
+                    </div>
+                    <div id="walletStatus" class="mt-3 hidden glass glass-weak p-3 text-sm"></div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div class="mt-4 text-xs opacity-80">
+                <label class="flex items-start gap-2">
+                  <input id="ack" type="checkbox" class="mt-1" />
+                  <span>Reconozco los <a href="#/terms" class="underline">términos y riesgos</a> (sin reembolsos).</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="lg:col-span-2 glass glass-weak p-5">
+              <div class="font-bold">Resumen</div>
+              <div class="mt-3 space-y-2">
+                ${lines.map(l=>`
+                  <div class="flex items-center justify-between gap-3">
+                    <div>
+                      <div class="font-semibold">${escapeHtml(l.product.name)} <span class="opacity-70">(${escapeHtml(l.plan.label)})</span></div>
+                      <div class="text-xs opacity-70">${escapeHtml(l.product.tier)} • ${escapeHtml(l.product.vibe)}</div>
+                    </div>
+                    <div class="font-bold">${fmtUSD(l.lineUSD)}</div>
+                  </div>
+                `).join("")}
+              </div>
+
+              <div class="mt-4 glass glass-mid p-4">
+                <div class="text-xs opacity-70">Soft Survey (opcional)</div>
+                <div class="mt-1 text-sm opacity-85">${store.survey ? "Completa ✅" : "No completada"}</div>
+                <button id="btnSurvey" class="mt-3 btn btn-ghost w-full" type="button">Responder (3 clics)</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderSuccess(){
+      const p = store.payment;
+      if(!p || p.status !== "PAID"){
+        return `
+          <section class="glass glass-mid p-6 md:p-8">
+            <div class="hfont text-2xl md:text-3xl font-black">Success</div>
+            <p class="mt-2 opacity-80">Aún no hay una compra confirmada en esta sesión.</p>
+            <div class="mt-6 flex gap-2">
+              <a href="#/exploits" class="btn btn-primary">Volver al Arsenal</a>
+              <a href="#/checkout" class="btn btn-ghost">Ir a Checkout</a>
+            </div>
+          </section>
+        `;
+      }
+
+      return `
+        <section class="glass glass-mid p-6 md:p-8">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <div class="hfont text-3xl md:text-4xl font-black">Paid ✅</div>
+              <p class="mt-2 opacity-80 max-w-[70ch]">Tu acceso está listo. Descarga ahora (link puede expirar) y guarda tus credenciales.</p>
+            </div>
+            <div class="glass glass-weak px-4 py-3 text-sm">
+              <div class="opacity-70">TxHash</div>
+              <div class="font-mono text-xs md:text-sm">${escapeHtml(maskTx(p.txHash || ""))}</div>
+            </div>
+          </div>
+
+          <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="glass glass-weak p-5">
+              <div class="font-bold">Download</div>
+              <div class="mt-2 text-xs opacity-70">Si el link expira, vuelve a verificar el pago.</div>
+              <div class="mt-3 flex gap-2 flex-wrap">
+                <a class="btn btn-primary" href="${escapeHtml(p.downloadUrl || "#")}" target="_blank" rel="noopener">Descargar paquete</a>
+              </div>
+            </div>
+            <div class="glass glass-weak p-5">
+              <div class="font-bold">Credenciales (6 words)</div>
+              <div class="mt-2 text-xs opacity-70">Guárdalas. No las compartas.</div>
+              <div class="mt-3 glass glass-mid p-4 rounded-3xl font-mono text-sm break-words" id="credsBox">${escapeHtml(p.credentials || "—")}</div>
+              <button id="btnCopyCreds" class="mt-3 btn btn-ghost w-full" type="button">Copiar credenciales</button>
+            </div>
+          </div>
+
+          <div class="mt-6 glass glass-weak p-4 text-xs opacity-80">
+            Nota operativa: mantén tu terminal/plataforma activa durante la ejecución. Actividad de alto riesgo, sin reembolsos.
+          </div>
+
+          <div class="mt-6 flex gap-2 flex-wrap">
+            <a href="#/exploits" class="btn btn-ghost">Volver al Arsenal</a>
+            <a href="#/community" class="btn btn-primary">Ir a Community</a>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderNotFound(){
+      return `
+        <section class="glass glass-mid p-6 md:p-8">
+          <div class="hfont text-2xl md:text-3xl font-black">404</div>
+          <p class="mt-2 opacity-80">Ruta no encontrada.</p>
+          <div class="mt-6">
+            <a href="#/home" class="btn btn-primary">Volver al Home</a>
+          </div>
+        </section>
+      `;
+    }
+
+    /***********************
+     * COMPONENTS
+     ************************/
+    function pill(title, body){
+      return `
+        <div class="glass glass-weak p-4">
+          <div class="font-bold">${escapeHtml(title)}</div>
+          <div class="text-sm opacity-80 mt-1">${escapeHtml(body)}</div>
+        </div>
+      `;
+    }
+
+    function accordion(title, body){
+      const id = uid("acc");
+      return `
+        <details class="glass glass-weak p-4 rounded-3xl">
+          <summary class="cursor-pointer font-bold">${escapeHtml(title)}</summary>
+          <div class="mt-2 text-sm opacity-85">${escapeHtml(body)}</div>
+        </details>
+      `;
+    }
+
+    function exploitCard(p){
+      const tier = TIERS[p.tier] || { badge:"rgba(255,255,255,.12)", label:"" };
+      return `
+        <div class="glass glass-weak p-5">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <div class="hfont text-xl font-black">${escapeHtml(p.name)}</div>
+              <div class="mt-1 text-sm opacity-80">${escapeHtml(p.vibe)}</div>
+            </div>
+            <div class="px-3 py-1 rounded-full text-xs font-black" style="background:${tier.badge}; border:1px solid rgba(255,255,255,.10);">
+              ${escapeHtml(p.tier)}
+            </div>
+          </div>
+
+          <p class="mt-3 text-sm opacity-85">${escapeHtml(p.desc)}</p>
+
+          <div class="mt-3 flex flex-wrap gap-2">
+            ${p.tags.map(t=>`<span class="text-xs opacity-70 px-3 py-1 rounded-full bg-white/5 border border-white/10">#${escapeHtml(t)}</span>`).join("")}
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 gap-2">
+            ${p.plans.map(pl=>`
+              <button class="btn btn-primary w-full" data-add="${p.sku}:${pl.code}" type="button">
+                ${escapeHtml(pl.label)} • ${fmtUSD(pl.priceUSD)}
+                <span class="text-xs opacity-80 font-semibold">— ${escapeHtml(pl.blurb)}</span>
+              </button>
+            `).join("")}
+            <button class="btn btn-ghost w-full" data-detail="${p.sku}" type="button">Ver detalle</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function maskTx(tx){
+      if(!tx || tx.length < 14) return tx || "—";
+      return `${tx.slice(0,8)}…${tx.slice(-6)}`;
+    }
+
+    /***********************
+     * WIRES
+     ************************/
+    function wireHeader(){
+      $("#btnCart").addEventListener("click", () => openCart());
+      $("#btnSettings").addEventListener("click", () => openSettings());
+    }
+
+    function wireView(base){
+      if(base === "/home"){
+        $("#ctaExplore")?.addEventListener("click", ()=> navigate("/exploits"));
+        $("#ctaSurvey")?.addEventListener("click", ()=> openSurvey());
+      }
+
+      if(base === "/exploits"){
+        // tier chips
+        const chips = $("#tierChips");
+        chips?.addEventListener("click", (e)=>{
+          const btn = e.target.closest("[data-tier]");
+          if(!btn) return;
+          const tier = btn.dataset.tier;
+          $$("#tierChips .chip").forEach(x=> x.dataset.on = (x===btn ? "1":"0"));
+          const filtered = tier==="all" ? PRODUCTS : PRODUCTS.filter(p=>p.tier===tier);
+          $("#cards").innerHTML = filtered.map(exploitCard).join("");
         });
 
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 2 + 1;
-                this.speedX = (Math.random() - 0.5) * 0.4;
-                this.speedY = (Math.random() - 0.5) * 0.4;
-            }
-            update() {
-                this.x += this.speedX;
-                this.y += this.speedY;
+        // add + detail
+        $("#app").addEventListener("click", (e)=>{
+          const add = e.target.closest("[data-add]");
+          const det = e.target.closest("[data-detail]");
+          if(add){
+            const [sku, planCode] = add.dataset.add.split(":");
+            addToCart(sku, planCode);
+            toast("Agregado al carrito ✅");
+            openCart();
+          }
+          if(det){
+            const sku = det.dataset.detail;
+            openExploitDetail(sku);
+          }
+        });
+      }
 
-                // Repel from mouse
-                if (mouse.x && mouse.y) {
-                    let dx = mouse.x - this.x;
-                    let dy = mouse.y - this.y;
-                    let distance = Math.sqrt(dx*dx + dy*dy);
-                    if (distance < 120) {
-                        this.x -= dx * 0.01;
-                        this.y -= dy * 0.01;
-                    }
-                }
+      if(base === "/checkout"){
+        $("#btnCopyWallet")?.addEventListener("click", ()=> copyText(DEST_WALLET));
+        $("#btnSurvey")?.addEventListener("click", ()=> openSurvey());
 
-                if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
-                if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+        let method = "wallet";
+        const setMethod = (m)=>{
+          method = m;
+          $("#methodWallet").dataset.on = m==="wallet" ? "1" : "0";
+          $("#methodManual").dataset.on = m==="manual" ? "1" : "0";
+          $("#walletBox").classList.toggle("hidden", m!=="wallet");
+          $("#manualBox").classList.toggle("hidden", m!=="manual");
+        };
+
+        $("#methodWallet")?.addEventListener("click", ()=> setMethod("wallet"));
+        $("#methodManual")?.addEventListener("click", ()=> setMethod("manual"));
+
+        $("#btnQuote")?.addEventListener("click", async ()=>{
+          try{
+            if(!$("#ack").checked){
+              toast("Debes aceptar términos antes de continuar.", "error");
+              return;
             }
-            draw() {
-                ctx.fillStyle = '#D4AF37';
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
+            const items = store.cart.map(i=>({ sku:i.sku, planCode:i.planCode, qty:i.qty||1 }));
+            const q = await api.quote(items);
+            store.quote = q;
+
+            $("#quoteBox").classList.remove("hidden");
+            $("#ethAmount").textContent = fmtETH(q.requiredEth);
+            $("#btnCopyAmount").onclick = ()=> copyText(String(q.requiredEth));
+            startTTL();
+            // show method boxes
+            setMethod(method);
+            $("#walletBox").classList.toggle("hidden", method!=="wallet");
+            $("#manualBox").classList.toggle("hidden", method!=="manual");
+
+            if(method==="manual"){
+              buildQR();
             }
+            initWalletUI();
+          }catch(err){
+            toast("No se pudo calcular el monto ETH.", "error");
+          }
+        });
+
+        function startTTL(){
+          const tick = ()=>{
+            if(!store.quote) return;
+            const ms = store.quote.expiresAt - Date.now();
+            if(ms <= 0){
+              $("#quoteTTL").textContent = "Expirado";
+              toast("Quote expiró. Recalcula monto ETH.", "error");
+              store.quote = null;
+              $("#quoteBox").classList.add("hidden");
+              return;
+            }
+            const m = Math.floor(ms/60000);
+            const s = Math.floor((ms%60000)/1000);
+            $("#quoteTTL").textContent = `${m}:${String(s).padStart(2,"0")}`;
+            requestAnimationFrame(()=> setTimeout(tick, 500));
+          };
+          tick();
         }
 
-        function initCanvas() {
-            const count = window.innerWidth < 768 ? 60 : 150;
-            for (let i = 0; i < count; i++) particles.push(new Particle());
+        function buildQR(){
+          const q = store.quote;
+          if(!q) return;
+          const el = $("#qr");
+          el.innerHTML = "";
+          const text = `${DEST_WALLET}`;
+          new QRCode(el, { text, width: 160, height: 160 });
         }
 
-        function animateCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach((p, i) => {
-                p.update();
-                p.draw();
-                
-                // Draw connections
-                for (let j = i; j < particles.length; j++) {
-                    const dx = p.x - particles[j].x;
-                    const dy = p.y - particles[j].y;
-                    const dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < 100) {
-                        ctx.strokeStyle = `rgba(212, 175, 55, ${0.2 - dist/500})`;
-                        ctx.lineWidth = 0.5;
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                        ctx.lineTo(particles[j].x, particles[j].y);
-                        ctx.stroke();
-                    }
-                }
+        async function verifyOnce(){
+          const email = $("#email").value.trim();
+          const txHash = $("#txhash").value.trim();
+          if(!email || !email.includes("@")){
+            toast("Email inválido.", "error"); return;
+          }
+          const re = /^0x[a-fA-F0-9]{64}$/;
+          if(!re.test(txHash)){
+            toast("TxHash inválido. Revisa el formato.", "error"); return;
+          }
+          if(!store.quote){
+            toast("Primero calcula el monto ETH.", "error"); return;
+          }
+
+          $("#statusBox").classList.remove("hidden");
+          $("#statusBox").textContent = "Checking…";
+
+          try{
+            const r = await api.verify({
+              quoteId: store.quote.quoteId,
+              email,
+              txHash,
+              turnstileToken: null
             });
-            requestAnimationFrame(animateCanvas);
-        }
-        initCanvas();
-        animateCanvas();
 
-        // --- TICKET-003: Dynamic Product Grid ---
-        const botInventory = [
-            { id: 1, name: "Glitch 1.0", icon: "🧛", desc: "Specialized in pre-market volume spikes. Extracts liquidity during the London Open volatility window.", linkDemo: "#", linkFull: "#" },
-            { id: 2, name: "Glitch 2.0 ", icon: "✋", desc: "Trend-following logic with a 78% historical win rate. Capitalizes on sustained XAUUSD momentum.", linkDemo: "#", linkFull: "#" },
-            { id: 3, name: "little Glitcher", icon: "🖨️", desc: "Your own copy trading bot for your glitches.", linkDemo: "#", linkFull: "#" },
-            { id: 4, name: "Glitch 3.0 ", icon: "🕯️", desc: "Inert logic. Activates only during institutional liquidity injections. Zero-lag entry.", linkDemo: "#", linkFull: "#" },
-            { id: 5, name: "Glitch 4.0", icon: "⚖️", desc: "Event-driven architecture. Designed to navigate high-impact news folders and volatility.", linkDemo: "#", linkFull: "#" },
-            { id: 6, name: "Glitch 5.0", icon: "🎯", desc: "Executes orders inside the broker's spread. Invisible to liquidity providers.", linkDemo: "#", linkFull: "#" },
-            { id: 7, name: "Glitch 6.0", icon: "🏛️", desc: "Correlation arbitrage. Buys and Sells simultaneously to lock in profit via mathematical hedging.", linkDemo: "#", linkFull: "#" },
-            { id: 8, name: "Glitch 7.0", icon: "🏎️", desc: "Asian Session specialist. Exploits low-volatility ranging markets for consistent yield.", linkDemo: "#", linkFull: "#" },
-            { id: 9, name: "Glitch 8.0", icon: "🐕", desc: "Recovery algorithm. Designed to manage drawdown through martingale adaptation.", linkDemo: "#", linkFull: "#" },
-            { id: 10, name: "Glitch 9.0", icon: "🐋", desc: "Volume profile analysis. Detects institutional block orders and piggybacks direction.", linkDemo: "#", linkFull: "#" }
-        ];
+            store.payment = { status: r.status, downloadUrl: r.downloadUrl, credentials: r.credentials, txHash };
+            renderStatus(r.status);
 
-        function renderArsenal() {
-            const grid = document.getElementById('arsenal-grid');
-            grid.innerHTML = botInventory.map(bot => `
-                <div class="glass-card p-10 rounded-sm flex flex-col justify-between">
-                    <div>
-                        <div class="text-3xl mb-6">${bot.icon}</div>
-                        <h3 class="serif text-lg mb-4 text-white font-bold tracking-widest">${bot.name}</h3>
-                        <p class="text-zinc-500 text-[11px] leading-relaxed italic mb-10">${bot.desc}</p>
-                    </div>
-                    <div class="space-y-4">
-                        <div class="flex justify-between items-center mb-4">
-                            <span class="text-[9px] uppercase tracking-widest text-zinc-500">Validation Access</span>
-                            <span class="text-white font-bold">$10</span>
-                        </div>
-                        <div class="flex justify-between items-center mb-6">
-                            <span class="text-[9px] uppercase tracking-widest text-gold-primary">Sovereign License</span>
-                            <span class="text-gold-primary font-bold">$100</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button class="border border-zinc-800 py-3 text-[8px] font-bold uppercase tracking-widest hover:bg-white/5 transition btn-action">Try ($10)</button>
-                            <button class="btn-gold-sheen py-3 text-[8px] font-bold uppercase tracking-widest btn-action">Full ($100)</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-        renderArsenal();
-
-        // --- Navigation ---
-        function showModule(id) {
-            document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if(r.status === "PAID"){
+              dopamineSuccess();
+              navigate("/success");
+            }
+            return r.status;
+          }catch(e){
+            renderStatus("FAILED");
+            return "FAILED";
+          }
         }
 
-        // --- TICKET-004: Live Ledger Engine ---
-        const ledgerEl = document.getElementById('live-ledger');
-        const ledgerText = document.getElementById('ledger-text');
-        const ledgerItems = [
-            "🟢 New Node Active: London, UK",
-            "⚡ Liquidity Extracted: $840.50 (UID: 882)",
-            "💎 License Distributed: The Midas Algorithm",
-            "🟢 New Node Active: Dubai, UAE",
-            "⚡ Liquidity Extracted: $1,240.00 (UID: 104)",
-            "💎 License Distributed: Quantum Printer",
-            "🟢 New Node Active: Zurich, CH"
-        ];
-
-        function triggerLedger() {
-            const item = ledgerItems[Math.floor(Math.random() * ledgerItems.length)];
-            ledgerText.innerText = item;
-            ledgerEl.classList.add('active');
-            setTimeout(() => ledgerEl.classList.remove('active'), 5000);
+        function renderStatus(status){
+          const map = {
+            "PENDING_CONFIRMATION": "Pendiente de confirmación… seguimos verificando.",
+            "PAID": "Pago confirmado ✅",
+            "UNDERPAID": "Monto insuficiente (UNDERPAID).",
+            "WRONG_DESTINATION": "Destino incorrecto (WRONG_DESTINATION).",
+            "ALREADY_USED": "TxHash ya fue usado (ALREADY_USED).",
+            "NOT_FOUND_OR_WRONG_CHAIN": "Tx no encontrada o red incorrecta.",
+            "FAILED": "Falló la verificación. Intenta de nuevo."
+          };
+          $("#statusBox").textContent = map[status] || `Estado: ${status}`;
         }
 
-        setInterval(() => {
-            if (Math.random() > 0.6) triggerLedger();
-        }, 12000);
-        setTimeout(triggerLedger, 3000);
-    </script>
+        let polling = null;
+        $("#btnVerify")?.addEventListener("click", async ()=>{
+          const st = await verifyOnce();
+          if(st === "PENDING_CONFIRMATION"){
+            if(polling) clearInterval(polling);
+            let tries = 0;
+            polling = setInterval(async ()=>{
+              tries++;
+              if(tries > 20){ clearInterval(polling); polling=null; toast("Sigue pendiente. Intenta más tarde.", "error"); return; }
+              const st2 = await verifyOnce();
+              if(st2 !== "PENDING_CONFIRMATION"){ clearInterval(polling); polling=null; }
+            }, 30000);
+          }
+        });
+
+        // Wallet UI (MetaMask)
+        let connectedAccount = null;
+
+        async function initWalletUI(){
+          const box = $("#walletStatus");
+          const hint = $("#walletHint");
+          const btnPay = $("#btnPayWallet");
+          const btnConnect = $("#btnConnectWallet");
+
+          if(!box || !hint || !btnPay || !btnConnect) return;
+          $("#walletBox").classList.remove("hidden");
+
+          const hasProvider = !!window.ethereum;
+          if(!hasProvider){
+            hint.textContent = "No se detectó wallet en el navegador. Usa pago manual.";
+            btnConnect.disabled = true;
+            btnPay.disabled = true;
+            return;
+          }
+
+          btnConnect.onclick = async ()=>{
+            try{
+              const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+              connectedAccount = accounts?.[0] || null;
+              box.classList.remove("hidden");
+              box.textContent = connectedAccount ? `Wallet conectada: ${maskTx(connectedAccount)}` : "No se pudo conectar.";
+              btnPay.disabled = !connectedAccount || !store.quote;
+              hint.textContent = "Listo. Puedes pagar con Wallet.";
+            }catch(e){
+              toast("Conexión rechazada.", "error");
+            }
+          };
+
+          btnPay.onclick = async ()=>{
+            try{
+              if(!connectedAccount) return toast("Conecta wallet primero.", "error");
+              const email = $("#email").value.trim();
+              if(!email || !email.includes("@")) return toast("Email inválido.", "error");
+              if(!$("#ack").checked) return toast("Acepta términos.", "error");
+              if(!store.quote) return toast("Calcula monto ETH.", "error");
+
+              const valueHex = "0x" + BigInt(store.quote.requiredWei).toString(16);
+
+              // Nota: En MVP asumimos que el usuario ya está en la red correcta
+              const txParams = [{
+                from: connectedAccount,
+                to: DEST_WALLET,
+                value: valueHex
+              }];
+
+              const txHash = await window.ethereum.request({ method:"eth_sendTransaction", params: txParams });
+              toast("Tx enviada. Verificando…");
+
+              // Mostrar el hash y validar
+              $("#methodManual").click();
+              $("#quoteBox").classList.remove("hidden");
+              $("#manualBox").classList.remove("hidden");
+              $("#txhash").value = txHash;
+
+              await $("#btnVerify").click();
+            }catch(e){
+              toast("Pago cancelado o falló.", "error");
+            }
+          };
+        }
+      }
+
+      if(base === "/success"){
+        $("#btnCopyCreds")?.addEventListener("click", ()=> copyText(store.payment?.credentials || ""));
+      }
+    }
+
+    /***********************
+     * CART + MODALS
+     ************************/
+    const dlg = $("#dlg");
+    const dlgTitle = $("#dlgTitle");
+    const dlgBody = $("#dlgBody");
+    $("#dlgClose").addEventListener("click", ()=> dlg.close());
+
+    function openModal(title, html){
+      dlgTitle.textContent = title;
+      dlgBody.innerHTML = html;
+      dlg.showModal();
+    }
+
+    function addToCart(sku, planCode){
+      const found = store.cart.find(i=> i.sku===sku && i.planCode===planCode);
+      if(found) found.qty = (found.qty||1)+1;
+      else store.cart.push({ sku, planCode, qty:1 });
+      setCart([...store.cart]);
+    }
+
+    function removeFromCart(sku, planCode){
+      setCart(store.cart.filter(i=> !(i.sku===sku && i.planCode===planCode)));
+    }
+
+    function openCart(){
+      const lines = cartLines();
+      const subtotal = cartSubtotalUSD();
+
+      openModal("Carrito", `
+        <div class="space-y-3">
+          ${lines.length ? lines.map(l=>`
+            <div class="glass glass-weak p-4 flex items-start justify-between gap-3">
+              <div>
+                <div class="font-bold">${escapeHtml(l.product.name)} <span class="opacity-70">(${escapeHtml(l.plan.label)})</span></div>
+                <div class="text-xs opacity-70">${escapeHtml(l.product.tier)} • ${escapeHtml(l.product.vibe)}</div>
+                <div class="text-sm font-black mt-1">${fmtUSD(l.lineUSD)}</div>
+              </div>
+              <button class="btn btn-ghost" data-remove="${l.sku}:${l.planCode}" type="button">Eliminar</button>
+            </div>
+          `).join("") : `<div class="opacity-80">Tu carrito está vacío.</div>`}
+
+          <div class="glass glass-mid p-4 flex items-center justify-between">
+            <div class="opacity-80">Subtotal</div>
+            <div class="font-black text-lg">${fmtUSD(subtotal)}</div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <a class="btn btn-primary ${lines.length? '' : 'pointer-events-none opacity-50'}" href="#/checkout">Ir a Checkout</a>
+            <button class="btn btn-ghost" id="btnClearCart" type="button">Vaciar</button>
+          </div>
+        </div>
+      `);
+
+      dlgBody.addEventListener("click", (e)=>{
+        const rm = e.target.closest("[data-remove]");
+        if(rm){
+          const [sku, plan] = rm.dataset.remove.split(":");
+          removeFromCart(sku, plan);
+          dlg.close();
+          openCart();
+        }
+      }, { once:true });
+
+      $("#btnClearCart")?.addEventListener("click", ()=>{
+        setCart([]);
+        dlg.close();
+        toast("Carrito vacío.");
+      });
+    }
+
+    function openExploitDetail(sku){
+      const p = getProduct(sku);
+      const tier = TIERS[p.tier] || { label:"" };
+
+      openModal(p.name, `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="glass glass-weak p-4">
+            <div class="text-xs opacity-70">Backtest (placeholder)</div>
+            <div class="mt-2 h-40 rounded-3xl bg-white/5 border border-white/10 grid place-items-center opacity-80">
+              Inserta aquí imagen/mini chart
+            </div>
+            <div class="mt-3 text-xs opacity-70">Tier: <span class="font-bold">${escapeHtml(p.tier)}</span> (${escapeHtml(tier.label)})</div>
+          </div>
+          <div class="glass glass-weak p-4">
+            <div class="font-bold">${escapeHtml(p.vibe)}</div>
+            <p class="mt-2 text-sm opacity-85">${escapeHtml(p.desc)}</p>
+
+            <div class="mt-3 text-xs opacity-70">
+              Disclaimer: Alto riesgo. Sin reembolsos. Mantén tu terminal activa durante la ejecución.
+            </div>
+
+            <div class="mt-4 space-y-2">
+              ${p.plans.map(pl=>`
+                <button class="btn btn-primary w-full" data-add="${p.sku}:${pl.code}" type="button">
+                  ${escapeHtml(pl.label)} • ${fmtUSD(pl.priceUSD)}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      `);
+
+      dlgBody.addEventListener("click", (e)=>{
+        const add = e.target.closest("[data-add]");
+        if(add){
+          const [s, plan] = add.dataset.add.split(":");
+          addToCart(s, plan);
+          toast("Agregado al carrito ✅");
+          dlg.close();
+          openCart();
+        }
+      }, { once:true });
+    }
+
+    function openSurvey(){
+      const s = store.survey || { exp:null, dd:null, horizon:null };
+
+      openModal("Soft Survey (3 clics)", `
+        <div class="space-y-4">
+          <div class="glass glass-weak p-4">
+            <div class="font-bold">1) Experiencia</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${["New","Intermediate","Pro"].map(v=>`<button class="chip" data-s="exp" data-v="${v}" data-on="${s.exp===v?1:0}" type="button">${v}</button>`).join("")}
+            </div>
+          </div>
+
+          <div class="glass glass-weak p-4">
+            <div class="font-bold">2) Drawdown tolerance</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${["Low","Medium","High"].map(v=>`<button class="chip" data-s="dd" data-v="${v}" data-on="${s.dd===v?1:0}" type="button">${v}</button>`).join("")}
+            </div>
+          </div>
+
+          <div class="glass glass-weak p-4">
+            <div class="font-bold">3) Horizonte</div>
+            <div class="mt-2 flex flex-wrap gap-2">
+              ${["Weeks","Months","Long"].map(v=>`<button class="chip" data-s="horizon" data-v="${v}" data-on="${s.horizon===v?1:0}" type="button">${v}</button>`).join("")}
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button class="btn btn-primary" id="surveySave" type="button">Guardar</button>
+            <button class="btn btn-ghost" id="surveySkip" type="button">Saltar</button>
+          </div>
+        </div>
+      `);
+
+      dlgBody.addEventListener("click", (e)=>{
+        const b = e.target.closest("[data-s]");
+        if(!b) return;
+        const k = b.dataset.s;
+        const v = b.dataset.v;
+        s[k] = v;
+        $$(\`[data-s="\${k}"]\`, dlgBody).forEach(x=> x.dataset.on = (x.dataset.v===v ? "1":"0"));
+      });
+
+      $("#surveySave")?.addEventListener("click", ()=>{
+        setSurvey(s);
+        toast("Survey guardada ✅");
+        dlg.close();
+      });
+
+      $("#surveySkip")?.addEventListener("click", ()=>{
+        setSurvey(null);
+        toast("Survey omitida.");
+        dlg.close();
+      });
+    }
+
+    function openSettings(){
+      openModal("Settings", `
+        <div class="space-y-3">
+          ${toggleRow("Reduce motion", "uiReduce", store.ui.reduceMotion)}
+          ${toggleRow("Low power particles", "uiLow", store.ui.lowPower)}
+          ${toggleRow("Dopamine FX", "uiDopa", store.ui.dopamine)}
+          <div class="text-xs opacity-70">
+            * Si tu sistema tiene Reduce Motion activado, lo respetamos automáticamente.
+          </div>
+        </div>
+      `);
+
+      $("#uiReduce").addEventListener("change", (e)=> setUI({ ...store.ui, reduceMotion: e.target.checked }));
+      $("#uiLow").addEventListener("change", (e)=> setUI({ ...store.ui, lowPower: e.target.checked }));
+      $("#uiDopa").addEventListener("change", (e)=> setUI({ ...store.ui, dopamine: e.target.checked }));
+    }
+
+    function toggleRow(label, id, on){
+      return `
+        <label class="glass glass-weak p-4 flex items-center justify-between gap-4 cursor-pointer">
+          <span class="font-bold">${escapeHtml(label)}</span>
+          <input id="${escapeHtml(id)}" type="checkbox" ${on?"checked":""} />
+        </label>
+      `;
+    }
+
+    /***********************
+     * PARTICLES (dopamine)
+     ************************/
+    function applyMotionPrefs(){
+      const sysReduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if(sysReduce && !store.ui.reduceMotion){
+        store.ui.reduceMotion = true;
+        saveLS("eg_ui", store.ui);
+      }
+    }
+
+    let particlesReady = false;
+
+    async function initParticles(){
+      if(!window.tsParticles) return;
+
+      // If reduce motion, keep minimal
+      const reduce = store.ui.reduceMotion;
+      const low = store.ui.lowPower;
+
+      if(reduce){
+        try{
+          await window.tsParticles.load("particles", minimalParticles());
+          particlesReady = true;
+        }catch{}
+        return;
+      }
+
+      try{
+        await window.tsParticles.load("particles", dopamineParticles({ low, dopamine: store.ui.dopamine }));
+        particlesReady = true;
+      }catch{}
+    }
+
+    function minimalParticles(){
+      return {
+        background: { color: "transparent" },
+        fpsLimit: 30,
+        particles: {
+          number: { value: 18, density: { enable: true, area: 900 } },
+          color: { value: ["#f7d37b","#bdb7ff"] },
+          links: { enable: true, distance: 140, opacity: 0.12 },
+          move: { enable: true, speed: 0.5 },
+          opacity: { value: 0.18 },
+          size: { value: { min: 1, max: 2 } }
+        }
+      };
+    }
+
+    function dopamineParticles({ low, dopamine }){
+      const count = low ? 46 : 82;
+      return {
+        background: { color: "transparent" },
+        fpsLimit: low ? 45 : 60,
+        detectRetina: true,
+        particles: {
+          number: { value: count, density: { enable: true, area: 900 } },
+          color: { value: ["#f7d37b","#c9c3ff","#ffffff"] },
+          opacity: { value: { min: 0.08, max: 0.26 } },
+          size: { value: { min: 1, max: 3 } },
+          links: { enable: true, distance: 150, opacity: 0.16, width: 1 },
+          move: { enable: true, speed: low ? 0.7 : 1.05, outModes: { default: "out" } }
+        },
+        interactivity: {
+          events: {
+            onHover: { enable: true, mode: "attract" },
+            onClick: { enable: dopamine, mode: "push" },
+            resize: true
+          },
+          modes: {
+            attract: { distance: 180, duration: 0.2, factor: 2 },
+            push: { quantity: low ? 2 : 4 }
+          }
+        }
+      };
+    }
+
+    // A tiny dopamine bump on success
+    function dopamineSuccess(){
+      if(store.ui.reduceMotion || !store.ui.dopamine) return;
+      // For simplicity: short toast + rely on particles click push effect
+      toast("Unlocked ✅");
+    }
+  </script>
 </body>
 </html>
