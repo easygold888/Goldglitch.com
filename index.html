@@ -552,7 +552,7 @@
 
     async function loadAddress(){
       try{
-        const r = await fetch("/assets/address.txt", { cache:"no-store" });
+        const r = await fetch("assets/address.txt", { cache:"no-store" });
         const t = (await r.text()).trim();
 
         // protect against HTML (wrong path / fallback)
