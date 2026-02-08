@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,21 +11,20 @@
 
   <style>
     :root{
-      --bg0:#05060b;
-      --bg1:#0a0c14;
-      --ink:#e7e7ea;
-      --muted:#a9a9b3;
+      --bg0:#04050a;
+      --bg1:#070912;
+      --ink:#ececf0;
+      --muted:#a7a8b3;
 
       --gold0:#f6e7b3;
       --gold1:#d8b86a;
-      --gold2:#a8842f;
+      --gold2:#8f6b1f;
 
       --glass: rgba(255,255,255,.06);
-      --glass2: rgba(255,255,255,.09);
       --stroke: rgba(255,255,255,.10);
-      --stroke2: rgba(216,184,106,.20);
+      --strokeGold: rgba(216,184,106,.28);
 
-      --shadow: 0 20px 70px rgba(0,0,0,.55);
+      --shadow: 0 22px 80px rgba(0,0,0,.60);
       --r: 22px;
     }
 
@@ -36,29 +35,17 @@
       color:var(--ink);
       font-family:"Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       background:
-        radial-gradient(1000px 700px at 20% 10%, rgba(216,184,106,.10), transparent 60%),
-        radial-gradient(900px 700px at 85% 20%, rgba(122,90,255,.10), transparent 55%),
-        radial-gradient(1100px 900px at 50% 110%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(1000px 700px at 20% 10%, rgba(216,184,106,.10), transparent 62%),
+        radial-gradient(900px 700px at 85% 20%, rgba(120,95,255,.10), transparent 58%),
+        radial-gradient(1100px 900px at 50% 110%, rgba(255,255,255,.05), transparent 65%),
         linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
     }
 
-    /* Particles canvas (NO negociable) */
-    #fx{
-      position:fixed;
-      inset:0;
-      width:100%;
-      height:100%;
-      z-index:0;
-      pointer-events:none;
-    }
+    /* Particles canvas */
+    #fx{ position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
 
-    /* App layers above particles */
-    .shell{
-      position:relative;
-      z-index:1;
-      min-height:100%;
-    }
+    .shell{ position:relative; z-index:1; min-height:100%; }
 
     .topbar{
       position:fixed;
@@ -66,7 +53,7 @@
       left:50%;
       transform:translateX(-50%);
       width:min(1180px, calc(100% - 28px));
-      z-index:5;
+      z-index:10;
 
       display:flex;
       align-items:center;
@@ -74,7 +61,7 @@
       gap:14px;
 
       padding:14px 16px;
-      border-radius: calc(var(--r) + 10px);
+      border-radius: calc(var(--r) + 12px);
       background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       border:1px solid rgba(255,255,255,.10);
       box-shadow: var(--shadow);
@@ -87,26 +74,32 @@
       align-items:center;
       gap:12px;
       min-width:260px;
+      cursor:pointer;
+      user-select:none;
     }
-    .mark{
-      width:34px;height:34px;border-radius:14px;
-      background: radial-gradient(circle at 30% 30%, var(--gold0), var(--gold1));
-      box-shadow: 0 0 24px rgba(216,184,106,.25);
-      position:relative;
-    }
-    .mark:after{
-      content:"";
-      position:absolute; inset:8px;
-      border-radius:10px;
-      background:rgba(0,0,0,.25);
+
+    .logoWrap{
+      width:38px;height:38px;
+      border-radius:16px;
       border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+      box-shadow: 0 0 28px rgba(216,184,106,.18);
+    }
+    .logoWrap img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      filter: saturate(1.05) contrast(1.05);
     }
 
     .brand h1{
       margin:0;
       font-family:"Cinzel", serif;
       letter-spacing:.06em;
-      font-size:16px;
+      font-size:15px;
       line-height:1.1;
     }
     .brand p{
@@ -130,7 +123,7 @@
       padding:10px 14px;
       border-radius:999px;
       font-size:12px;
-      letter-spacing:.10em;
+      letter-spacing:.12em;
       text-transform:uppercase;
       cursor:pointer;
       transition:transform .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
@@ -161,8 +154,6 @@
       border-radius:16px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.22);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
       cursor:pointer;
       display:grid;
       place-items:center;
@@ -207,21 +198,21 @@
     .glass:before{
       content:"";
       position:absolute; inset:-2px;
-      background: radial-gradient(600px 220px at 20% 0%, rgba(216,184,106,.20), transparent 60%),
-                  radial-gradient(500px 220px at 90% 10%, rgba(255,255,255,.10), transparent 60%);
+      background: radial-gradient(650px 240px at 18% 0%, rgba(216,184,106,.18), transparent 62%),
+                  radial-gradient(520px 240px at 92% 12%, rgba(255,255,255,.08), transparent 60%);
       pointer-events:none;
-      opacity:.55;
+      opacity:.6;
       filter: blur(10px);
     }
     .inner{ position:relative; z-index:1; }
 
     .hero{
-      padding: 56px 28px;
+      padding: 54px 28px;
       text-align:center;
     }
     .kicker{
       color: var(--muted);
-      letter-spacing:.28em;
+      letter-spacing:.30em;
       text-transform:uppercase;
       font-size:12px;
     }
@@ -229,7 +220,7 @@
       margin:16px 0 10px;
       font-family:"Cinzel", serif;
       font-weight:800;
-      font-size: clamp(34px, 5.6vw, 76px);
+      font-size: clamp(34px, 5.6vw, 74px);
       letter-spacing:.02em;
       line-height:1.02;
     }
@@ -242,14 +233,14 @@
     }
     .sub{
       margin: 0 auto;
-      max-width: 880px;
+      max-width: 760px;
       color: var(--muted);
-      font-size: 16px;
-      line-height: 1.6;
+      font-size: 15px;
+      line-height: 1.55;
     }
 
     .ctaRow{
-      margin-top: 26px;
+      margin-top: 22px;
       display:flex;
       gap:12px;
       justify-content:center;
@@ -267,7 +258,7 @@
     }
     .btnPrimary{
       background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.22), transparent 45%),
-                  linear-gradient(180deg, rgba(216,184,106,.85), rgba(168,132,47,.85));
+                  linear-gradient(180deg, rgba(216,184,106,.88), rgba(143,107,31,.88));
       color:#0b0b10;
       box-shadow: 0 18px 40px rgba(216,184,106,.22);
     }
@@ -279,22 +270,13 @@
     }
     .btnGhost:hover{ transform: translateY(-1px); border-color: rgba(216,184,106,.35); background: rgba(255,255,255,.06); }
 
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 14px;
-      margin-top: 14px;
-    }
-    .card{
-      padding: 18px;
-    }
-    .col6{ grid-column: span 6; }
-    .col4{ grid-column: span 4; }
+    .grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap: 14px; margin-top: 14px; }
+    .card{ padding: 18px; }
     .col12{ grid-column: span 12; }
 
     .h{
       font-family:"Cinzel", serif;
-      margin:0 0 10px;
+      margin:0 0 8px;
       font-size: 18px;
       letter-spacing:.02em;
     }
@@ -361,13 +343,13 @@
       background: transparent;
     }
     dialog::backdrop{
-      background: rgba(0,0,0,.55);
-      backdrop-filter: blur(6px);
+      background: rgba(0,0,0,.60);
+      backdrop-filter: blur(7px);
     }
     .modal{
       border-radius: calc(var(--r) + 6px);
       border:1px solid rgba(255,255,255,.12);
-      background: linear-gradient(135deg, rgba(20,20,30,.88), rgba(10,10,16,.78));
+      background: linear-gradient(135deg, rgba(16,16,24,.92), rgba(8,8,14,.82));
       box-shadow: var(--shadow);
       overflow:hidden;
     }
@@ -393,33 +375,31 @@
     .modalBd{
       padding: 16px;
       display:grid;
-      grid-template-columns: 1.25fr .75fr;
+      grid-template-columns: 1.15fr .85fr;
       gap: 14px;
     }
+
     .chart{
-      height: 280px;
+      height: 240px;
       border-radius: var(--r);
       border:1px solid rgba(255,255,255,.10);
       background:
-        radial-gradient(600px 260px at 20% 20%, rgba(216,184,106,.18), transparent 60%),
-        radial-gradient(500px 240px at 80% 35%, rgba(255,255,255,.08), transparent 60%),
+        radial-gradient(620px 260px at 20% 20%, rgba(216,184,106,.16), transparent 62%),
+        radial-gradient(520px 240px at 80% 35%, rgba(255,255,255,.06), transparent 62%),
         linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.18));
       position:relative;
       overflow:hidden;
     }
-    .chart svg{ position:absolute; inset:0; opacity:.88; }
+    .chart svg{ position:absolute; inset:0; opacity:.90; }
+
     .buyBox{
       border-radius: var(--r);
-      border:1px solid rgba(216,184,106,.22);
+      border:1px solid var(--strokeGold);
       background: rgba(216,184,106,.06);
       padding: 14px;
     }
-    .buyRow{
-      display:flex;
-      gap:10px;
-      margin-top: 10px;
-      flex-wrap:wrap;
-    }
+
+    .miniRow{ display:flex; gap:10px; margin-top: 10px; flex-wrap:wrap; align-items:center; }
     .mini{
       padding: 12px 14px;
       border-radius: 999px;
@@ -430,30 +410,107 @@
       letter-spacing:.14em;
       text-transform:uppercase;
       font-size: 11px;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
     }
+    .mini:hover{ transform: translateY(-1px); border-color: rgba(216,184,106,.35); background: rgba(255,255,255,.06); }
     .mini.gold{
-      border-color: rgba(216,184,106,.35);
-      background: rgba(216,184,106,.12);
-      color: rgba(255,255,255,.95);
+      border-color: rgba(216,184,106,.45);
+      background: rgba(216,184,106,.14);
+      color: rgba(255,255,255,.96);
     }
+    .mini[disabled]{ opacity:.45; cursor:not-allowed; transform:none; }
+
+    .hr{ height:1px; background: rgba(255,255,255,.10); margin: 12px 0; }
+
+    .field{
+      display:flex; flex-direction:column; gap:6px; margin-top:10px;
+    }
+    .field label{
+      font-size:11px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+      color: rgba(255,255,255,.68);
+    }
+    .field input{
+      height:44px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.24);
+      color: var(--ink);
+      padding: 0 12px;
+      outline:none;
+    }
+    .field input:focus{
+      border-color: rgba(216,184,106,.45);
+      box-shadow: 0 0 0 2px rgba(216,184,106,.12);
+    }
+
+    .payGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items:start;
+      margin-top: 10px;
+    }
+    .qr{
+      border-radius: var(--r);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      padding: 12px;
+      display:grid;
+      place-items:center;
+      min-height: 180px;
+    }
+    .qr img{
+      width: 160px;
+      height: 160px;
+      object-fit: contain;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.02);
+    }
+    .addrBox{
+      border-radius: var(--r);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.22);
+      padding: 12px;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,.80);
+      word-break: break-all;
+      line-height: 1.45;
+      margin: 6px 0 0;
+    }
+    .small{
+      font-size: 12px;
+      color: rgba(255,255,255,.68);
+      line-height:1.45;
+    }
+    .toast{
+      margin-top: 10px;
+      font-size: 12px;
+      color: rgba(216,184,106,.95);
+      display:none;
+    }
+    .toast.on{ display:block; }
+
+    .termsRow{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      margin-top: 10px;
+    }
+    .termsRow input{ margin-top:3px; }
+    .termsRow a{ color: rgba(216,184,106,.92); text-decoration:none; }
+    .termsRow a:hover{ text-decoration:underline; }
 
     .foot{
-      margin-top: 16px;
-      color: rgba(255,255,255,.65);
-      font-size: 12px;
+      margin-top: 12px;
+      color: rgba(255,255,255,.62);
+      font-size: 11.5px;
       line-height: 1.45;
-    }
-
-    .errorBox{
-      padding: 18px;
-      border-radius: var(--r);
-      border:1px solid rgba(255,80,80,.35);
-      background: rgba(255,80,80,.08);
-      color: rgba(255,220,220,.95);
-      margin-top: 14px;
-      font-size: 13px;
-      line-height: 1.5;
-      white-space: pre-wrap;
     }
 
     @media (max-width: 900px){
@@ -462,8 +519,7 @@
       .nav{ display:none; }
       .modalBd{ grid-template-columns: 1fr; }
       .prod{ grid-column: span 12; }
-      .col6{ grid-column: span 12; }
-      .col4{ grid-column: span 12; }
+      .payGrid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -474,7 +530,9 @@
   <div class="shell">
     <header class="topbar">
       <div class="brand" role="button" tabindex="0" onclick="EGG.nav('home')">
-        <div class="mark" aria-hidden="true"></div>
+        <div class="logoWrap">
+          <img src="/logo.png" alt="EasyGoldGlitch logo" onerror="this.style.display='none'">
+        </div>
         <div>
           <h1>EASYGOLDGLITCH</h1>
           <p>Stop trading. Start printing.</p>
@@ -484,13 +542,13 @@
       <nav class="nav" aria-label="Primary">
         <button class="pill" data-route="home">Home</button>
         <button class="pill" data-route="glitches">Glitches</button>
-        <button class="pill" data-route="community">Community</button>
+        <button class="pill" data-route="philosophy">Philosophy</button>
         <button class="pill" data-route="terms">Terms</button>
       </nav>
 
       <div class="right">
-        <button class="iconBtn" title="Settings (placeholder)" aria-label="Settings">
-          ⚙️
+        <button class="iconBtn" title="Wallet address" aria-label="Wallet address" onclick="EGG.openWalletQuick()">
+          ⛓️
         </button>
         <button class="iconBtn" title="Cart" aria-label="Cart" onclick="EGG.nav('glitches')">
           🛒
@@ -509,10 +567,10 @@
         <button class="x" onclick="EGG.closeDlg()" aria-label="Close">✕</button>
       </div>
       <div class="modalBd">
-        <div class="chart" aria-label="Backtest chart (placeholder)">
+        <div class="chart" aria-label="Backtest chart (visual placeholder)">
           <svg viewBox="0 0 800 260" preserveAspectRatio="none" aria-hidden="true">
             <path d="M0,210 C60,220 90,175 140,170 C220,160 240,120 310,125 C380,130 410,85 480,78 C560,70 590,55 640,48 C700,40 740,24 800,18"
-                  fill="none" stroke="rgba(216,184,106,.85)" stroke-width="3"/>
+                  fill="none" stroke="rgba(216,184,106,.86)" stroke-width="3"/>
             <path d="M0,240 L0,210 C60,220 90,175 140,170 C220,160 240,120 310,125 C380,130 410,85 480,78 C560,70 590,55 640,48 C700,40 740,24 800,18 L800,240 Z"
                   fill="rgba(216,184,106,.14)"/>
           </svg>
@@ -521,13 +579,92 @@
         <div class="buyBox">
           <div class="p" id="dlgDesc"></div>
           <div class="tagRow" id="dlgTags"></div>
-          <div class="buyRow">
-            <button class="mini" onclick="EGG.addToCart('demo')">Demo $20</button>
-            <button class="mini gold" onclick="EGG.addToCart('pro')">Pro $200</button>
+
+          <div class="miniRow">
+            <button class="mini gold" id="buyBtn" onclick="EGG.showCheckout()">Buy</button>
+            <span class="small" id="priceLine"></span>
           </div>
-          <div class="foot">
-            * Precios listados en USD (la conversión a ETH se hará por “weekly ATH” cuando conectemos checkout).<br>
-            * Virtual SL/TP: el ejecutable debe permanecer activo con MT5 abierto.
+
+          <div id="checkout" style="display:none;">
+            <div class="hr"></div>
+
+            <div class="small">
+              Pay in ETH. Amount uses <b>weekly high (7d max)</b>.
+            </div>
+
+            <div class="payGrid">
+              <div class="qr">
+                <img src="/wallet.png" alt="Wallet QR" onerror="this.style.display='none'">
+              </div>
+              <div class="addrBox">
+                <div class="small"><b>Send ETH to</b></div>
+                <div class="mono" id="walletAddr">Loading address…</div>
+
+                <div class="miniRow" style="margin-top:10px;">
+                  <button class="mini" onclick="EGG.copyWallet()">Copy address</button>
+                  <button class="mini" onclick="EGG.copyEthAmount()">Copy ETH amount</button>
+                </div>
+
+                <div class="hr"></div>
+
+                <div class="small">
+                  <div><b>USD:</b> <span id="usdAmt">$0</span></div>
+                  <div><b>Weekly High:</b> <span id="weeklyHigh">$—</span></div>
+                  <div><b>ETH:</b> <span id="ethAmt">—</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Email (required)</label>
+              <input id="email" type="email" placeholder="you@domain.com" autocomplete="email">
+            </div>
+
+            <div class="field">
+              <label>TxHash (paste after sending)</label>
+              <input id="txhash" type="text" placeholder="0x…" spellcheck="false" autocomplete="off">
+            </div>
+
+            <div class="termsRow">
+              <input id="agree" type="checkbox">
+              <div class="small">
+                I agree to <a href="#/terms" onclick="EGG.closeDlg()">Terms & Risk</a>.
+              </div>
+            </div>
+
+            <div class="miniRow">
+              <button class="mini gold" id="verifyBtn" onclick="EGG.verify()" disabled>Verify payment</button>
+              <span class="small" id="verifyHint">Accept terms to continue.</span>
+            </div>
+
+            <div class="toast" id="toast"></div>
+
+            <div class="foot">
+              * Demos: 2 months. Pro: lifetime (one-time).<br>
+              * Virtual SL/TP. Keep the executable running with MT5 open.
+            </div>
+
+            <div class="foot">
+              ETH pricing data: CoinGecko.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="quickWallet">
+    <div class="modal" style="max-width:620px; margin:auto;">
+      <div class="modalHd">
+        <strong>Wallet</strong>
+        <button class="x" onclick="EGG.closeQuickWallet()" aria-label="Close">✕</button>
+      </div>
+      <div class="modalBd" style="grid-template-columns:1fr;">
+        <div class="addrBox">
+          <div class="small"><b>Send ETH to</b></div>
+          <div class="mono" id="walletAddr2">Loading address…</div>
+          <div class="miniRow" style="margin-top:10px;">
+            <button class="mini" onclick="EGG.copyWallet(true)">Copy address</button>
           </div>
         </div>
       </div>
@@ -535,55 +672,53 @@
   </dialog>
 
   <script data-cfasync="false">
-    /* ===========
-       EGG SPA CORE
-       =========== */
-
     const EGG = (() => {
       const $ = (sel, root=document) => root.querySelector(sel);
 
       const state = {
-        cart: JSON.parse(localStorage.getItem("egg_cart") || "[]"),
         selected: null,
-        glitches: [
+        walletAddress: null,
+        weeklyHighUSD: null,
+        cart: [],
+        products: [
           {
-            id: "exploit-1",
-            name: "Exploit 1.0 — MIDAS DRIFT",
-            blurb: "Buy & hold conservador (trend-aligned). Diseñado para exposición limpia a la tendencia.",
-            tags: ["Conservador", "Trend-aligned", "Low churn"]
+            id: "simple-sample",
+            name: "Glitch 1.0 — Simple Sample",
+            usd: 50,
+            kind: "Demo",
+            term: "2 months",
+            blurb: "One trade at a time. Minimal risk profile.",
+            tags: ["Demo • 2 months", "1 trade at a time", "Low noise"]
           },
           {
-            id: "exploit-2",
-            name: "Exploit 2.0 — GOLDEN REBUY",
-            blurb: "Buy & hold + recompra en caída (recuperación tipo grid controlado).",
-            tags: ["Balanced", "Recovery leg", "Stress-tested"]
+            id: "legacy-builder",
+            name: "Glitch 2.0 — Legacy Builder",
+            usd: 70,
+            kind: "Demo",
+            term: "2 months",
+            blurb: "Slow compounding. Built for patience.",
+            tags: ["Demo • 2 months", "Wealth mode", "Calm execution"]
           },
           {
-            id: "exploit-3",
-            name: "Exploit 3.0 — PHANTOM PYRAMID",
-            blurb: "Grid de recuperación + piramidación (agresivo, alta varianza).",
-            tags: ["Aggressive", "Pyramiding", "High variance"]
+            id: "fuck-gold",
+            name: "Pro — F*ck Gold",
+            usd: 200,
+            kind: "Pro",
+            term: "Lifetime",
+            blurb: "One-time payment. Lifetime access.",
+            tags: ["One-time", "Lifetime", "Full power"]
           },
           {
             id: "little-glitcher",
-            name: "Little Glitcher — DEMO LIFE EXTENDER",
-            blurb: "Copytrading de tus glitches demo hasta en 10 terminales y extiende la vida de demos (1 mes).",
-            tags: ["Utility", "10 terminals", "Demo extender"],
-            demoPrice: 100,
-            proPrice: 100
-          },
-        ]
+            name: "Little Glitcher",
+            usd: 150,
+            kind: "Utility",
+            term: "Lifetime",
+            blurb: "Demo life extender + up to 10 terminals.",
+            tags: ["Utility", "Up to 10 terminals", "Extend demos"]
+          }
+        ],
       };
-
-      function saveCart(){
-        localStorage.setItem("egg_cart", JSON.stringify(state.cart));
-      }
-      function cartCount(){
-        return state.cart.reduce((a, x) => a + (x.qty || 1), 0);
-      }
-      function renderCart(){
-        $("#cartCount").textContent = String(cartCount());
-      }
 
       function route(){
         const m = location.hash.match(/^#\/([^?]+)/);
@@ -594,113 +729,37 @@
           b.dataset.active = (b.dataset.route === r) ? "1" : "0";
         });
       }
+      function nav(r){ location.hash = `#/${r}`; }
 
       function viewHome(){
         return `
           <section class="glass hero">
             <div class="inner">
-              <div class="kicker">Protocol online • Dark / Gold / Glass</div>
-              <div class="title">
-                Stop trading.<br><span class="gold">Start printing.</span>
-              </div>
-              <p class="sub">
-                Los mercados tienden al alza. El ruido está diseñado para jugar con tu mente.
-                Aquí no vendemos “trading para todos”: vendemos <b>glitches anti-sistema</b> que priorizan
-                consistencia, control y ejecución.
-              </p>
+              <div class="kicker">Dark / Gold / Glass</div>
+              <div class="title">Stop trading.<br><span class="gold">Start printing.</span></div>
+              <p class="sub">Algorithms hunt emotions. We sell glitches.</p>
               <div class="ctaRow">
-                <button class="btn btnPrimary" onclick="EGG.nav('glitches')">Ver Glitches</button>
-                <button class="btn btnGhost" onclick="EGG.nav('terms')">Riesgo & Términos</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="grid">
-            <div class="glass card col6">
-              <div class="inner">
-                <h3 class="h">Anti-Noise Philosophy</h3>
-                <p class="p">
-                  No perseguimos velas. No “adivinamos”. Aislamos patrones operables y reducimos fricción.
-                  La estética es cripto, pero el objetivo es simple: <b>menos decisiones, más consistencia</b>.
-                </p>
-                <div class="tagRow">
-                  <span class="tag">Time-to-Value</span>
-                  <span class="tag">Low Commitment</span>
-                  <span class="tag">High Reward</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="glass card col6">
-              <div class="inner">
-                <h3 class="h">Zero-Trust Delivery (next)</h3>
-                <p class="p">
-                  El checkout será crypto-native: wallet connect o pago manual desde exchange + validación
-                  por TxHash. Sin Stripe. Sin censura. Sin fricción al inicio.
-                </p>
-                <div class="tagRow">
-                  <span class="tag">ETH only</span>
-                  <span class="tag">TxHash validation</span>
-                  <span class="tag">Expiring links</span>
-                </div>
+                <button class="btn btnPrimary" onclick="EGG.nav('glitches')">View glitches</button>
+                <button class="btn btnGhost" onclick="EGG.nav('philosophy')">Philosophy</button>
               </div>
             </div>
           </section>
         `;
       }
 
-      function viewGlitches(){
-        const cards = state.glitches.map(g => {
-          const priceDemo = g.demoPrice ?? 20;
-          const pricePro  = g.proPrice ?? 200;
-          return `
-            <article class="glass prod" data-open="${g.id}">
-              <div class="inner">
-                <div class="prodTop">
-                  <div>
-                    <h3 class="prodName">${g.name}</h3>
-                    <p class="p">${g.blurb}</p>
-                  </div>
-                  <div class="price">Demo $${priceDemo} • Pro $${pricePro}</div>
-                </div>
-                <div class="tagRow">
-                  ${g.tags.map(t => `<span class="tag">${t}</span>`).join("")}
-                </div>
-              </div>
-            </article>
-          `;
-        }).join("");
-
+      function viewPhilosophy(){
         return `
           <section class="glass card col12">
             <div class="inner">
-              <h2 class="h">Glitches</h2>
+              <h2 class="h">Philosophy</h2>
               <p class="p">
-                Click en un glitch para ver resumen + backtest (placeholder) y opciones Demo/Pro.
-                (Checkout real lo conectamos después con /api).
-              </p>
-            </div>
-          </section>
-
-          <section class="shopGrid">
-            ${cards}
-          </section>
-        `;
-      }
-
-      function viewCommunity(){
-        return `
-          <section class="glass card col12">
-            <div class="inner">
-              <h2 class="h">Community</h2>
-              <p class="p">
-                Próximo: “Sovereign Room” — discusiones de setups, resultados, optimización y soporte.
-                La comunidad se desbloquea post-compra.
+                Most markets are algorithmic. Manual traders are liquidity.
+                We reduce decisions. We remove noise.
               </p>
               <div class="tagRow">
-                <span class="tag">Private access</span>
-                <span class="tag">Ops updates</span>
-                <span class="tag">Release notes</span>
+                <span class="tag">Anti-noise</span>
+                <span class="tag">System-aware</span>
+                <span class="tag">Cold execution</span>
               </div>
             </div>
           </section>
@@ -711,12 +770,11 @@
         return `
           <section class="glass card col12">
             <div class="inner">
-              <h2 class="h">Terms & Risk Disclaimer</h2>
+              <h2 class="h">Terms & Risk</h2>
               <p class="p">
-                Trading es de alto riesgo y puede resultar en pérdida parcial o total del capital.
-                No hay reembolsos. No hay promesas de rentabilidad.
-                Nuestros ejecutables usan <b>SL/TP virtuales</b> (no visibles para el broker),
-                por lo que el software debe permanecer activo y MT5 abierto para gestionar posiciones.
+                High-risk activity. Loss of capital is possible. No refunds.
+                Our executables use <b>virtual SL/TP</b> (not visible to the broker).
+                Keep the executable running with MT5 open.
               </p>
               <div class="tagRow">
                 <span class="tag">No refunds</span>
@@ -728,45 +786,124 @@
         `;
       }
 
+      function viewGlitches(){
+        const cards = state.products.map(p => `
+          <article class="glass prod" data-open="${p.id}">
+            <div class="inner">
+              <div class="prodTop">
+                <div>
+                  <h3 class="prodName">${p.name}</h3>
+                  <p class="p">${p.blurb}</p>
+                </div>
+                <div class="price">$${p.usd}</div>
+              </div>
+              <div class="tagRow">${p.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+            </div>
+          </article>
+        `).join("");
+
+        return `
+          <section class="glass card col12">
+            <div class="inner">
+              <h2 class="h">Glitches</h2>
+              <p class="p">Pick one. Pay in ETH. Paste TxHash.</p>
+            </div>
+          </section>
+
+          <section class="shopGrid">${cards}</section>
+        `;
+      }
+
       function view404(){
         return `
           <section class="glass card col12">
             <div class="inner">
               <h2 class="h">404</h2>
-              <p class="p">Ruta no encontrada.</p>
+              <p class="p">Not found.</p>
             </div>
           </section>
         `;
+      }
+
+      function wireView(r){
+        if (r === "glitches"){
+          document.querySelectorAll("[data-open]").forEach(el => {
+            el.addEventListener("click", () => openDlg(el.getAttribute("data-open")));
+          });
+        }
       }
 
       function render(){
         const r = route();
         setActiveNav(r);
         const app = $("#app");
-        const map = { home:viewHome, glitches:viewGlitches, community:viewCommunity, terms:viewTerms };
+        const map = { home:viewHome, glitches:viewGlitches, philosophy:viewPhilosophy, terms:viewTerms };
         app.innerHTML = (map[r] || view404)();
         wireView(r);
+        $("#cartCount").textContent = "0";
       }
 
-      function wireView(r){
-        if (r === "glitches"){
-          document.querySelectorAll("[data-open]").forEach(el => {
-            el.addEventListener("click", () => {
-              const id = el.getAttribute("data-open");
-              openDlg(id);
-            });
-          });
+      async function loadWalletAddress(){
+        if (state.walletAddress) return state.walletAddress;
+        try{
+          const res = await fetch("/address.txt", { cache: "no-store" });
+          const txt = (await res.text()).trim();
+          state.walletAddress = txt.replace(/\s+/g, "");
+          return state.walletAddress;
+        }catch{
+          state.walletAddress = "ADDRESS_NOT_FOUND";
+          return state.walletAddress;
+        }
+      }
+
+      async function loadWeeklyHighUSD(){
+        if (state.weeklyHighUSD) return state.weeklyHighUSD;
+        try{
+          // Weekly ATH = 7d max (USD)
+          const url = "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=7";
+          const res = await fetch(url, { cache: "no-store" });
+          const data = await res.json();
+          const prices = (data && data.prices) ? data.prices : [];
+          let max = 0;
+          for (const row of prices){
+            const v = Array.isArray(row) ? Number(row[1]) : 0;
+            if (v > max) max = v;
+          }
+          state.weeklyHighUSD = max || null;
+          return state.weeklyHighUSD;
+        }catch{
+          state.weeklyHighUSD = null;
+          return null;
         }
       }
 
       function openDlg(id){
-        const g = state.glitches.find(x => x.id === id);
-        if (!g) return;
+        const p = state.products.find(x => x.id === id);
+        if (!p) return;
 
-        state.selected = g;
-        $("#dlgTitle").textContent = g.name;
-        $("#dlgDesc").textContent = g.blurb;
-        $("#dlgTags").innerHTML = g.tags.map(t => `<span class="tag">${t}</span>`).join("");
+        state.selected = p;
+
+        $("#dlgTitle").textContent = p.name;
+        $("#dlgDesc").textContent = p.blurb;
+
+        $("#dlgTags").innerHTML = p.tags.map(t => `<span class="tag">${t}</span>`).join("");
+        $("#priceLine").textContent = `${p.kind} • ${p.term} • $${p.usd}`;
+
+        // reset checkout
+        $("#checkout").style.display = "none";
+        $("#toast").className = "toast";
+        $("#toast").textContent = "";
+
+        $("#email").value = "";
+        $("#txhash").value = "";
+        $("#agree").checked = false;
+        $("#verifyBtn").disabled = true;
+        $("#verifyHint").textContent = "Accept terms to continue.";
+
+        // prefill
+        $("#usdAmt").textContent = `$${p.usd}`;
+        $("#weeklyHigh").textContent = "$—";
+        $("#ethAmt").textContent = "—";
 
         const dlg = $("#dlg");
         try { dlg.showModal(); } catch { dlg.setAttribute("open",""); }
@@ -777,69 +914,122 @@
         try { dlg.close(); } catch { dlg.removeAttribute("open"); }
       }
 
-      function addToCart(tier){
-        const g = state.selected;
-        if (!g) return;
-        const priceDemo = g.demoPrice ?? 20;
-        const pricePro  = g.proPrice ?? 200;
-        const price = (tier === "pro") ? pricePro : priceDemo;
+      async function showCheckout(){
+        $("#checkout").style.display = "block";
 
-        const key = `${g.id}:${tier}`;
-        const found = state.cart.find(x => x.key === key);
-        if (found) found.qty += 1;
-        else state.cart.push({ key, id:g.id, name:g.name, tier, price, qty:1 });
+        // wallet address
+        const addr = await loadWalletAddress();
+        $("#walletAddr").textContent = addr;
 
-        saveCart();
-        renderCart();
-        closeDlg();
+        // weekly high + eth amount
+        const high = await loadWeeklyHighUSD();
+        if (high){
+          $("#weeklyHigh").textContent = `$${high.toFixed(2)}`;
+          const usd = state.selected?.usd || 0;
+          const eth = usd / high;
+          $("#ethAmt").textContent = `${eth.toFixed(6)} ETH`;
+          $("#ethAmt").dataset.value = String(eth);
+        }else{
+          $("#weeklyHigh").textContent = "Unavailable";
+          $("#ethAmt").textContent = "Unavailable";
+          $("#ethAmt").dataset.value = "";
+        }
       }
 
-      function nav(r){
-        location.hash = `#/${r}`;
+      function isValidTxHash(x){
+        // basic ETH tx hash: 0x + 64 hex chars
+        return /^0x[a-fA-F0-9]{64}$/.test((x || "").trim());
+      }
+
+      function toast(msg){
+        const t = $("#toast");
+        t.textContent = msg;
+        t.className = "toast on";
+      }
+
+      async function copy(text){
+        try{
+          await navigator.clipboard.writeText(text);
+          return true;
+        }catch{
+          // fallback
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try{ document.execCommand("copy"); }catch{}
+          ta.remove();
+          return true;
+        }
+      }
+
+      async function copyWallet(isQuick=false){
+        const addr = state.walletAddress || await loadWalletAddress();
+        await copy(addr);
+        toast("Address copied.");
+        if (isQuick) toast("Address copied.");
+      }
+
+      async function copyEthAmount(){
+        const v = $("#ethAmt").dataset.value;
+        if (!v) return toast("ETH amount unavailable.");
+        await copy(v);
+        toast("ETH amount copied.");
+      }
+
+      async function verify(){
+        const email = $("#email").value.trim();
+        const tx = $("#txhash").value.trim();
+        const okTerms = $("#agree").checked;
+
+        if (!okTerms) return toast("Accept terms first.");
+        if (!email) return toast("Email required.");
+        if (!isValidTxHash(tx)) return toast("Invalid TxHash format.");
+
+        // Placeholder: backend endpoint to be implemented
+        // You can wire this to your Worker later (e.g. /api/verify).
+        toast("Verification endpoint not live yet.");
+      }
+
+      async function openWalletQuick(){
+        const addr = await loadWalletAddress();
+        $("#walletAddr2").textContent = addr;
+        const dlg = $("#quickWallet");
+        try { dlg.showModal(); } catch { dlg.setAttribute("open",""); }
+      }
+      function closeQuickWallet(){
+        const dlg = $("#quickWallet");
+        try { dlg.close(); } catch { dlg.removeAttribute("open"); }
       }
 
       function boot(){
-        // nav pills
         document.querySelectorAll(".pill[data-route]").forEach(b => {
           b.addEventListener("click", () => nav(b.dataset.route));
         });
 
-        // initial hash
-        if (!location.hash) location.hash = "#/home";
+        // enable/disable verify button based on terms
+        document.addEventListener("change", (e) => {
+          if (e.target && e.target.id === "agree"){
+            const ok = $("#agree").checked;
+            $("#verifyBtn").disabled = !ok;
+            $("#verifyHint").textContent = ok ? "Paste TxHash to verify." : "Accept terms to continue.";
+          }
+        });
 
-        // render
-        renderCart();
+        if (!location.hash) location.hash = "#/home";
         render();
         window.addEventListener("hashchange", render);
       }
 
-      // Error surface: si algo peta, no te deja “pantalla vacía”
-      function installErrorSurface(){
-        window.addEventListener("error", (e) => showFatal(e?.error || e?.message || String(e)));
-        window.addEventListener("unhandledrejection", (e) => showFatal(e?.reason || "Unhandled rejection"));
-      }
-
-      function showFatal(err){
-        const app = document.getElementById("app");
-        if (!app) return;
-        app.innerHTML = `
-          <section class="glass card col12">
-            <div class="inner">
-              <h2 class="h">JS error (render abortado)</h2>
-              <p class="p">Abre DevTools → Console para ver el stack. Esto evita el “solo menú”.</p>
-              <div class="errorBox">${String(err)}</div>
-            </div>
-          </section>
-        `;
-      }
-
-      // public api
-      return { boot, nav, addToCart, closeDlg, openDlg };
+      return {
+        boot, nav,
+        closeDlg, showCheckout, verify,
+        copyWallet, copyEthAmount,
+        openWalletQuick, closeQuickWallet
+      };
     })();
 
-    /* ==================
-       PARTICLES (Canvas)
-       ================== */
+    /* ===== Particles (polished) ===== */
     (function particles(){
       const canvas = document.getElementById("fx");
       const ctx = canvas.getContext("2d", { alpha:true });
@@ -847,15 +1037,15 @@
       const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const DPR = Math.min(2, window.devicePixelRatio || 1);
 
-      let w=0,h=0;
+      let w=0,h=0,t=0;
       const mouse = { x:-9999, y:-9999, down:false };
       const P = [];
-      const baseCount = prefersReduced ? 60 : 140;
+      const baseCount = prefersReduced ? 70 : 160;
 
       const palette = [
-        { r:216, g:184, b:106, a:0.95 }, // gold
-        { r:235, g:235, b:240, a:0.55 }, // silver-ish
-        { r:170, g:170, b:185, a:0.40 }, // muted grey
+        { r:216, g:184, b:106, a:0.92 }, // gold
+        { r:235, g:235, b:242, a:0.50 }, // silver
+        { r:160, g:160, b:175, a:0.36 }, // grey
       ];
 
       function resize(){
@@ -877,80 +1067,88 @@
       window.addEventListener("mouseleave", () => { mouse.x=-9999; mouse.y=-9999; });
 
       function rand(a,b){ return a + Math.random()*(b-a); }
+      function clamp(v,a,b){ return Math.max(a, Math.min(b,v)); }
 
       function makeParticle(x=rand(0,w), y=rand(0,h), boost=false){
         const c = palette[(Math.random()*palette.length)|0];
-        const s = boost ? rand(1.6, 3.1) : rand(1.0, 2.6);
-        const v = prefersReduced ? 0.22 : 0.55;
+        const size = boost ? rand(1.8, 3.2) : rand(1.0, 2.7);
+        const v = prefersReduced ? 0.20 : 0.50;
         return {
           x, y,
           vx: rand(-v,v),
           vy: rand(-v,v),
-          r: s * DPR,
+          r: size * DPR,
           c,
+          tw: rand(0, Math.PI*2), // twinkle phase
           life: boost ? rand(220, 420) : Infinity
         };
       }
 
       function seed(){
         P.length = 0;
-        const count = Math.floor(baseCount * (window.innerWidth < 900 ? 0.75 : 1));
+        const count = Math.floor(baseCount * (window.innerWidth < 900 ? 0.78 : 1));
         for (let i=0;i<count;i++) P.push(makeParticle());
       }
 
       function burst(x,y){
         if (prefersReduced) return;
-        for (let i=0;i<20;i++){
-          P.push(makeParticle(x + rand(-8,8), y + rand(-8,8), true));
+        for (let i=0;i<18;i++){
+          P.push(makeParticle(x + rand(-10,10), y + rand(-10,10), true));
         }
       }
 
       function step(){
+        t += 0.015;
         ctx.clearRect(0,0,w,h);
 
-        // subtle vignette overlay (dopamine, pero sofisticado)
-        const g = ctx.createRadialGradient(w*0.5, h*0.45, Math.min(w,h)*0.1, w*0.5, h*0.5, Math.max(w,h)*0.75);
-        g.addColorStop(0, "rgba(216,184,106,0.05)");
-        g.addColorStop(1, "rgba(0,0,0,0.00)");
+        // vignette glow
+        const g = ctx.createRadialGradient(w*0.52, h*0.40, Math.min(w,h)*0.10, w*0.52, h*0.52, Math.max(w,h)*0.80);
+        g.addColorStop(0, "rgba(216,184,106,0.055)");
+        g.addColorStop(1, "rgba(0,0,0,0.0)");
         ctx.fillStyle = g;
         ctx.fillRect(0,0,w,h);
 
+        const R = (prefersReduced ? 95 : 150) * DPR;
         for (let i=0;i<P.length;i++){
           const p = P[i];
 
-          // mouse influence: repel (dopaminérgico)
+          // mouse repel + slight swirl
           const dx = p.x - mouse.x;
           const dy = p.y - mouse.y;
           const d2 = dx*dx + dy*dy;
-          const R = (prefersReduced ? 90 : 140) * DPR;
+
           if (d2 < R*R){
             const d = Math.sqrt(d2) || 1;
-            const force = (1 - d/R) * (mouse.down ? 1.9 : 1.0);
-            p.vx += (dx/d) * force * 0.08;
-            p.vy += (dy/d) * force * 0.08;
+            const force = (1 - d/R) * (mouse.down ? 2.0 : 1.0);
+            // repel
+            p.vx += (dx/d) * force * 0.075;
+            p.vy += (dy/d) * force * 0.075;
+            // swirl
+            p.vx += (-dy/d) * force * 0.015;
+            p.vy += ( dx/d) * force * 0.015;
           }
 
-          // drift
+          // drift + damping
           p.x += p.vx;
           p.y += p.vy;
+          p.vx *= 0.994;
+          p.vy *= 0.994;
 
-          // soft bounds
-          if (p.x < -20) p.x = w+20;
-          if (p.x > w+20) p.x = -20;
-          if (p.y < -20) p.y = h+20;
-          if (p.y > h+20) p.y = -20;
+          // wrap
+          if (p.x < -30) p.x = w+30;
+          if (p.x > w+30) p.x = -30;
+          if (p.y < -30) p.y = h+30;
+          if (p.y > h+30) p.y = -30;
 
-          // mild damping
-          p.vx *= 0.995;
-          p.vy *= 0.995;
+          // twinkle
+          const tw = 0.72 + 0.28 * Math.sin(p.tw + t);
+          const a = clamp(p.c.a * tw, 0.06, 0.98);
 
-          // draw dot
           ctx.beginPath();
-          ctx.fillStyle = `rgba(${p.c.r},${p.c.g},${p.c.b},${p.c.a})`;
+          ctx.fillStyle = `rgba(${p.c.r},${p.c.g},${p.c.b},${a})`;
           ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
           ctx.fill();
 
-          // life for burst particles
           if (p.life !== Infinity){
             p.life -= 1;
             if (p.life <= 0){
@@ -960,15 +1158,15 @@
           }
         }
 
-        // connections (lux lines)
-        const linkDist = (prefersReduced ? 90 : 120) * DPR;
+        // connections
+        const linkDist = (prefersReduced ? 95 : 125) * DPR;
         for (let i=0;i<P.length;i++){
           for (let j=i+1;j<P.length;j++){
             const a = P[i], b = P[j];
             const dx = a.x - b.x, dy = a.y - b.y;
             const d = Math.sqrt(dx*dx + dy*dy);
             if (d < linkDist){
-              const alpha = (1 - d/linkDist) * 0.14;
+              const alpha = (1 - d/linkDist) * 0.13;
               ctx.strokeStyle = `rgba(216,184,106,${alpha})`;
               ctx.lineWidth = 1 * DPR;
               ctx.beginPath();
@@ -985,18 +1183,12 @@
       resize();
       seed();
       step();
+      window.addEventListener("resize", seed);
     })();
 
-    // boot (safe)
     (function init(){
-      EGG.boot?.();
-      // si Rocket Loader o cualquier cosa te reordena scripts, esto ayuda a ver el error:
-      // (ya instalamos surface)
-      // Nota: si quieres, lo activo siempre:
-      // installErrorSurface está dentro del closure, pero ya cubrimos bastante con HTML estable.
+      EGG.boot();
     })();
   </script>
 </body>
 </html>
-
-
