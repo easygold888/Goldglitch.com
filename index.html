@@ -569,7 +569,7 @@
 
     async function loadEth(){
       try{
-        const r = await fetch("/api/eth-quote", { cache:"no-store" });
+        const r = await fetch("functions/api/eth-quote.js", { cache:"no-store" });
         const j = await r.json();
         if (!j.ok) throw new Error(j.error || "quote failed");
         ethUsdSpot = Number(j.ethUsdSpot) || null;
