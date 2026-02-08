@@ -1,1164 +1,1018 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#07070a" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>EasyGoldGlitch</title>
+  <meta name="theme-color" content="#0a0a0c" />
   <style>
     :root{
-      --bg0:#050507;
-      --bg1:#090910;
+      --bg0:#07070a;
+      --bg1:#0b0c10;
       --glass: rgba(255,255,255,.06);
-      --glass2: rgba(255,255,255,.09);
+      --glass2: rgba(255,255,255,.08);
       --stroke: rgba(255,255,255,.10);
+      --stroke2: rgba(255,255,255,.14);
       --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.68);
-      --muted2: rgba(255,255,255,.50);
-      --gold1: rgba(227, 190, 120, .95);
-      --gold2: rgba(197, 155, 78, .90);
-      --shadow: 0 30px 80px rgba(0,0,0,.55);
+      --muted: rgba(255,255,255,.62);
+      --muted2: rgba(255,255,255,.45);
+      --gold: #d7b56a;
+      --gold2:#a88a45;
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
       --r: 22px;
-      --r2: 999px;
+      --r2: 28px;
+      --max: 1100px;
     }
-
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      background: radial-gradient(1200px 700px at 15% 10%, rgba(255,210,120,.10), transparent 55%),
-                  radial-gradient(1200px 800px at 85% 25%, rgba(120,160,255,.10), transparent 60%),
-                  radial-gradient(900px 900px at 60% 90%, rgba(255,210,120,.07), transparent 60%),
-                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      background: radial-gradient(1200px 700px at 25% 10%, rgba(215,181,106,.10), transparent 55%),
+                  radial-gradient(900px 600px at 70% 25%, rgba(110,130,255,.09), transparent 60%),
+                  radial-gradient(900px 900px at 50% 90%, rgba(255,255,255,.05), transparent 55%),
+                  linear-gradient(180deg,var(--bg0),var(--bg1));
       color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       overflow-x:hidden;
     }
 
-    /* background canvas */
-    #fx {
+    /* particle canvas */
+    #fx{
       position: fixed;
       inset: 0;
       z-index: 0;
-      pointer-events: none; /* don't block UI */
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
     }
 
-    .wrap{
-      position:relative;
-      z-index:1;
-      min-height:100%;
-      padding: calc(14px + env(safe-area-inset-top)) 14px calc(28px + env(safe-area-inset-bottom));
-      display:flex;
-      flex-direction:column;
-      gap: 18px;
+    .noise{
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.10'/%3E%3C/svg%3E");
+      mix-blend-mode: overlay;
+      opacity:.22;
     }
 
-    /* HEADER */
-    header{
-      position: sticky;
-      top: calc(10px + env(safe-area-inset-top));
-      z-index: 20;
-      display:flex;
-      justify-content:center;
+    .wrap{ position:relative; z-index:2; }
+
+    .top{
+      position: sticky; top:0; z-index:10;
+      padding: 14px 14px 10px;
+      backdrop-filter: blur(18px) saturate(1.25);
     }
     .topbar{
-      width:min(1100px, 100%);
-      display:flex;
-      align-items:center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: var(--r2);
-      background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      border: 1px solid var(--stroke);
+      max-width: var(--max);
+      margin:0 auto;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
+      border:1px solid var(--stroke);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
+      padding: 10px 12px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
     }
-
     .brand{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      min-width: 240px;
-    }
-    .brand img{
-      width: 34px;
-      height: 34px;
-      border-radius: 10px;
-      object-fit: cover;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4);
-      border: 1px solid rgba(255,255,255,.12);
-    }
-    .brand .name{
-      font-weight: 750;
-      letter-spacing: .3px;
-      line-height: 1.1;
-    }
-    .brand .tag{
-      font-size: 12px;
-      color: var(--muted2);
-      margin-top: 2px;
-    }
-
-    nav{
-      flex: 1;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap: 8px;
+      display:flex; align-items:center; gap:10px;
       min-width: 0;
     }
+    .brand img{
+      width:34px; height:34px; border-radius: 12px;
+      border:1px solid rgba(215,181,106,.25);
+      box-shadow: 0 10px 30px rgba(215,181,106,.10);
+      background: rgba(0,0,0,.25);
+      object-fit: cover;
+    }
+    .brand .t{
+      display:flex; flex-direction:column; line-height:1.1;
+      min-width:0;
+    }
+    .brand .t b{ letter-spacing:.5px; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .brand .t span{ color:var(--muted); font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    .nav{
+      display:flex; gap:8px; align-items:center;
+    }
     .pill{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      padding: 9px 12px;
-      border-radius: var(--r2);
-      cursor:pointer;
-      font-weight: 650;
+      display:inline-flex; align-items:center; gap:8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.82);
+      text-decoration:none;
       font-size: 13px;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
-      white-space: nowrap;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+      -webkit-tap-highlight-color: transparent;
     }
-    .pill:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
-    .pill.active{ border-color: rgba(227,190,120,.35); box-shadow: 0 0 0 2px rgba(227,190,120,.10) inset; }
+    .pill:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.25); }
+    .pill:active{ transform: translateY(0px) scale(.98); }
 
-    .right{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-    }
-    .cart{
-      display:flex;
-      align-items:center;
-      gap: 10px;
-      padding: 9px 12px;
-      border-radius: var(--r2);
-      border: 1px solid rgba(227,190,120,.22);
-      background: linear-gradient(135deg, rgba(227,190,120,.10), rgba(255,255,255,.03));
-    }
-    .cart b{ color: var(--gold1); }
+    .actions{ display:flex; gap:8px; align-items:center; }
     .iconbtn{
-      width: 38px;
-      height: 38px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
+      width:42px; height:42px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      display:grid; place-items:center;
       cursor:pointer;
-      display:grid;
-      place-items:center;
-      transition: transform .15s ease, background .15s ease;
+      transition: transform .15s ease, border-color .15s ease;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
     }
-    .iconbtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); }
-    .burger{ display:none; }
+    .iconbtn:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
+    .iconbtn:active{ transform: translateY(0px) scale(.98); }
+    .badge{
+      position:absolute; top:-6px; right:-6px;
+      min-width: 20px; height:20px; padding:0 6px;
+      border-radius: 999px;
+      background: rgba(215,181,106,.18);
+      border:1px solid rgba(215,181,106,.35);
+      color: var(--text);
+      font-size: 12px;
+      display:grid; place-items:center;
+    }
 
-    /* MOBILE DRAWER */
-    .backdrop{
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.55);
-      z-index: 30;
-      opacity:0; pointer-events:none;
-      transition: opacity .18s ease;
-    }
-    .drawer{
-      position: fixed;
-      left: 12px;
-      right: 12px;
-      top: calc(12px + env(safe-area-inset-top));
-      z-index: 31;
-      border-radius: 26px;
-      background: linear-gradient(135deg, rgba(20,20,28,.92), rgba(10,10,14,.92));
-      border: 1px solid rgba(255,255,255,.12);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      padding: 12px;
-      transform: translateY(-10px);
-      opacity:0;
-      pointer-events:none;
-      transition: transform .18s ease, opacity .18s ease;
-    }
-    .drawer .row{
-      display:flex; gap:10px; flex-wrap:wrap;
-    }
-    .drawer .pill{ flex: 1 1 auto; text-align:center; padding: 12px 12px; font-size: 14px; }
-
-    .backdrop.open{ opacity:1; pointer-events:auto; }
-    .drawer.open{ opacity:1; pointer-events:auto; transform: translateY(0); }
-
-    /* MAIN */
-    main{
-      width:min(1100px, 100%);
-      margin: 0 auto;
-      display:flex;
-      flex-direction:column;
-      gap: 16px;
-    }
+    main{ max-width: var(--max); margin: 0 auto; padding: 12px 14px 90px; }
 
     .hero{
-      border-radius: 28px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: linear-gradient(135deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+      margin-top: 10px;
+      border-radius: var(--r2);
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
       box-shadow: var(--shadow);
-      padding: 22px;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
+      padding: 26px 22px;
       position: relative;
       overflow:hidden;
     }
-
-    .badge{
-      display:inline-flex;
-      align-items:center;
-      gap: 10px;
-      padding: 7px 12px;
-      border-radius: var(--r2);
-      background: rgba(0,0,0,.30);
-      border: 1px solid rgba(255,255,255,.12);
-      color: var(--muted);
-      font-weight: 650;
-      font-size: 12px;
+    .hero:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(800px 300px at 20% 15%, rgba(215,181,106,.15), transparent 55%),
+                  radial-gradient(600px 300px at 80% 25%, rgba(140,165,255,.12), transparent 60%);
+      opacity:.65;
+      pointer-events:none;
     }
-    .badge .dot{
-      width: 7px; height:7px; border-radius:50%;
-      background: var(--gold1);
-      box-shadow: 0 0 0 4px rgba(227,190,120,.12);
+    .hero > *{ position:relative; z-index:1; }
+    .kicker{
+      display:inline-flex; align-items:center; gap:10px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.10);
+      color: rgba(255,255,255,.78);
+      font-size: 13px;
+      margin-bottom: 14px;
     }
-
     h1{
-      margin: 14px 0 10px;
-      font-size: clamp(34px, 6vw, 56px);
-      line-height: 1.02;
-      letter-spacing: -0.8px;
+      margin:0;
+      font-size: clamp(34px, 6vw, 64px);
+      letter-spacing: -1px;
+      line-height: .96;
     }
     .sub{
-      margin: 0 0 16px;
+      margin: 12px 0 18px;
       color: var(--muted);
       font-size: 16px;
-      max-width: 52ch;
+      max-width: 58ch;
     }
-
     .cta{
-      display:flex;
-      gap: 10px;
-      flex-wrap:wrap;
-      margin-top: 6px;
+      display:flex; gap:10px; flex-wrap:wrap;
+      align-items:center;
     }
     .btn{
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
-      padding: 12px 14px;
+      padding: 12px 16px;
       border-radius: 16px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight: 600;
       cursor:pointer;
-      font-weight: 750;
-      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      transition: transform .15s ease, border-color .15s ease, background .15s ease;
+      -webkit-tap-highlight-color: transparent;
+      display:inline-flex; gap:10px; align-items:center;
     }
-    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.18); }
+    .btn:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
+    .btn:active{ transform: translateY(0px) scale(.98); }
     .btn.primary{
-      border-color: rgba(227,190,120,.28);
-      background: linear-gradient(135deg, rgba(227,190,120,.18), rgba(255,255,255,.03));
+      background: linear-gradient(180deg, rgba(215,181,106,.20), rgba(215,181,106,.10));
+      border-color: rgba(215,181,106,.35);
     }
 
-    .metaRow{
-      display:flex;
-      gap: 18px;
-      flex-wrap:wrap;
-      margin-top: 14px;
-      color: var(--muted2);
-      font-size: 13px;
-    }
-    .metaRow b{ color: var(--gold1); font-weight: 800; }
-
-    .grid{
+    .row{
       display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 12px;
+      grid-template-columns: 1.1fr .9fr;
+      gap: 14px;
+      margin-top: 14px;
     }
-
     .card{
-      grid-column: span 6;
-      border-radius: 24px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      box-shadow: 0 18px 60px rgba(0,0,0,.45);
+      border-radius: var(--r);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
+      box-shadow: 0 16px 55px rgba(0,0,0,.45);
       padding: 16px;
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      display:flex;
-      flex-direction:column;
-      gap: 12px;
-      position:relative;
       overflow:hidden;
     }
-    .card h3{ margin:0; font-size: 18px; letter-spacing: -.2px; }
-    .card p{ margin:0; color: var(--muted); font-size: 13px; line-height: 1.45; }
-    .rowBetween{ display:flex; justify-content:space-between; align-items:baseline; gap: 10px; }
-    .price{ font-size: 18px; font-weight: 900; color: var(--gold1); }
-    .chips{ display:flex; gap: 8px; flex-wrap:wrap; }
-    .chip{
-      padding: 6px 10px;
+    .card h3{ margin:0 0 8px; font-size: 16px; letter-spacing:.2px; }
+    .muted{ color: var(--muted); font-size: 13.5px; }
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+    .g{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      padding: 14px;
+      position:relative;
+      cursor:pointer;
+      transition: transform .15s ease, border-color .15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .g:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
+    .g:active{ transform: translateY(0px) scale(.99); }
+    .g .topline{
+      display:flex; justify-content:space-between; gap:10px; align-items:flex-start;
+      margin-bottom: 8px;
+    }
+    .g b{ font-size: 14.5px; letter-spacing:.2px; }
+    .price{
+      color: rgba(215,181,106,.92);
+      font-weight: 800;
+      font-size: 14.5px;
+      white-space:nowrap;
+    }
+    .tags{ display:flex; gap:8px; flex-wrap:wrap; margin-top: 10px; }
+    .tag{
+      padding: 7px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.10);
       background: rgba(0,0,0,.22);
       color: rgba(255,255,255,.75);
       font-size: 12px;
-      font-weight: 650;
+    }
+    .ethline{
+      margin-top: 10px;
+      color: rgba(255,255,255,.70);
+      font-size: 12.5px;
     }
 
-    .cardActions{ display:flex; gap: 10px; flex-wrap:wrap; margin-top: 4px; }
-    .tiny{
-      padding: 10px 12px;
-      border-radius: 14px;
-      font-weight: 800;
-      font-size: 13px;
-    }
-    .tiny.ghost{ background: rgba(255,255,255,.04); }
-    .tiny.added{ border-color: rgba(227,190,120,.30); box-shadow: 0 0 0 2px rgba(227,190,120,.10) inset; }
-
-    /* Sections */
-    section{ display:none; }
-    section.active{ display:block; }
-
-    /* Modal */
-    .modalWrap{
-      position: fixed; inset:0;
-      z-index: 40;
+    /* Drawer / modal */
+    .shade{
+      position:fixed; inset:0; z-index:30;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(10px);
       display:none;
-      align-items:flex-end;
-      justify-content:center;
-      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
     }
-    .modalWrap.open{ display:flex; }
-    .modal{
-      width:min(760px, 100%);
-      max-height: 88vh;
-      overflow:auto;
+    .sheet{
+      position:fixed;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: 14px;
+      width:min(var(--max), calc(100vw - 28px));
       border-radius: 26px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: linear-gradient(135deg, rgba(20,20,28,.92), rgba(10,10,14,.92));
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(20,20,24,.72);
+      backdrop-filter: blur(18px) saturate(1.25);
       box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      padding: 14px;
+      z-index:31;
+      display:none;
+      overflow:hidden;
     }
-    .modalHead{
-      display:flex; align-items:center; justify-content:space-between; gap: 10px;
-      padding: 6px 4px 10px;
+    .sheet .hd{
+      padding: 14px 16px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
     }
-    .modalHead h4{ margin:0; font-size: 16px; letter-spacing: -.2px; }
+    .sheet .bd{ padding: 14px 16px 16px; }
     .close{
-      width: 40px; height: 40px; border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.05);
-      color: var(--text);
+      width:38px; height:38px; border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
       cursor:pointer;
     }
 
-    .modalGrid{
+    .checkoutGrid{
       display:grid;
-      grid-template-columns: 1.1fr .9fr;
+      grid-template-columns: 1fr 1.1fr;
       gap: 12px;
+      align-items:start;
     }
-    .panel{
-      border-radius: 22px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      padding: 14px;
+    .walletBox{
+      display:flex; gap:12px; align-items:center;
+      padding: 12px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.05);
     }
-    .panel h5{ margin:0 0 8px; font-size: 13px; color: rgba(255,255,255,.82); }
-    .panel .muted{ color: var(--muted); font-size: 13px; }
-
+    .walletBox img{ width:88px; height:88px; border-radius: 16px; border:1px solid rgba(255,255,255,.10); background:#0b0b0f; object-fit:cover; }
+    .addr{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px; color: rgba(255,255,255,.80);
+      word-break: break-all;
+      margin-top: 6px;
+    }
     .field{
-      display:flex; flex-direction:column; gap: 6px;
+      display:flex; flex-direction:column; gap:8px;
       margin-top: 10px;
     }
-    .field label{ font-size: 12px; color: rgba(255,255,255,.72); font-weight: 700; }
-    .field input, .field textarea{
-      width: 100%;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.30);
-      color: var(--text);
+    input{
+      width:100%;
       padding: 12px 12px;
-      font-size: 14px;
+      border-radius: 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
       outline:none;
     }
-    .field textarea{ min-height: 84px; resize: vertical; }
-
-    .inline{
-      display:flex; gap:10px; flex-wrap:wrap; align-items:center;
-      margin-top: 10px;
-    }
-    .qr{
-      width: 160px; height:160px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.20);
-      object-fit: cover;
-    }
-    .addr{
-      flex: 1;
-      min-width: 200px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-      color: rgba(255,255,255,.80);
-      word-break: break-all;
-      padding: 10px 12px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.25);
-    }
-
-    .check{
-      display:flex; align-items:flex-start; gap: 10px;
+    input:focus{ border-color: rgba(215,181,106,.28); }
+    .checkrow{
+      display:flex; gap:10px; align-items:flex-start;
       margin-top: 12px;
-      color: rgba(255,255,255,.75);
-      font-size: 12px;
-      line-height: 1.35;
+      color: rgba(255,255,255,.72);
+      font-size: 12.5px;
     }
-    .check input{ margin-top: 2px; }
+    .checkrow input{ width:auto; margin-top: 2px; }
 
     .toast{
-      position: fixed;
-      left: 12px; right: 12px;
-      bottom: calc(12px + env(safe-area-inset-bottom));
-      z-index: 60;
-      display:none;
-      justify-content:center;
-      pointer-events:none;
-    }
-    .toast .t{
-      width:min(520px, 100%);
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.12);
-      background: rgba(0,0,0,.55);
-      color: rgba(255,255,255,.88);
+      position:fixed; left:50%; transform: translateX(-50%);
+      bottom: 18px; z-index:40;
       padding: 10px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      text-align:center;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(15,15,18,.75);
       backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      color: rgba(255,255,255,.86);
+      display:none;
+      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      font-size: 13px;
     }
 
-    /* Responsive */
-    @media (max-width: 820px){
-      .brand{ min-width: 0; }
-      nav{ justify-content:flex-end; }
-      .grid{ gap: 10px; }
-      .card{ grid-column: span 12; }
-      .modalGrid{ grid-template-columns: 1fr; }
+    /* mobile */
+    @media (max-width: 860px){
+      .nav{ display:none; }
+      .row{ grid-template-columns: 1fr; }
+      .grid{ grid-template-columns: 1fr; }
+      .checkoutGrid{ grid-template-columns: 1fr; }
+      .hero{ padding: 22px 16px; }
+      .top{ padding: 12px 12px 10px; }
+      .brand img{ width:32px; height:32px; }
     }
-    @media (max-width: 520px){
-      nav, .cart { display:none; }
-      .burger{ display:grid; }
-      .topbar{ padding: 10px 12px; }
-      .brand img{ width: 32px; height: 32px; }
-      .hero{ padding: 18px; border-radius: 26px; }
-      .btn{ width: 100%; }
+
+    @media (prefers-reduced-motion: reduce){
+      #fx{ display:none; }
     }
   </style>
 </head>
-
 <body>
   <canvas id="fx"></canvas>
+  <div class="noise"></div>
 
   <div class="wrap">
-    <header>
+    <header class="top">
       <div class="topbar">
-        <div class="brand">
-          <img id="brandLogo" src="Logo.png" alt="EasyGoldGlitch logo"
-               onerror="this.onerror=null;this.src='logo.png';" />
-          <div>
-            <div class="name">EasyGoldGlitch</div>
-            <div class="tag">Stop trading. Start printing.</div>
+        <div class="brand" onclick="scrollToTop()" style="cursor:pointer">
+          <img src="/logo.png" alt="EasyGoldGlitch logo">
+          <div class="t">
+            <b>EasyGoldGlitch</b>
+            <span>Stop trading. Start printing.</span>
           </div>
         </div>
 
-        <nav aria-label="Primary">
-          <button class="pill active" data-tab="home">Home</button>
-          <button class="pill" data-tab="glitches">Glitches</button>
-          <button class="pill" data-tab="philosophy">Philosophy</button>
-          <button class="pill" data-tab="terms">Terms</button>
+        <nav class="nav">
+          <a class="pill" href="#home">Home</a>
+          <a class="pill" href="#glitches">Glitches</a>
+          <a class="pill" href="#philosophy">Philosophy</a>
+          <a class="pill" href="#terms">Terms</a>
         </nav>
 
-        <div class="right">
-          <button class="iconbtn burger" id="menuBtn" aria-label="Open menu">☰</button>
-          <button class="iconbtn" id="goCheckout" aria-label="Checkout">🧾</button>
-          <div class="cart" title="Selected items">
-            <span>Cart</span>
-            <b id="cartCount">0</b>
-          </div>
+        <div class="actions">
+          <button class="iconbtn" id="cartBtn" title="Checkout">
+            🛒
+            <div class="badge" id="cartCount">0</div>
+          </button>
+          <button class="iconbtn" id="menuBtn" title="Menu">☰</button>
         </div>
       </div>
     </header>
 
-    <!-- mobile drawer -->
-    <div class="backdrop" id="backdrop"></div>
-    <div class="drawer" id="drawer" role="dialog" aria-modal="true" aria-label="Menu">
+    <main id="home">
+      <section class="hero">
+        <div class="kicker">Crypto-native · No sign-up</div>
+        <h1>Stop trading.<br/>Start printing.</h1>
+        <div class="sub">Pick a glitch. Pay in ETH. Get it delivered.</div>
+        <div class="cta">
+          <button class="btn primary" onclick="jump('#glitches')">Browse glitches</button>
+          <button class="btn" onclick="openCheckout()">Checkout</button>
+        </div>
+      </section>
+
       <div class="row">
-        <button class="pill" data-tab="home">Home</button>
-        <button class="pill" data-tab="glitches">Glitches</button>
-        <button class="pill" data-tab="philosophy">Philosophy</button>
-        <button class="pill" data-tab="terms">Terms</button>
-        <button class="pill" id="drawerCheckout">Checkout</button>
+        <section class="card">
+          <h3>Fast picks</h3>
+          <div class="muted">Low text. High signal.</div>
+          <div class="grid" id="glitchGrid"></div>
+        </section>
+
+        <aside class="card">
+          <h3>ETH quote</h3>
+          <div class="muted" id="ethStatus">Loading…</div>
+          <div style="height:10px"></div>
+          <div class="muted">
+            Pricing uses the <b>7D high</b> (weekly high).<br/>
+            This makes ETH totals predictable during spikes.
+          </div>
+          <div style="height:12px"></div>
+          <button class="btn" onclick="refreshEth()">Refresh quote</button>
+        </aside>
       </div>
-    </div>
 
-    <main>
-      <section id="home" class="active">
-        <div class="hero">
-          <div class="badge"><span class="dot"></span> Crypto-native • No sign-up</div>
-          <h1>Stop trading.<br/>Start printing.</h1>
-          <p class="sub">Choose a glitch. Pay in ETH. Get it delivered.</p>
+      <section class="card" id="glitches" style="margin-top:14px">
+        <h3>Glitches</h3>
+        <div class="muted">Tap a card → add to cart.</div>
+        <div class="grid" id="glitchGrid2" style="margin-top:12px"></div>
+      </section>
 
-          <div class="cta">
-            <button class="btn primary" data-jump="glitches">Browse glitches</button>
-            <button class="btn" id="openCheckout2">Checkout</button>
-          </div>
-
-          <div class="metaRow">
-            <div>ETH spot: <b id="ethSpot">$—</b></div>
-            <div>Weekly high (used): <b id="ethWeekHigh">$—</b></div>
-            <div>Refresh: <span id="ethStatus">loading…</span></div>
-          </div>
-        </div>
-
-        <div class="grid" style="margin-top:12px">
-          <div class="card">
-            <div class="rowBetween">
-              <h3>Fast picks</h3>
-              <div class="chip">Low text</div>
-            </div>
-            <p>Tap a card → add to cart → pay in ETH.</p>
-          </div>
-          <div class="card">
-            <div class="rowBetween">
-              <h3>Pricing</h3>
-              <div class="chip">ETH = weekly high</div>
-            </div>
-            <p>USD converts to ETH using the weekly high snapshot.</p>
-          </div>
+      <section class="card" id="philosophy" style="margin-top:14px">
+        <h3>Philosophy</h3>
+        <div class="muted" style="max-width:75ch">
+          The creator watched the tape for years and noticed something ugly:
+          most flow isn’t human anymore — it’s automated. Manual traders get hunted by
+          latency, liquidity gaps, and execution traps. EasyGoldGlitch exists to ship
+          small, controlled systems that don’t “feel smart”… they just execute.
         </div>
       </section>
 
-      <section id="glitches">
-        <div class="grid">
-          <div class="card" data-sku="g1" data-usd="50" data-title="Glitch 1.0 — Simple Sample" data-term="Demo • 2 months">
-            <div class="rowBetween">
-              <h3>Glitch 1.0 — Simple Sample</h3>
-              <div class="price">$50</div>
-            </div>
-            <div class="chips">
-              <span class="chip">Demo • 2 months</span>
-              <span class="chip">1 trade at a time</span>
-              <span class="chip">Low noise</span>
-            </div>
-            <p>Clean execution. Minimal exposure.</p>
-            <div class="cardActions">
-              <button class="btn tiny ghost" data-view="g1">View</button>
-              <button class="btn tiny primary" data-add="g1">Add</button>
-            </div>
-          </div>
-
-          <div class="card" data-sku="g2" data-usd="70" data-title="Glitch 2.0 — Wealth Builder" data-term="Demo • 2 months">
-            <div class="rowBetween">
-              <h3>Glitch 2.0 — Wealth Builder</h3>
-              <div class="price">$70</div>
-            </div>
-            <div class="chips">
-              <span class="chip">Demo • 2 months</span>
-              <span class="chip">Buy & hold</span>
-              <span class="chip">One re-buy</span>
-            </div>
-            <p>Hold the slope. Add once on weakness.</p>
-            <div class="cardActions">
-              <button class="btn tiny ghost" data-view="g2">View</button>
-              <button class="btn tiny primary" data-add="g2">Add</button>
-            </div>
-          </div>
-
-          <div class="card" data-sku="g3" data-usd="500" data-title="Glitch Pro — F★ck Gold" data-term="Pro • lifetime">
-            <div class="rowBetween">
-              <h3>Glitch Pro — F★ck Gold</h3>
-              <div class="price">$500</div>
-            </div>
-            <div class="chips">
-              <span class="chip">Pro • lifetime</span>
-              <span class="chip">One-time payment</span>
-              <span class="chip">Full stack</span>
-            </div>
-            <p>Higher aggression. Full control.</p>
-            <div class="cardActions">
-              <button class="btn tiny ghost" data-view="g3">View</button>
-              <button class="btn tiny primary" data-add="g3">Add</button>
-            </div>
-          </div>
-
-          <div class="card" data-sku="g4" data-usd="150" data-title="Little Glitcher" data-term="Tool • demo extender">
-            <div class="rowBetween">
-              <h3>Little Glitcher</h3>
-              <div class="price">$150</div>
-            </div>
-            <div class="chips">
-              <span class="chip">Tool</span>
-              <span class="chip">Demo extender</span>
-              <span class="chip">Up to 10 terminals</span>
-            </div>
-            <p>Copytrading + demo-life extender.</p>
-            <div class="cardActions">
-              <button class="btn tiny ghost" data-view="g4">View</button>
-              <button class="btn tiny primary" data-add="g4">Add</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="philosophy">
-        <div class="hero">
-          <div class="badge"><span class="dot"></span> Philosophy</div>
-          <h1>Algorithms hunt humans.</h1>
-          <p class="sub">
-            The creator noticed most flow wasn’t discretionary anymore — it was systematic.
-            So we stopped guessing and started exploiting.
-          </p>
-          <div class="metaRow">
-            <div><b>Less noise.</b> More edge.</div>
-            <div><b>No sign-up.</b> Just pay & verify.</div>
-          </div>
-        </div>
-      </section>
-
-      <section id="terms">
-        <div class="hero">
-          <div class="badge"><span class="dot"></span> Terms</div>
-          <h1>Risk is real.</h1>
-          <p class="sub">
-            Trading is high-risk. Past performance does not guarantee future results.
-            You can lose part or all of your capital. No refunds.
-          </p>
-          <p class="sub" style="margin-top:10px">
-            Demo glitches run for <b>2 months</b>. Little Glitcher may extend demo behavior (tooling),
-            and requires keeping your MT5 terminal and executable active at all times.
-          </p>
+      <section class="card" id="terms" style="margin-top:14px">
+        <h3>Terms</h3>
+        <div class="muted" style="max-width:80ch">
+          <b>High-risk activity.</b> Trading can result in partial or total loss of capital. Past performance does not guarantee future results.
+          This site provides digital software and informational material only — not financial advice.
+          <br/><br/>
+          <b>No refunds.</b> All sales are final due to instant digital delivery.
+          <br/><br/>
+          <b>Demo licenses:</b> Demo glitches are time-limited to <b>2 months</b> and constrained (single account, minimal risk profile).
+          <br/><br/>
+          <b>Runtime requirement:</b> Your MT5 terminal and the executable must remain running for proper trade management.
+          <br/><br/>
+          <b>Delivery:</b> Access is delivered via email after payment verification.
         </div>
       </section>
     </main>
 
-    <!-- Checkout Modal -->
-    <div class="modalWrap" id="checkoutWrap" role="dialog" aria-modal="true" aria-label="Checkout">
-      <div class="modal">
-        <div class="modalHead">
-          <h4>Checkout</h4>
-          <button class="close" id="closeCheckout" aria-label="Close">✕</button>
+    <!-- Checkout Sheet -->
+    <div class="shade" id="shade" onclick="closeSheets()"></div>
+
+    <div class="sheet" id="checkout">
+      <div class="hd">
+        <div>
+          <div style="font-weight:800">Checkout</div>
+          <div class="muted" id="checkoutSub">Pay in ETH · Paste TxHash</div>
         </div>
-
-        <div class="modalGrid">
-          <div class="panel">
-            <h5>Cart</h5>
-            <div id="cartLines" class="muted">No items yet.</div>
-
-            <div class="inline" style="margin-top:12px">
-              <div class="chip">Total: <b id="totalUsd">$0</b></div>
-              <div class="chip">Pay in ETH: <b id="totalEth">—</b></div>
-              <div class="chip">ETH weekly high: <b id="ethWH2">$—</b></div>
+        <button class="close" onclick="closeSheets()">✕</button>
+      </div>
+      <div class="bd">
+        <div class="checkoutGrid">
+          <div>
+            <div class="walletBox">
+              <img src="/wallet.png" alt="Wallet QR" />
+              <div style="min-width:0">
+                <div class="muted">Send ETH to:</div>
+                <div class="addr" id="walletAddr">Loading address…</div>
+                <div style="height:8px"></div>
+                <button class="btn" onclick="copyAddr()">Copy address</button>
+              </div>
             </div>
 
-            <div class="field">
-              <label>Email (delivery)</label>
-              <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
+            <div style="height:12px"></div>
+            <div class="muted">
+              Total: <b id="totalUsd">$0</b> · <b id="totalEth">—</b>
+              <div class="muted" style="margin-top:6px" id="quoteNote"></div>
             </div>
-
-            <div class="field">
-              <label>TxHash (after sending ETH)</label>
-              <input id="txhash" type="text" placeholder="0x..." autocomplete="off" spellcheck="false" />
-            </div>
-
-            <div class="check">
-              <input id="agree" type="checkbox" />
-              <div>I agree to the Terms and acknowledge financial risk.</div>
-            </div>
-
-            <div class="cta" style="margin-top:12px">
-              <button class="btn primary" id="copyAddress">Copy address</button>
-              <button class="btn" id="verifyBtn">Verify payment</button>
-            </div>
-
-            <p class="sub" style="margin-top:12px; font-size:12px; color: rgba(255,255,255,.55)">
-              (MVP) Verify is UI-only for now. Backend TxHash validation comes next.
-            </p>
           </div>
 
-          <div class="panel">
-            <h5>Send ETH</h5>
-            <div class="inline">
-              <img class="qr" src="wallet.png" alt="Wallet QR" />
-              <div class="addr" id="walletAddr">Loading address…</div>
+          <div>
+            <div class="field">
+              <label class="muted">Email (delivery)</label>
+              <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
             </div>
             <div class="field">
-              <label>Tip</label>
-              <textarea readonly>After sending, paste your TxHash and hit Verify. Keep your receipt.</textarea>
+              <label class="muted">TxHash</label>
+              <input id="tx" type="text" placeholder="0x…" autocomplete="off" />
+            </div>
+
+            <div class="checkrow">
+              <input id="agree" type="checkbox" />
+              <div>I agree to the Terms & risk disclosure.</div>
+            </div>
+
+            <div style="height:12px"></div>
+            <button class="btn primary" onclick="verifyStub()">I paid — verify</button>
+            <div class="muted" style="margin-top:10px">
+              (Verification automation comes next. For now, this is UI + quote stability.)
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="toast" id="toast"><div class="t" id="toastText"></div></div>
+    <!-- Menu Sheet -->
+    <div class="sheet" id="menu">
+      <div class="hd">
+        <div>
+          <div style="font-weight:800">Menu</div>
+          <div class="muted">Fast nav</div>
+        </div>
+        <button class="close" onclick="closeSheets()">✕</button>
+      </div>
+      <div class="bd">
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <a class="pill" href="#home" onclick="closeSheets()">Home</a>
+          <a class="pill" href="#glitches" onclick="closeSheets()">Glitches</a>
+          <a class="pill" href="#philosophy" onclick="closeSheets()">Philosophy</a>
+          <a class="pill" href="#terms" onclick="closeSheets()">Terms</a>
+          <button class="pill" onclick="openCheckout()">Checkout</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
   </div>
 
-  <script>
-    // -----------------------------
-    // Tabs + mobile drawer
-    // -----------------------------
-    const tabs = [...document.querySelectorAll('[data-tab]')];
-    const sections = {
-      home: document.getElementById('home'),
-      glitches: document.getElementById('glitches'),
-      philosophy: document.getElementById('philosophy'),
-      terms: document.getElementById('terms'),
-    };
+<script>
+  // -----------------------------
+  // Data model
+  // -----------------------------
+  const GLITCHES = [
+    {
+      id: "g1",
+      name: "Glitch 1.0 — Simple Sample",
+      usd: 50,
+      tags: ["Demo · 2 months", "1 trade at a time", "Low noise"],
+      blurb: "A clean, conservative sample. One trade at a time."
+    },
+    {
+      id: "g2",
+      name: "Glitch 2.0 — Wealth Forge",
+      usd: 70,
+      tags: ["Demo · 2 months", "Slow build", "Stress tested"],
+      blurb: "A calmer builder. Focused on consistency."
+    },
+    {
+      id: "g3",
+      name: "Glitch Pro — F*ck Gold",
+      usd: 500,
+      tags: ["Pro", "Lifetime", "One-time payment"],
+      blurb: "Full power. Built for execution, not opinions."
+    },
+    {
+      id: "g4",
+      name: "Little Glitcher",
+      usd: 150,
+      tags: ["Utility", "Lifetime", "Multi-terminal"],
+      blurb: "Runs copy workflows across up to 10 terminals."
+    },
+  ];
 
-    function setTab(name){
-      Object.keys(sections).forEach(k => sections[k].classList.toggle('active', k===name));
-      document.querySelectorAll('nav .pill').forEach(b => b.classList.toggle('active', b.dataset.tab===name));
-      closeDrawer();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  let cart = new Map(); // id -> qty
+  let quote = null;     // { weeklyHighUsd, spotUsd, usdToEthWeeklyHigh, source }
+
+  // -----------------------------
+  // UI helpers
+  // -----------------------------
+  const $ = (id) => document.getElementById(id);
+
+  function money(n){ return `$${Number(n).toFixed(0)}`; }
+  function eth(n){
+    if (!Number.isFinite(n)) return "—";
+    if (n < 0.001) return `${n.toFixed(6)} ETH`;
+    return `${n.toFixed(4)} ETH`;
+  }
+
+  function toast(msg){
+    const t = $("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(toast._k);
+    toast._k = setTimeout(()=> t.style.display="none", 2400);
+  }
+
+  function vibrate(ms=12){
+    try{ if (navigator.vibrate) navigator.vibrate(ms); }catch(e){}
+  }
+
+  function jump(hash){
+    location.hash = hash;
+    document.querySelector(hash)?.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+  function scrollToTop(){ window.scrollTo({ top:0, behavior:"smooth" }); }
+
+  function openSheet(id){
+    $("shade").style.display = "block";
+    $(id).style.display = "block";
+    vibrate(10);
+  }
+  function closeSheets(){
+    $("shade").style.display = "none";
+    $("checkout").style.display = "none";
+    $("menu").style.display = "none";
+  }
+
+  function openCheckout(){
+    closeSheets();
+    recomputeTotals();
+    openSheet("checkout");
+  }
+
+  // -----------------------------
+  // Render
+  // -----------------------------
+  function renderCards(targetId){
+    const root = $(targetId);
+    root.innerHTML = "";
+    GLITCHES.forEach(g => {
+      const div = document.createElement("div");
+      div.className = "g";
+      div.onclick = () => { addToCart(g.id); };
+      div.innerHTML = `
+        <div class="topline">
+          <b>${g.name}</b>
+          <div class="price">${money(g.usd)}</div>
+        </div>
+        <div class="muted">${g.blurb}</div>
+        <div class="tags">${g.tags.map(x=>`<span class="tag">${x}</span>`).join("")}</div>
+        <div class="ethline" data-ethline="${g.id}">ETH: —</div>
+      `;
+      root.appendChild(div);
+    });
+  }
+
+  function addToCart(id){
+    cart.set(id, (cart.get(id)||0) + 1);
+    $("cartCount").textContent = [...cart.values()].reduce((a,b)=>a+b,0);
+    toast("Added to cart");
+    vibrate(14);
+    recomputeTotals();
+  }
+
+  function recomputeTotals(){
+    const totalUsd = [...cart.entries()].reduce((sum,[id,qty])=>{
+      const g = GLITCHES.find(x=>x.id===id);
+      return sum + (g ? g.usd*qty : 0);
+    },0);
+    $("totalUsd").textContent = money(totalUsd);
+
+    if (quote?.weeklyHighUsd){
+      const totalEth = totalUsd / quote.weeklyHighUsd;
+      $("totalEth").textContent = eth(totalEth);
+      $("quoteNote").textContent = `7D high: $${quote.weeklyHighUsd.toFixed(2)} · source: ${quote.source}`;
+    } else {
+      $("totalEth").textContent = "—";
+      $("quoteNote").textContent = "ETH quote unavailable (retry).";
     }
+  }
 
-    tabs.forEach(btn => btn.addEventListener('click', () => setTab(btn.dataset.tab)));
-    document.querySelectorAll('[data-jump="glitches"]').forEach(b => b.addEventListener('click', () => setTab('glitches')));
+  function applyEthToCards(){
+    const lines = document.querySelectorAll("[data-ethline]");
+    lines.forEach(el=>{
+      const id = el.getAttribute("data-ethline");
+      const g = GLITCHES.find(x=>x.id===id);
+      if (!g) return;
+      if (quote?.weeklyHighUsd){
+        el.textContent = `ETH: ${eth(g.usd / quote.weeklyHighUsd)} (weekly high)`;
+      } else {
+        el.textContent = `ETH: —`;
+      }
+    });
+  }
 
-    const backdrop = document.getElementById('backdrop');
-    const drawer = document.getElementById('drawer');
-    const menuBtn = document.getElementById('menuBtn');
-
-    function openDrawer(){ backdrop.classList.add('open'); drawer.classList.add('open'); }
-    function closeDrawer(){ backdrop.classList.remove('open'); drawer.classList.remove('open'); }
-
-    menuBtn?.addEventListener('click', openDrawer);
-    backdrop.addEventListener('click', closeDrawer);
-
-    // -----------------------------
-    // Checkout modal
-    // -----------------------------
-    const checkoutWrap = document.getElementById('checkoutWrap');
-    const goCheckout = document.getElementById('goCheckout');
-    const openCheckout2 = document.getElementById('openCheckout2');
-    const drawerCheckout = document.getElementById('drawerCheckout');
-    const closeCheckout = document.getElementById('closeCheckout');
-
-    function openCheckout(){ checkoutWrap.classList.add('open'); }
-    function closeCheckoutModal(){ checkoutWrap.classList.remove('open'); }
-
-    [goCheckout, openCheckout2, drawerCheckout].forEach(el => el && el.addEventListener('click', () => { openCheckout(); closeDrawer(); }));
-
-    closeCheckout.addEventListener('click', closeCheckoutModal);
-    checkoutWrap.addEventListener('click', (e) => { if(e.target === checkoutWrap) closeCheckoutModal(); });
-
-    // -----------------------------
-    // Wallet address loader
-    // -----------------------------
-    const walletAddrEl = document.getElementById('walletAddr');
-    const addrCandidates = ['Address.txt', 'address.txt'];
-
-    async function loadAddress(){
-      for (const p of addrCandidates){
+  // -----------------------------
+  // ETH quote fetch (from Pages Function)
+  // -----------------------------
+  async function refreshEth(){
+    $("ethStatus").textContent = "Loading…";
+    try{
+      const r = await fetch("/api/eth-quote", { cache:"no-store" });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || "quote failed");
+      quote = j;
+      localStorage.setItem("egg_quote", JSON.stringify({ t:Date.now(), v:j }));
+      $("ethStatus").textContent = `7D high: $${j.weeklyHighUsd.toFixed(2)} · spot: $${j.spotUsd.toFixed(2)} · ${j.source}`;
+      applyEthToCards();
+      recomputeTotals();
+    }catch(e){
+      // fallback from localStorage (last good)
+      const raw = localStorage.getItem("egg_quote");
+      if (raw){
         try{
-          const r = await fetch(p, { cache: 'no-store' });
-          if(r.ok){
-            const t = (await r.text()).trim();
-            if(t) return t;
+          const o = JSON.parse(raw);
+          if (Date.now() - o.t < 30*60*1000){
+            quote = o.v;
+            $("ethStatus").textContent = `Using cached: 7D high $${quote.weeklyHighUsd.toFixed(2)} · ${quote.source}`;
+            applyEthToCards();
+            recomputeTotals();
+            return;
           }
-        }catch{}
+        }catch(_){}
       }
-      return '';
+      $("ethStatus").textContent = "Quote unavailable. Try again.";
+      console.error(e);
     }
+  }
 
-    let WALLET_ADDRESS = '';
-    loadAddress().then(a => {
-      WALLET_ADDRESS = a;
-      walletAddrEl.textContent = a || 'Address file not found.';
-    });
+  // -----------------------------
+  // Wallet address from address.txt
+  // -----------------------------
+  async function loadAddress(){
+    try{
+      const r = await fetch("/address.txt", { cache:"no-store" });
+      const t = (await r.text()).trim();
+      $("walletAddr").textContent = t || "—";
+    }catch(e){
+      $("walletAddr").textContent = "—";
+    }
+  }
+  async function copyAddr(){
+    const a = $("walletAddr").textContent.trim();
+    if (!a || a==="—") return toast("No address");
+    await navigator.clipboard.writeText(a);
+    toast("Address copied");
+    vibrate(10);
+  }
 
-    document.getElementById('copyAddress').addEventListener('click', async () => {
-      if(!WALLET_ADDRESS) return toast('Address not loaded yet.');
-      try{
-        await navigator.clipboard.writeText(WALLET_ADDRESS);
-        toast('Address copied.');
-      }catch{
-        toast('Copy failed. Tap & hold to copy.');
+  function verifyStub(){
+    if (![...cart.keys()].length) return toast("Cart is empty");
+    if (!$("agree").checked) return toast("Accept Terms first");
+    if (!$("email").value.trim()) return toast("Email required");
+    if (!$("tx").value.trim().startsWith("0x")) return toast("TxHash required");
+    toast("UI ready — verification backend is next");
+    vibrate(16);
+  }
+
+  // -----------------------------
+  // Dopamine popups (light)
+  // -----------------------------
+  const POPS = [
+    "Someone just grabbed Simple Sample.",
+    "Wealth Forge is trending.",
+    "A Pro license was minted.",
+    "Little Glitcher added to cart."
+  ];
+  function startPops(){
+    setInterval(()=>{
+      if (Math.random() < 0.55){
+        toast(POPS[Math.floor(Math.random()*POPS.length)]);
       }
-    });
+    }, 9000);
+  }
 
-    // -----------------------------
-    // Cart + pricing (USD -> ETH using weekly high)
-    // -----------------------------
-    const products = {
-      g1: { usd: 50, title: 'Glitch 1.0 — Simple Sample' },
-      g2: { usd: 70, title: 'Glitch 2.0 — Wealth Builder' },
-      g3: { usd: 500, title: 'Glitch Pro — F★ck Gold' },
-      g4: { usd: 150, title: 'Little Glitcher' },
-    };
+  // -----------------------------
+  // Particle engine: clustered random + tap bursts
+  // -----------------------------
+  function startFX(){
+    const canvas = document.getElementById("fx");
+    const ctx = canvas.getContext("2d", { alpha:true });
+    let w=0,h=0,dpr=1;
 
-    const cart = new Set();
-    const cartCountEl = document.getElementById('cartCount');
-    const cartLinesEl = document.getElementById('cartLines');
-    const totalUsdEl = document.getElementById('totalUsd');
-    const totalEthEl = document.getElementById('totalEth');
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
 
-    function fmtUsd(n){ return '$' + n.toFixed(0); }
-    function fmtEth(n){
-      if(!isFinite(n)) return '—';
-      if(n === 0) return '0';
-      return n.toFixed(n < 0.01 ? 5 : 4);
-    }
+    const isMobile = matchMedia("(max-width: 860px)").matches;
+    const BASE = isMobile ? 80 : 140;
 
-    let ethSpot = null;
-    let ethWeekHigh = null;
-
-    function computeEth(usd){
-      if(!ethWeekHigh) return null;
-      return usd / ethWeekHigh;
-    }
-
-    function renderCart(){
-      cartCountEl.textContent = cart.size;
-      if(cart.size === 0){
-        cartLinesEl.textContent = 'No items yet.';
-        totalUsdEl.textContent = '$0';
-        totalEthEl.textContent = '—';
-        return;
-      }
-      let total = 0;
-      const lines = [];
-      cart.forEach(sku => {
-        const p = products[sku];
-        total += p.usd;
-        lines.push(`• ${p.title} — $${p.usd}`);
-      });
-      cartLinesEl.innerHTML = lines.map(x => `<div class="muted">${x}</div>`).join('');
-      totalUsdEl.textContent = fmtUsd(total);
-      const e = computeEth(total);
-      totalEthEl.textContent = e == null ? '—' : (fmtEth(e) + ' ETH');
-    }
-
-    function toggleAddBtn(sku){
-      document.querySelectorAll(`[data-add="${sku}"]`).forEach(btn=>{
-        const added = cart.has(sku);
-        btn.textContent = added ? 'Added' : 'Add';
-        btn.classList.toggle('added', added);
-      });
-    }
-
-    document.querySelectorAll('[data-add]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const sku = btn.dataset.add;
-        if(cart.has(sku)) cart.delete(sku);
-        else cart.add(sku);
-        toggleAddBtn(sku);
-        renderCart();
-        toast(cart.has(sku) ? 'Added to cart.' : 'Removed.');
-      });
-    });
-
-    // View buttons (minimal)
-    document.querySelectorAll('[data-view]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const sku = btn.dataset.view;
-        const p = products[sku];
-        toast(p ? p.title : 'Glitch');
-      });
-    });
-
-    // -----------------------------
-    // ETH quote loader (tries /api/eth-quote first, then direct)
-    // -----------------------------
-    const ethSpotEl = document.getElementById('ethSpot');
-    const ethWeekHighEl = document.getElementById('ethWeekHigh');
-    const ethWH2 = document.getElementById('ethWH2');
-    const ethStatusEl = document.getElementById('ethStatus');
-
-    async function fetchJson(url){
-      const r = await fetch(url, { cache: 'no-store' });
-      if(!r.ok) throw new Error('HTTP ' + r.status);
-      return r.json();
-    }
-
-    function setEthUI(){
-      ethSpotEl.textContent = ethSpot ? ('$' + ethSpot.toFixed(2)) : '$—';
-      ethWeekHighEl.textContent = ethWeekHigh ? ('$' + ethWeekHigh.toFixed(2)) : '$—';
-      ethWH2.textContent = ethWeekHigh ? ('$' + ethWeekHigh.toFixed(2)) : '$—';
-      renderCart();
-    }
-
-    async function loadEthQuote(){
-      ethStatusEl.textContent = 'loading…';
-      try{
-        // Preferred: your edge function
-        const data = await fetchJson('/api/eth-quote');
-        ethSpot = data.usdSpot;
-        ethWeekHigh = data.usdWeeklyHigh;
-        ethStatusEl.textContent = 'live';
-        setEthUI();
-        return;
-      }catch(e){
-        // Fallback: direct market_chart (may fail due to CORS/rate-limits)
-      }
-
-      try{
-        const chart = await fetchJson('https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=7&interval=hourly');
-        const prices = chart?.prices || [];
-        if(!prices.length) throw new Error('no prices');
-        let max = -Infinity;
-        for(const pt of prices) max = Math.max(max, pt[1]);
-        ethWeekHigh = max;
-        ethSpot = prices[prices.length-1][1];
-        ethStatusEl.textContent = 'fallback';
-        setEthUI();
-      }catch(err){
-        ethStatusEl.textContent = 'tap to retry';
-        toast('ETH quote failed. Tap to retry.');
-      }
-    }
-
-    // Tap anywhere to retry if needed
-    window.addEventListener('pointerdown', () => {
-      if(ethStatusEl.textContent.includes('retry')) loadEthQuote();
-    }, { passive: true });
-
-    loadEthQuote();
-    setInterval(loadEthQuote, 60_000);
-
-    // -----------------------------
-    // Verify button (UI-only for MVP)
-    // -----------------------------
-    document.getElementById('verifyBtn').addEventListener('click', ()=>{
-      const email = document.getElementById('email').value.trim();
-      const tx = document.getElementById('txhash').value.trim();
-      const agree = document.getElementById('agree').checked;
-      if(!cart.size) return toast('Pick a glitch first.');
-      if(!email) return toast('Email required.');
-      if(!agree) return toast('Please accept Terms.');
-      if(!/^0x[a-fA-F0-9]{64}$/.test(tx)) return toast('TxHash looks wrong.');
-      toast('Received. Verification backend is next.');
-    });
-
-    // -----------------------------
-    // Toasts (minimal dopamine pings)
-    // -----------------------------
-    const toastEl = document.getElementById('toast');
-    const toastText = document.getElementById('toastText');
-    let toastT = null;
-
-    function toast(msg){
-      clearTimeout(toastT);
-      toastText.textContent = msg;
-      toastEl.style.display = 'flex';
-      toastT = setTimeout(()=> toastEl.style.display='none', 2600);
-    }
-
-    const pings = [
-      '⚡ Simple Sample just sold.',
-      '🟡 Wealth Builder added to cart.',
-      '✨ Pro unlocks: lifetime.',
-      '🧾 Tap Checkout when ready.'
-    ];
-    function schedulePing(){
-      const t = 18000 + Math.random()*18000;
-      setTimeout(()=>{
-        toast(pings[Math.floor(Math.random()*pings.length)]);
-        schedulePing();
-      }, t);
-    }
-    schedulePing();
-
-    // -----------------------------
-    // Particle field: random + clustering + tap burst
-    // -----------------------------
-    const canvas = document.getElementById('fx');
-    const ctx = canvas.getContext('2d', { alpha: true });
-
-    const isMobile = matchMedia('(max-width: 640px)').matches;
-    const DPR = Math.min(2, window.devicePixelRatio || 1);
-
-    let W=0,H=0;
-    function resize(){
-      W = Math.floor(innerWidth * DPR);
-      H = Math.floor(innerHeight * DPR);
-      canvas.width = W;
-      canvas.height = H;
-    }
-    addEventListener('resize', resize, { passive:true });
-    resize();
-
-    const MAX = isMobile ? 70 : 140;
-    const ATTR = isMobile ? 3 : 5;
-
-    const attractors = [];
-    function mkAttractor(x, y, lifeMs = 0){
-      return {
-        x, y,
-        vx: (Math.random()-.5)*0.18*DPR,
-        vy: (Math.random()-.5)*0.18*DPR,
-        s: (0.45 + Math.random()*0.65) * DPR,
-        life: lifeMs,
-        born: performance.now()
-      };
-    }
-    for(let i=0;i<ATTR;i++){
-      attractors.push(mkAttractor(Math.random()*W, Math.random()*H));
-    }
-
+    const clusters = [];
     const particles = [];
-    function spawn(n, x, y){
-      for(let i=0;i<n;i++){
-        const a = attractors[Math.floor(Math.random()*attractors.length)];
+    const gridSize = 90;
+    let pointer = { x: -9999, y: -9999, down:false };
+
+    function resize(){
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      w = canvas.width = Math.floor(innerWidth * dpr);
+      h = canvas.height = Math.floor(innerHeight * dpr);
+      canvas.style.width = innerWidth + "px";
+      canvas.style.height = innerHeight + "px";
+      ctx.setTransform(1,0,0,1,0,0);
+    }
+
+    function rand(a,b){ return a + Math.random()*(b-a); }
+
+    function addCluster(x,y, n=18){
+      const c = {
+        x: x, y: y,
+        vx: rand(-.10,.10)*dpr, vy: rand(-.10,.10)*dpr,
+        pull: rand(.002,.006)*dpr
+      };
+      clusters.push(c);
+      for (let i=0;i<n;i++){
         particles.push({
-          x: x + (Math.random()-.5)*20*DPR,
-          y: y + (Math.random()-.5)*20*DPR,
-          vx:(Math.random()-.5)*0.55*DPR,
-          vy:(Math.random()-.5)*0.55*DPR,
-          r: (1.2 + Math.random()*2.2)*DPR,
-          a,
-          wob: Math.random()*Math.PI*2,
-          glow: Math.random()*0.9 + 0.1,
-          t: Math.random(),
+          x: x + rand(-120,120)*dpr,
+          y: y + rand(-120,120)*dpr,
+          vx: rand(-.55,.55)*dpr,
+          vy: rand(-.55,.55)*dpr,
+          r: rand(1.0, 2.2)*dpr,
+          a: rand(.35,.95),
+          c: c
         });
       }
-      while(particles.length > MAX) particles.shift();
+      // keep counts bounded
+      while (particles.length > BASE) particles.shift();
+      while (clusters.length > Math.max(6, Math.floor(BASE/18))) clusters.shift();
     }
-    spawn(MAX, W*0.5, H*0.5);
 
-    // spatial grid for mild separation
-    const cell = 80 * DPR;
-    function key(cx,cy){ return (cx<<16) ^ cy; }
-
-    function step(now){
-      // clear
-      ctx.clearRect(0,0,W,H);
-
-      // move attractors (drifty)
-      for(const a of attractors){
-        a.x += a.vx; a.y += a.vy;
-        if(a.x<0||a.x>W) a.vx*=-1;
-        if(a.y<0||a.y>H) a.vy*=-1;
+    function seed(){
+      clusters.length = 0;
+      particles.length = 0;
+      const k = isMobile ? 5 : 7;
+      for (let i=0;i<k;i++){
+        addCluster(rand(0,w), rand(0,h), isMobile ? 14 : 18);
       }
-      // prune temporary attractors
-      for(let i=attractors.length-1;i>=0;i--){
-        const a = attractors[i];
-        if(a.life>0 && (now - a.born) > a.life){
-          attractors.splice(i,1);
-        }
-      }
-      // keep baseline attractors count
-      while(attractors.length < ATTR) attractors.push(mkAttractor(Math.random()*W, Math.random()*H));
+    }
 
-      // grid build
+    function burst(x,y){
+      addCluster(x,y, isMobile ? 12 : 18);
+      // ripple
+      ripples.push({ x,y, t:0 });
+      vibrate(10);
+    }
+
+    // ripples
+    const ripples = [];
+
+    function spatialKey(x,y){
+      return ((x/gridSize)|0) + "," + ((y/gridSize)|0);
+    }
+
+    function step(){
+      ctx.clearRect(0,0,w,h);
+
+      // soft vignette
+      const g = ctx.createRadialGradient(w*.5,h*.45, 0, w*.5,h*.45, Math.max(w,h)*.65);
+      g.addColorStop(0, "rgba(255,255,255,0.02)");
+      g.addColorStop(1, "rgba(0,0,0,0.0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,w,h);
+
+      // update clusters (slow drift)
+      for (const c of clusters){
+        c.vx += rand(-.002,.002)*dpr;
+        c.vy += rand(-.002,.002)*dpr;
+        c.vx *= .995; c.vy *= .995;
+        c.x += c.vx; c.y += c.vy;
+        if (c.x < 0 || c.x > w) c.vx *= -1;
+        if (c.y < 0 || c.y > h) c.vy *= -1;
+      }
+
+      // spatial hash
       const grid = new Map();
-      for(const p of particles){
-        const cx = (p.x/cell)|0, cy = (p.y/cell)|0;
-        const k = key(cx,cy);
-        if(!grid.has(k)) grid.set(k, []);
+      for (const p of particles){
+        const k = spatialKey(p.x,p.y);
+        if (!grid.has(k)) grid.set(k, []);
         grid.get(k).push(p);
       }
 
-      // draw pass
-      for(const p of particles){
-        // random wander
-        p.wob += 0.018;
-        const wx = Math.cos(p.wob)*0.03*DPR;
-        const wy = Math.sin(p.wob)*0.03*DPR;
+      // draw links + update particles
+      for (const p of particles){
+        // pull toward cluster center (regroup)
+        const dx = (p.c.x - p.x);
+        const dy = (p.c.y - p.y);
+        p.vx += dx * p.c.pull;
+        p.vy += dy * p.c.pull;
 
-        // cohesion to assigned attractor (clustering)
-        const ax = p.a.x - p.x;
-        const ay = p.a.y - p.y;
-        const dist = Math.hypot(ax,ay) + 0.0001;
-        const pull = Math.min(0.08*DPR, (p.a.s / dist) * 0.9);
+        // pointer gravity + swirl
+        const px = pointer.x - p.x;
+        const py = pointer.y - p.y;
+        const pd2 = px*px + py*py;
+        if (pd2 < (220*220)*dpr*dpr){
+          const inv = 1 / Math.max(1200, pd2);
+          const s = pointer.down ? 520 : 260;
+          // attract
+          p.vx += px * inv * s * dpr;
+          p.vy += py * inv * s * dpr;
+          // swirl
+          p.vx += -py * inv * (pointer.down ? 320 : 160) * dpr;
+          p.vy +=  px * inv * (pointer.down ? 320 : 160) * dpr;
+        }
 
-        p.vx += (ax/dist)*pull + wx;
-        p.vy += (ay/dist)*pull + wy;
-
-        // mild separation from neighbors
-        const cx = (p.x/cell)|0, cy = (p.y/cell)|0;
-        let rx=0, ry=0;
-        for(let gx=-1;gx<=1;gx++){
-          for(let gy=-1;gy<=1;gy++){
-            const k = key(cx+gx, cy+gy);
-            const bucket = grid.get(k);
-            if(!bucket) continue;
-            for(const q of bucket){
-              if(q===p) continue;
-              const dx = p.x - q.x, dy = p.y - q.y;
-              const d2 = dx*dx + dy*dy;
-              if(d2 < (28*DPR)*(28*DPR)){
-                const inv = 1/(d2+40);
-                rx += dx*inv;
-                ry += dy*inv;
+        // separation (avoid over-clumping)
+        const gx = (p.x/gridSize)|0, gy = (p.y/gridSize)|0;
+        for (let ox=-1; ox<=1; ox++){
+          for (let oy=-1; oy<=1; oy++){
+            const kk = (gx+ox)+","+(gy+oy);
+            const bucket = grid.get(kk);
+            if (!bucket) continue;
+            for (const q of bucket){
+              if (q === p) continue;
+              const ax = p.x - q.x;
+              const ay = p.y - q.y;
+              const d2 = ax*ax + ay*ay;
+              if (d2 > 0 && d2 < (38*38)*dpr*dpr){
+                const f = 0.9 / d2;
+                p.vx += ax * f;
+                p.vy += ay * f;
               }
             }
           }
         }
-        p.vx += rx*0.55;
-        p.vy += ry*0.55;
-
-        // damping
-        p.vx *= 0.985;
-        p.vy *= 0.985;
 
         // integrate
-        p.x += p.vx;
-        p.y += p.vy;
+        p.vx *= .985; p.vy *= .985;
+        p.x += p.vx; p.y += p.vy;
 
-        // wrap
-        if(p.x < -30) p.x = W+30;
-        if(p.x > W+30) p.x = -30;
-        if(p.y < -30) p.y = H+30;
-        if(p.y > H+30) p.y = -30;
+        // wrap edges
+        if (p.x < -40*dpr) p.x = w + 40*dpr;
+        if (p.x > w + 40*dpr) p.x = -40*dpr;
+        if (p.y < -40*dpr) p.y = h + 40*dpr;
+        if (p.y > h + 40*dpr) p.y = -40*dpr;
 
-        // color mix (gold/white)
-        const goldBias = 0.55 + 0.45*Math.sin(p.wob*0.7 + p.t*6.0);
-        const a1 = 0.10 + 0.20*p.glow;
+        // links (local)
+        const kk = spatialKey(p.x,p.y);
+        const bucket = grid.get(kk) || [];
+        for (const q of bucket){
+          if (q === p) continue;
+          const ax = p.x - q.x;
+          const ay = p.y - q.y;
+          const d = Math.hypot(ax,ay);
+          if (d < 120*dpr){
+            const alpha = (1 - d/(120*dpr)) * 0.18 * (p.a + q.a) * 0.5;
+            ctx.strokeStyle = `rgba(215,181,106,${alpha})`;
+            ctx.lineWidth = 1*dpr;
+            ctx.beginPath();
+            ctx.moveTo(p.x,p.y);
+            ctx.lineTo(q.x,q.y);
+            ctx.stroke();
+          }
+        }
+
+        // particle dot
+        ctx.fillStyle = `rgba(255,255,255,${0.10 * p.a})`;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-        ctx.fillStyle = goldBias > 0.55
-          ? `rgba(227,190,120,${a1})`
-          : `rgba(255,255,255,${a1})`;
+        ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
         ctx.fill();
-      }
 
-      // subtle connecting lines inside clusters
-      ctx.save();
-      ctx.globalAlpha = 0.12;
-      ctx.lineWidth = 1 * DPR;
-      for(const p of particles){
-        // connect to attractor (short range only)
-        const dx = p.a.x - p.x, dy = p.a.y - p.y;
-        const d = Math.hypot(dx,dy);
-        if(d < 220*DPR){
+        // gold glow occasionally
+        if (Math.random() < 0.015){
+          ctx.fillStyle = `rgba(215,181,106,${0.08 * p.a})`;
           ctx.beginPath();
-          ctx.moveTo(p.x, p.y);
-          ctx.lineTo(p.a.x, p.a.y);
-          ctx.strokeStyle = 'rgba(227,190,120,0.08)';
-          ctx.stroke();
+          ctx.arc(p.x,p.y,p.r*3.2,0,Math.PI*2);
+          ctx.fill();
         }
       }
-      ctx.restore();
+
+      // ripples
+      for (let i=ripples.length-1;i>=0;i--){
+        const r = ripples[i];
+        r.t += 1;
+        const radius = r.t * 9 * dpr;
+        const a = Math.max(0, 0.22 - r.t*0.004);
+        ctx.strokeStyle = `rgba(215,181,106,${a})`;
+        ctx.lineWidth = 2*dpr;
+        ctx.beginPath();
+        ctx.arc(r.x,r.y,radius,0,Math.PI*2);
+        ctx.stroke();
+        if (a <= 0) ripples.splice(i,1);
+      }
 
       requestAnimationFrame(step);
     }
-    requestAnimationFrame(step);
 
-    // Tap burst: add temporary attractor + particles
-    window.addEventListener('pointerdown', (e)=>{
-      const x = e.clientX * DPR;
-      const y = e.clientY * DPR;
-      attractors.push(mkAttractor(x, y, 2800)); // temp attractor 2.8s
-      spawn(isMobile ? 10 : 16, x, y);
+    resize();
+    seed();
+    step();
+
+    window.addEventListener("resize", ()=>{ resize(); seed(); }, { passive:true });
+
+    // interactive taps / clicks
+    window.addEventListener("pointermove", (e)=>{
+      pointer.x = e.clientX * dpr;
+      pointer.y = e.clientY * dpr;
     }, { passive:true });
-  </script>
+
+    window.addEventListener("pointerdown", (e)=>{
+      pointer.down = true;
+      burst(e.clientX*dpr, e.clientY*dpr);
+    }, { passive:true });
+
+    window.addEventListener("pointerup", ()=>{ pointer.down = false; }, { passive:true });
+  }
+
+  // -----------------------------
+  // Init
+  // -----------------------------
+  $("cartBtn").addEventListener("click", openCheckout);
+  $("menuBtn").addEventListener("click", ()=> openSheet("menu"));
+
+  renderCards("glitchGrid");
+  renderCards("glitchGrid2");
+
+  loadAddress();
+  refreshEth();
+  startFX();
+  startPops();
+
+  function refreshEth(){ return window.refreshEth(); }
+  window.refreshEth = refreshEth;
+</script>
 </body>
 </html>
