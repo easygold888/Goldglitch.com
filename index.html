@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>EasyGoldGlitch</title>
-  <meta name="theme-color" content="#0b0b0f" />
+  <meta name="theme-color" content="#0b0b10" />
   <style>
     :root{
       --bg0:#07070a;
-      --bg1:#0b0c10;
+      --bg1:#0b0c11;
       --glass: rgba(255,255,255,.06);
       --glass2: rgba(255,255,255,.09);
       --stroke: rgba(255,255,255,.10);
@@ -17,6 +17,7 @@
       --muted: rgba(255,255,255,.62);
       --muted2: rgba(255,255,255,.45);
       --gold: #d7b56a;
+      --gold2:#ffebb8;
       --shadow: 0 18px 70px rgba(0,0,0,.55);
       --r: 22px;
       --r2: 28px;
@@ -27,20 +28,20 @@
     body{
       margin:0;
       background:
-        radial-gradient(1200px 700px at 25% 10%, rgba(215,181,106,.10), transparent 55%),
-        radial-gradient(900px 600px at 70% 25%, rgba(110,130,255,.09), transparent 60%),
+        radial-gradient(1200px 700px at 25% 10%, rgba(215,181,106,.11), transparent 55%),
+        radial-gradient(900px 600px at 70% 25%, rgba(110,130,255,.08), transparent 60%),
         linear-gradient(180deg,var(--bg0),var(--bg1));
       color: var(--text);
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       overflow-x:hidden;
     }
 
-    /* FX */
+    /* FX canvas */
     #fx{
       position:fixed; inset:0;
       width:100%; height:100%;
       z-index:0;
-      pointer-events:none;
+      pointer-events:none; /* UI remains clickable */
     }
     .wrap{ position:relative; z-index:2; }
 
@@ -72,6 +73,7 @@
       object-fit: cover;
     }
     .brand b{ font-size:15px; letter-spacing:.4px; white-space:nowrap; }
+
     .seg{
       display:flex; gap:6px; align-items:center;
       padding:6px;
@@ -85,7 +87,7 @@
       border-radius: 999px;
       background: transparent;
       color: rgba(255,255,255,.78);
-      font-weight: 650;
+      font-weight: 750;
       font-size: 13px;
       -webkit-tap-highlight-color: transparent;
     }
@@ -95,13 +97,23 @@
       color: var(--text);
     }
 
+    .quote{
+      display:flex; flex-direction:column; align-items:flex-end; gap:2px;
+      min-width: 170px;
+    }
     .chip{
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.05);
       border-radius: 999px;
-      padding: 9px 12px;
-      color: rgba(255,255,255,.78);
+      padding: 8px 12px;
+      color: rgba(255,255,255,.82);
       font-size: 12.5px;
+      white-space:nowrap;
+    }
+    .chip strong{ color: rgba(215,181,106,.95); }
+    .tiny{
+      color: rgba(255,255,255,.55);
+      font-size: 11.5px;
       white-space:nowrap;
     }
 
@@ -110,7 +122,6 @@
       margin:0 auto;
       padding: 12px 14px 110px;
     }
-
     .panel{
       border-radius: var(--r2);
       border:1px solid rgba(255,255,255,.10);
@@ -171,15 +182,20 @@
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.06);
       color: var(--text);
-      font-weight: 750;
+      font-weight: 800;
       cursor:pointer;
       transition: transform .15s ease, border-color .15s ease;
       -webkit-tap-highlight-color: transparent;
     }
     .btn:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
     .btn.primary{
-      background: linear-gradient(180deg, rgba(215,181,106,.20), rgba(215,181,106,.10));
+      background: linear-gradient(180deg, rgba(215,181,106,.22), rgba(215,181,106,.10));
       border-color: rgba(215,181,106,.35);
+    }
+    .btn.ghost{
+      background: transparent;
+      border-color: rgba(255,255,255,.10);
+      color: rgba(255,255,255,.78);
     }
 
     /* Modal */
@@ -193,7 +209,7 @@
       position:fixed; z-index:31;
       left:50%; transform: translateX(-50%);
       top: 14px;
-      width: min(720px, calc(100vw - 28px));
+      width: min(740px, calc(100vw - 28px));
       max-height: calc(100vh - 28px);
       overflow:auto;
       border-radius: 26px;
@@ -235,7 +251,7 @@
       margin-top: 10px;
     }
     .walletBox img{
-      width:90px; height:90px;
+      width:96px; height:96px;
       border-radius: 18px;
       border:1px solid rgba(255,255,255,.10);
       background:#0b0b0f;
@@ -267,6 +283,12 @@
     }
     .checkrow input{ width:auto; margin-top: 2px; }
 
+    .hr{
+      height:1px;
+      background: rgba(255,255,255,.08);
+      margin: 12px 0;
+    }
+
     .toast{
       position:fixed; left:50%; transform: translateX(-50%);
       bottom: 18px; z-index:40;
@@ -283,8 +305,13 @@
 
     @media (max-width: 900px){
       .grid{ grid-template-columns: 1fr; }
-      .chip{ display:none; }
+      .quote{ display:none; } /* keep header ultra clean on mobile */
       .modal{ top:auto; bottom: 14px; transform: translateX(-50%); }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      #fx{ display:none; }
+      .card, .btn{ transition:none }
     }
   </style>
 </head>
@@ -295,8 +322,7 @@
     <header class="top">
       <div class="topbar">
         <div class="brand">
-          <!-- Put your logo at /logo.png OR change to /assets/logo.png -->
-          <img src="/logo.png" alt="logo" onerror="this.style.display='none';">
+          <img id="brandLogo" src="/assets/logo.png" alt="logo">
           <b>EasyGoldGlitch</b>
         </div>
 
@@ -306,7 +332,10 @@
           <button id="tabTerms">Terms</button>
         </div>
 
-        <div class="chip" id="ethChip">ETH: —</div>
+        <div class="quote">
+          <div class="chip" id="ethChip">ETH: <strong>—</strong></div>
+          <div class="tiny" id="quoteTiny">Quote refresh: —</div>
+        </div>
       </div>
     </header>
 
@@ -319,7 +348,7 @@
 
         <div class="btnrow">
           <button class="btn primary" id="homeCta">Browse exploits</button>
-          <button class="btn" id="homeTerms">Terms</button>
+          <button class="btn ghost" id="homeTerms">Terms</button>
         </div>
       </section>
 
@@ -327,7 +356,7 @@
       <section id="viewGlitches" class="panel" style="display:none">
         <div class="kicker">Exploits</div>
         <h1>Choose your glitch.</h1>
-        <p class="sub">Minimal text. Maximum signal.</p>
+        <p class="sub">Demo license: 2 months, 1 account.</p>
 
         <div class="grid" id="glitchGrid"></div>
       </section>
@@ -339,8 +368,11 @@
         <p class="sub">
           Trading is high-risk. You can lose part or all of your capital. Past performance does not guarantee future results.
           This site provides digital software and informational material only — not financial advice.
-          All sales are final (no refunds) due to instant digital delivery.
-          Demo license: 2 months, single account.
+        </p>
+        <div class="hr"></div>
+        <p class="sub">
+          Digital delivery: all sales are final (no refunds). Demo license lasts 2 months and is intended for one (1) account.
+          By purchasing, you accept these terms and assume all responsibility for your outcomes.
         </p>
       </section>
     </main>
@@ -351,7 +383,7 @@
   <div class="modal" id="detailsModal">
     <div class="hd">
       <div>
-        <div style="font-weight:900" id="dTitle">Glitch</div>
+        <div style="font-weight:950" id="dTitle">Glitch</div>
         <div class="muted" id="dPrice">—</div>
       </div>
       <button class="x" id="closeDetails">✕</button>
@@ -366,7 +398,7 @@
       </div>
 
       <div class="muted" style="margin-top:10px">
-        License: Demo (2 months, 1 account). Delivery via email after payment.
+        License: <b>Demo</b> (2 months, 1 account). Delivery via email after payment.
       </div>
     </div>
   </div>
@@ -375,15 +407,20 @@
   <div class="modal" id="checkoutModal">
     <div class="hd">
       <div>
-        <div style="font-weight:900">Checkout</div>
-        <div class="muted" id="cSub">Pay in ETH</div>
+        <div style="font-weight:950">Checkout</div>
+        <div class="muted" id="cSub">Pay in ETH (quote refreshes every 10 min)</div>
       </div>
       <button class="x" id="closeCheckout">✕</button>
     </div>
     <div class="bd">
       <div class="muted">
         Selected: <b id="cItem">—</b><br/>
-        Price: <b id="cUsd">$0</b> · Pay: <b id="cEth">—</b>
+        Price: <b id="cUsd">$0</b><br/>
+        ETH to send (weekly ATH): <b id="cEth">—</b>
+      </div>
+
+      <div class="muted" style="margin-top:10px">
+        Quote: spot <b id="cSpot">—</b> · 7D ATH <b id="cAth">—</b> · refresh in <b id="cTtl">—</b>
       </div>
 
       <div class="walletBox">
@@ -413,7 +450,7 @@
       </div>
 
       <div class="muted" style="margin-top:10px">
-        (MVP UI: verification + secure download link comes next.)
+        (MVP: next step is TxHash verification + secure delivery link.)
       </div>
     </div>
   </div>
@@ -422,7 +459,7 @@
 
   <script>
     // --------------------
-    // Config
+    // Products (USD)
     // --------------------
     const PRODUCTS = [
       {
@@ -431,8 +468,8 @@
         usd: 50,
         desc:"Conservative execution. One trade at a time.",
         bullets:[
-          "Best for: trending / calmer markets",
-          "Use on: majors, gold, large caps",
+          "Best for: calmer trends",
+          "Use on: gold / majors / indices",
           "Goal: controlled exposure"
         ]
       },
@@ -440,10 +477,10 @@
         id:"g2",
         name:"Glitch 2.0 — Wealth Builder",
         usd: 70,
-        desc:"Buy & hold bias with smarter re-entries.",
+        desc:"Long-bias with smarter re-entries.",
         bullets:[
           "Best for: long-bias markets",
-          "Use on: indices, gold, strong majors",
+          "Use on: indices / gold / strong majors",
           "Goal: smoother compounding"
         ]
       },
@@ -453,14 +490,27 @@
         usd: 100,
         desc:"Aggressive mode. Minimal opinion. Maximum execution.",
         bullets:[
-          "Best for: fast markets (high volatility)",
-          "Use on: gold / crypto / volatile FX pairs",
+          "Best for: high volatility",
+          "Use on: gold / crypto / fast FX pairs",
           "Goal: capture expansion moves"
         ]
       }
     ];
 
     const $ = (id)=>document.getElementById(id);
+
+    // Logo fallback: try /assets/logo.png then /logo.png
+    (() => {
+      const img = $("brandLogo");
+      if (!img) return;
+      img.onerror = () => {
+        if (img.dataset.fallbackDone) { img.style.display = "none"; return; }
+        img.dataset.fallbackDone = "1";
+        img.src = "/logo.png";
+      };
+    })();
+
+    // Toast
     const toast = (msg)=>{
       const t = $("toast");
       t.textContent = msg;
@@ -469,14 +519,10 @@
       toast._k = setTimeout(()=> t.style.display="none", 2200);
     };
 
-    // State
+    // --------------------
+    // View router
+    // --------------------
     let view = "home";
-    let selected = PRODUCTS[0];
-    let ethUsdSpot = null;
-
-    // --------------------
-    // View router (Step 2)
-    // --------------------
     function setView(next){
       view = next;
       $("viewHome").style.display = (view==="home") ? "block" : "none";
@@ -486,6 +532,20 @@
       $("tabHome").classList.toggle("active", view==="home");
       $("tabGlitches").classList.toggle("active", view==="glitches");
       $("tabTerms").classList.toggle("active", view==="terms");
+    }
+
+    // --------------------
+    // Modals
+    // --------------------
+    function openModal(id){
+      $("shade").style.display = "block";
+      $(id).style.display = "block";
+    }
+    function closeModals(){
+      $("shade").style.display = "none";
+      $("detailsModal").style.display = "none";
+      $("checkoutModal").style.display = "none";
+      stopQuoteCountdown();
     }
 
     // --------------------
@@ -508,51 +568,121 @@
     }
 
     // --------------------
-    // Modals
+    // Details + Checkout
     // --------------------
-    function openModal(id){
-      $("shade").style.display = "block";
-      $(id).style.display = "block";
-    }
-    function closeModals(){
-      $("shade").style.display = "none";
-      $("detailsModal").style.display = "none";
-      $("checkoutModal").style.display = "none";
-    }
+    let selected = PRODUCTS[0];
 
     function openDetails(id){
       selected = PRODUCTS.find(x=>x.id===id) || PRODUCTS[0];
       $("dTitle").textContent = selected.name;
-      $("dPrice").textContent = `$${selected.usd} · Demo license (2 months, 1 account)`;
+      $("dPrice").textContent = `$${selected.usd} · Demo (2 months, 1 account)`;
       $("dDesc").textContent = selected.desc;
       $("dBullets").innerHTML = selected.bullets.map(x=>`<li>${x}</li>`).join("");
       openModal("detailsModal");
     }
 
-    async function openCheckout(){
-      // ensure ETH quote loaded
-      if (!ethUsdSpot) await loadEth();
+    // --------------------
+    // Quote logic (spot + weekly ATH) + 10-min refresh
+    // --------------------
+    let QUOTE = null;
+    let quoteTimer = null;
 
-      $("cItem").textContent = selected.name;
-      $("cUsd").textContent = `$${selected.usd}`;
+    function msToMMSS(ms){
+      const sec = Math.max(0, Math.floor(ms/1000));
+      const mm = String(Math.floor(sec/60)).padStart(2,"0");
+      const ss = String(sec%60).padStart(2,"0");
+      return `${mm}:${ss}`;
+    }
 
-      if (ethUsdSpot){
-        const eth = selected.usd / ethUsdSpot;
-        $("cEth").textContent = `${eth.toFixed(5)} ETH`;
-        $("ethChip").textContent = `ETH: $${ethUsdSpot.toFixed(2)}`;
+    async function fetchQuote(){
+      const r = await fetch("/api/eth-quote", { cache:"no-store" });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || "Quote error");
+
+      // expected fields from your function:
+      // ethUsdSpot, ethUsdWeeklyHigh, expiresAt, quoteTtlSeconds
+      QUOTE = {
+        ethUsdSpot: Number(j.ethUsdSpot),
+        ethUsdWeeklyHigh: Number(j.ethUsdWeeklyHigh),
+        expiresAt: j.expiresAt,
+        quoteTtlSeconds: Number(j.quoteTtlSeconds) || 600,
+        updatedAt: j.updatedAt
+      };
+
+      renderQuoteHeader();
+      return QUOTE;
+    }
+
+    function renderQuoteHeader(){
+      const chip = $("ethChip");
+      const tiny = $("quoteTiny");
+      if (!chip || !tiny) return;
+
+      const spot = QUOTE?.ethUsdSpot;
+      const ath = QUOTE?.ethUsdWeeklyHigh;
+
+      if (Number.isFinite(spot) && Number.isFinite(ath)){
+        chip.innerHTML = `ETH spot <strong>$${spot.toFixed(2)}</strong> · 7D ATH <strong>$${ath.toFixed(2)}</strong>`;
+        tiny.textContent = "Quote refresh: …";
       } else {
-        $("cEth").textContent = "—";
+        chip.innerHTML = `ETH: <strong>—</strong>`;
+        tiny.textContent = "Quote refresh: —";
       }
+    }
 
-      // load address.txt safely
-      await loadAddress();
+    function getExpiresAtMs(){
+      if (QUOTE?.expiresAt){
+        const ms = Date.parse(QUOTE.expiresAt);
+        if (Number.isFinite(ms)) return ms;
+      }
+      // fallback: updatedAt + ttl
+      const base = QUOTE?.updatedAt ? Date.parse(QUOTE.updatedAt) : Date.now();
+      const ttl = (QUOTE?.quoteTtlSeconds || 600) * 1000;
+      return base + ttl;
+    }
 
-      openModal("checkoutModal");
+    function stopQuoteCountdown(){
+      if (quoteTimer) clearInterval(quoteTimer);
+      quoteTimer = null;
+    }
+
+    function startQuoteCountdown(onTick){
+      stopQuoteCountdown();
+      quoteTimer = setInterval(async () => {
+        const exp = getExpiresAtMs();
+        const left = exp - Date.now();
+
+        onTick?.(left);
+
+        // Header countdown (desktop)
+        const tiny = $("quoteTiny");
+        if (tiny && left > 0) tiny.textContent = `Quote refresh: ${msToMMSS(left)}`;
+        if (tiny && left <= 0) tiny.textContent = `Refreshing quote…`;
+
+        if (left <= 0){
+          stopQuoteCountdown();
+          try{
+            await fetchQuote();
+            // re-render checkout totals if checkout open
+            if ($("checkoutModal").style.display === "block") renderCheckoutTotals();
+            startQuoteCountdown(onTick);
+          } catch(e){
+            // retry soon
+            setTimeout(() => startQuoteCountdown(onTick), 10000);
+          }
+        }
+      }, 250);
+    }
+
+    function usdToEthUsingWeeklyAth(usd){
+      const ath = QUOTE?.ethUsdWeeklyHigh;
+      if (!Number.isFinite(ath) || ath <= 0) return null;
+      return usd / ath;
     }
 
     async function loadAddress(){
       try{
-        const r = await fetch("assets/address.txt", { cache:"no-store" });
+        const r = await fetch("/assets/address.txt", { cache:"no-store" });
         const t = (await r.text()).trim();
 
         // protect against HTML (wrong path / fallback)
@@ -567,18 +697,45 @@
       }
     }
 
-    async function loadEth(){
+    function renderCheckoutTotals(){
+      const spot = QUOTE?.ethUsdSpot;
+      const ath = QUOTE?.ethUsdWeeklyHigh;
+
+      $("cItem").textContent = selected.name;
+      $("cUsd").textContent = `$${selected.usd}`;
+
+      $("cSpot").textContent = Number.isFinite(spot) ? `$${spot.toFixed(2)}` : "—";
+      $("cAth").textContent  = Number.isFinite(ath)  ? `$${ath.toFixed(2)}`  : "—";
+
+      const eth = usdToEthUsingWeeklyAth(selected.usd);
+      $("cEth").textContent = eth ? `${eth.toFixed(6)} ETH` : "—";
+
+      // countdown
+      const exp = getExpiresAtMs();
+      const left = exp - Date.now();
+      $("cTtl").textContent = left > 0 ? msToMMSS(left) : "00:00";
+    }
+
+    async function openCheckout(){
+      // Ensure quote loaded
       try{
-        const r = await fetch("functions/api/eth-quote.js", { cache:"no-store" });
-        const j = await r.json();
-        if (!j.ok) throw new Error(j.error || "quote failed");
-        ethUsdSpot = Number(j.ethUsdSpot) || null;
-        if (ethUsdSpot) $("ethChip").textContent = `ETH: $${ethUsdSpot.toFixed(2)}`;
+        if (!QUOTE) await fetchQuote();
       } catch(e){
-        ethUsdSpot = null;
-        $("ethChip").textContent = "ETH: —";
         console.warn(e);
       }
+
+      // Render totals immediately (even if quote missing)
+      renderCheckoutTotals();
+
+      // Load wallet address
+      await loadAddress();
+
+      openModal("checkoutModal");
+
+      // Start countdown (refresh quote if expires)
+      startQuoteCountdown(() => {
+        if ($("checkoutModal").style.display === "block") renderCheckoutTotals();
+      });
     }
 
     // --------------------
@@ -588,8 +745,8 @@
     $("tabGlitches").onclick = ()=> setView("glitches");
     $("tabTerms").onclick = ()=> setView("terms");
 
-    $("homeCta").onclick = ()=> { setView("glitches"); };
-    $("homeTerms").onclick = ()=> { setView("terms"); };
+    $("homeCta").onclick = ()=> setView("glitches");
+    $("homeTerms").onclick = ()=> setView("terms");
 
     $("closeDetails").onclick = closeModals;
     $("dBackBtn").onclick = closeModals;
@@ -614,130 +771,207 @@
     };
 
     // --------------------
-    // Particles (visible + tap burst)
+    // Particles: free floating gold rocks
+    // - connected lines
+    // - repels pointer
+    // - click/tap spawns more
     // --------------------
     (function fx(){
-      const canvas = document.getElementById("fx");
+      const canvas = $("fx");
       const ctx = canvas.getContext("2d", { alpha:true });
-      let w=0,h=0,dpr=1;
 
-      const isMobile = matchMedia("(max-width: 900px)").matches;
-      const baseCount = isMobile ? 70 : 120;
-
+      let W=0,H=0,DPR=1;
       const pointer = { x:-9999, y:-9999, down:false };
 
-      const particles = [];
-      function rand(a,b){ return a + Math.random()*(b-a); }
+      const isMobile = matchMedia("(max-width: 900px)").matches;
+      const BASE = isMobile ? 62 : 110;
+      const LINK = isMobile ? 110 : 150;
 
       function resize(){
-        dpr = Math.min(2, window.devicePixelRatio || 1);
-        w = canvas.width = Math.floor(innerWidth * dpr);
-        h = canvas.height = Math.floor(innerHeight * dpr);
+        DPR = Math.min(2, devicePixelRatio || 1);
+        W = canvas.width = Math.floor(innerWidth * DPR);
+        H = canvas.height = Math.floor(innerHeight * DPR);
         canvas.style.width = innerWidth + "px";
         canvas.style.height = innerHeight + "px";
-        ctx.setTransform(1,0,0,1,0,0);
       }
-      function spawn(n, cx=rand(0,w), cy=rand(0,h), burst=false){
+      function rnd(a,b){ return a + Math.random()*(b-a); }
+
+      function makeRockShape(){
+        const n = Math.floor(rnd(6, 10));
+        const pts = [];
         for(let i=0;i<n;i++){
-          const ang = rand(0, Math.PI*2);
-          const sp = burst ? rand(0.6, 2.2) : rand(0.2, 0.9);
-          particles.push({
-            x: cx + rand(-80,80)*dpr,
-            y: cy + rand(-80,80)*dpr,
-            vx: Math.cos(ang)*sp*dpr,
-            vy: Math.sin(ang)*sp*dpr,
-            r: rand(0.8, 2.2)*dpr,
-            a: rand(0.25, 0.85),
-          });
+          const ang = (i/n)*Math.PI*2 + rnd(-0.15, 0.15);
+          const rad = rnd(0.65, 1.0);
+          pts.push({ ang, rad });
         }
-        while(particles.length > baseCount + 30) particles.shift();
+        return pts;
       }
 
-      resize();
-      spawn(baseCount);
+      function particle(x=rnd(0,W), y=rnd(0,H), burst=false){
+        const sp = burst ? rnd(0.9, 2.6) : rnd(0.15, 0.85);
+        const ang = rnd(0, Math.PI*2);
+        return {
+          x, y,
+          vx: Math.cos(ang)*sp*DPR,
+          vy: Math.sin(ang)*sp*DPR,
+          s: rnd(3.4, 7.8)*DPR,
+          a: rnd(0.35, 0.95),
+          rot: rnd(0, Math.PI*2),
+          vr: rnd(-0.02, 0.02),
+          shape: makeRockShape(),
+          sparkle: rnd(0,1) < 0.20
+        };
+      }
 
-      window.addEventListener("resize", ()=>{ resize(); }, { passive:true });
-      window.addEventListener("pointermove",(e)=>{
-        pointer.x = e.clientX*dpr;
-        pointer.y = e.clientY*dpr;
-      }, { passive:true });
-      window.addEventListener("pointerdown",(e)=>{
-        pointer.down = true;
-        spawn(isMobile ? 12 : 18, e.clientX*dpr, e.clientY*dpr, true);
-      }, { passive:true });
-      window.addEventListener("pointerup",()=> pointer.down=false, { passive:true });
+      const P = [];
+      function spawn(n, cx=rnd(0,W), cy=rnd(0,H), burst=false){
+        for(let i=0;i<n;i++) P.push(particle(cx + rnd(-70,70)*DPR, cy + rnd(-70,70)*DPR, burst));
+        while(P.length > BASE + 50) P.shift();
+      }
+
+      function drawRock(p){
+        const x=p.x, y=p.y, s=p.s;
+
+        // gold gradient (brighter)
+        const g = ctx.createRadialGradient(x - s*0.35, y - s*0.45, 0, x, y, s*2.4);
+        g.addColorStop(0, `rgba(255, 236, 180, ${0.28*p.a})`);
+        g.addColorStop(0.38, `rgba(215, 181, 106, ${0.36*p.a})`);
+        g.addColorStop(1, `rgba(90, 60, 18, ${0.07*p.a})`);
+
+        ctx.save();
+        ctx.translate(x,y);
+        ctx.rotate(p.rot);
+
+        ctx.beginPath();
+        for(let i=0;i<p.shape.length;i++){
+          const pt = p.shape[i];
+          const px = Math.cos(pt.ang)*pt.rad*s;
+          const py = Math.sin(pt.ang)*pt.rad*s;
+          if(i===0) ctx.moveTo(px,py);
+          else ctx.lineTo(px,py);
+        }
+        ctx.closePath();
+
+        ctx.fillStyle = g;
+        ctx.fill();
+
+        ctx.strokeStyle = `rgba(255,255,255,${0.06*p.a})`;
+        ctx.lineWidth = 1*DPR;
+        ctx.stroke();
+
+        if(p.sparkle){
+          ctx.globalCompositeOperation = "lighter";
+          ctx.fillStyle = `rgba(255,255,255,${0.22*p.a})`;
+          ctx.beginPath();
+          ctx.arc(-s*0.20, -s*0.22, s*0.28, 0, Math.PI*2);
+          ctx.fill();
+          ctx.globalCompositeOperation = "source-over";
+        }
+
+        ctx.restore();
+      }
 
       function step(){
-        ctx.clearRect(0,0,w,h);
+        ctx.clearRect(0,0,W,H);
 
-        // subtle vignette
-        const vg = ctx.createRadialGradient(w*.5,h*.4, 0, w*.5,h*.4, Math.max(w,h)*.7);
-        vg.addColorStop(0, "rgba(255,255,255,0.02)");
-        vg.addColorStop(1, "rgba(0,0,0,0)");
-        ctx.fillStyle = vg;
-        ctx.fillRect(0,0,w,h);
+        const mx = pointer.x*DPR, my = pointer.y*DPR;
 
-        for(const p of particles){
-          // pointer pull
-          const dx = pointer.x - p.x;
-          const dy = pointer.y - p.y;
+        // Update
+        for(const p of P){
+          // free random drift (keeps them "alive")
+          p.vx += rnd(-0.02, 0.02)*DPR;
+          p.vy += rnd(-0.02, 0.02)*DPR;
+
+          // repel pointer
+          const dx = p.x - mx, dy = p.y - my;
           const d2 = dx*dx + dy*dy;
-          if (d2 < (260*260)*dpr*dpr){
-            const k = pointer.down ? 0.0009 : 0.00045;
-            p.vx += dx * k;
-            p.vy += dy * k;
+          const repelR = (260*DPR)*(260*DPR);
+          if(d2 < repelR){
+            const d = Math.sqrt(d2) + 0.001;
+            const k = pointer.down ? 0.14 : 0.08;
+            p.vx += (dx/d)*k;
+            p.vy += (dy/d)*k;
           }
 
+          // damp
           p.vx *= 0.985;
           p.vy *= 0.985;
 
+          // integrate
           p.x += p.vx;
           p.y += p.vy;
 
-          if (p.x < -40*dpr) p.x = w + 40*dpr;
-          if (p.x > w + 40*dpr) p.x = -40*dpr;
-          if (p.y < -40*dpr) p.y = h + 40*dpr;
-          if (p.y > h + 40*dpr) p.y = -40*dpr;
+          // rotate
+          p.rot += p.vr;
+
+          // wrap
+          if(p.x < -60*DPR) p.x = W + 60*DPR;
+          if(p.x > W + 60*DPR) p.x = -60*DPR;
+          if(p.y < -60*DPR) p.y = H + 60*DPR;
+          if(p.y > H + 60*DPR) p.y = -60*DPR;
         }
 
-        // links + glow dots
-        for(let i=0;i<particles.length;i++){
-          const a = particles[i];
-          // links
-          for(let j=i+1;j<particles.length;j++){
-            const b = particles[j];
-            const dx = a.x-b.x, dy=a.y-b.y;
-            const d = Math.hypot(dx,dy);
-            const max = (isMobile? 105: 140)*dpr;
-            if (d < max){
-              const alpha = (1 - d/max) * 0.12 * (a.a+b.a)*0.5;
+        // Links (light)
+        for(let i=0;i<P.length;i++){
+          for(let j=i+1;j<P.length;j++){
+            const a=P[i], b=P[j];
+            const dx=a.x-b.x, dy=a.y-b.y;
+            const d=Math.hypot(dx,dy);
+            const max = LINK*DPR;
+            if(d < max){
+              const alpha = (1 - d/max) * 0.14;
               ctx.strokeStyle = `rgba(215,181,106,${alpha})`;
-              ctx.lineWidth = 1*dpr;
+              ctx.lineWidth = 1*DPR;
               ctx.beginPath();
               ctx.moveTo(a.x,a.y);
               ctx.lineTo(b.x,b.y);
               ctx.stroke();
             }
           }
-          // glow
-          const g = ctx.createRadialGradient(a.x,a.y,0, a.x,a.y, a.r*10);
-          g.addColorStop(0, `rgba(215,181,106,${0.16*a.a})`);
-          g.addColorStop(1, `rgba(215,181,106,0)`);
-          ctx.fillStyle = g;
-          ctx.beginPath();
-          ctx.arc(a.x,a.y,a.r*6,0,Math.PI*2);
-          ctx.fill();
         }
+
+        // Draw rocks
+        for(const p of P) drawRock(p);
 
         requestAnimationFrame(step);
       }
+
+      resize();
+      spawn(BASE);
+      addEventListener("resize", resize, { passive:true });
+
+      addEventListener("pointermove",(e)=>{
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+      }, { passive:true });
+
+      addEventListener("pointerdown",(e)=>{
+        pointer.down = true;
+        spawn(isMobile ? 14 : 22, e.clientX*DPR, e.clientY*DPR, true);
+      }, { passive:true });
+
+      addEventListener("pointerup",()=> pointer.down=false, { passive:true });
+
       requestAnimationFrame(step);
     })();
 
+    // --------------------
     // Init
+    // --------------------
     renderGlitches();
-    loadEth();
     setView("home");
+
+    // Load quote ASAP (header)
+    (async ()=>{
+      try{
+        await fetchQuote();
+        startQuoteCountdown();
+      } catch(e){
+        console.warn(e);
+        $("ethChip").innerHTML = `ETH: <strong>—</strong>`;
+        $("quoteTiny").textContent = "Quote refresh: —";
+      }
+    })();
   </script>
 </body>
 </html>
