@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+  
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -570,6 +571,27 @@
       .brand .tag{ display:none; }
       .wrap{ padding-bottom: 70px; }
     }
+    /* Mobile anti-shift guard (ONLY mobile) */
+@media (max-width: 768px) {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Prevent fixed layers (canvas/bg) and media from pushing width */
+  canvas, img, svg, video {
+    max-width: 100vw;
+  }
+
+  /* If any wrapper uses Tailwind screen widths, clamp it on mobile */
+  [class~="w-screen"],
+  [class~="min-w-screen"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
   </style>
 </head>
 
