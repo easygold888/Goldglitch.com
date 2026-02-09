@@ -1054,7 +1054,7 @@
     }
 
     async function fetchQuote(){
-      const r = await fetch("/api/eth-quote", { cache: "no-store" });
+      const r = await fetch("functions/api/eth-quote.js", { cache: "no-store" });
       if (!r.ok) throw new Error("quote http " + r.status);
       const j = await r.json();
 
