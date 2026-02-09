@@ -3,1206 +3,1259 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0c10" />
   <title>EasyGoldGlitch — Stop trading. Start printing.</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root{
-      --bg0:#050608;
-      --bg1:#0b0d11;
-      --glass: rgba(18, 20, 26, 0.52);
-      --glass2: rgba(18, 20, 26, 0.36);
-      --stroke: rgba(255,255,255,0.10);
-      --stroke2: rgba(255,255,255,0.08);
-      --txt: rgba(255,255,255,0.92);
-      --muted: rgba(255,255,255,0.62);
-      --muted2: rgba(255,255,255,0.45);
-      --gold:#D4AF37;
-      --gold2:#FFD36A;
-      --shadow: rgba(0,0,0,0.55);
-      --radius: 22px;
+      --bg0:#06070a;
+      --bg1:#0b0c10;
+      --glass: rgba(255,255,255,.06);
+      --glass2: rgba(255,255,255,.08);
+      --stroke: rgba(255,255,255,.10);
+      --stroke2: rgba(212,175,55,.20);
+      --text:#e9eaee;
+      --muted: rgba(233,234,238,.70);
+      --muted2: rgba(233,234,238,.55);
+      --gold:#d4af37;
+      --gold2:#ffd476;
+      --shadow: 0 22px 80px rgba(0,0,0,.62);
+      --r22: 22px;
+      --r28: 28px;
     }
 
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
     body{
       margin:0;
-      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      color:var(--txt);
-      background: radial-gradient(1200px 900px at 70% -10%, rgba(212,175,55,0.10), transparent 55%),
-                  radial-gradient(1000px 900px at 10% 20%, rgba(255,211,106,0.06), transparent 60%),
+      font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background: radial-gradient(1200px 600px at 30% 20%, rgba(212,175,55,.11), transparent 55%),
+                  radial-gradient(900px 500px at 80% 0%, rgba(140,120,255,.10), transparent 55%),
                   linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
     }
 
-    /* FX canvas */
-    #fx{
+    /* BACKGROUND CANVAS */
+    #fx {
       position:fixed; inset:0;
-      width:100vw; height:100vh;
+      width:100%; height:100%;
       z-index:0;
       pointer-events:none;
+      opacity: 1;
     }
-
-    .app{
-      position:relative;
+    .vignette{
+      position:fixed; inset:-2px;
       z-index:1;
-      min-height:100vh;
-      padding: 22px 16px 56px;
+      pointer-events:none;
+      background:
+        radial-gradient(1200px 700px at 35% 15%, rgba(0,0,0,0), rgba(0,0,0,.55) 70%),
+        radial-gradient(900px 700px at 75% 10%, rgba(0,0,0,0), rgba(0,0,0,.60) 72%),
+        radial-gradient(900px 800px at 50% 105%, rgba(0,0,0,0), rgba(0,0,0,.70) 70%);
+      mix-blend-mode: multiply;
     }
 
-    .container{
-      width:min(1100px, calc(100vw - 32px));
-      margin:0 auto;
+    /* LAYOUT */
+    .wrap{
+      position:relative;
+      z-index:2;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 18px 64px;
     }
 
+    /* GLASS */
     .glass{
-      background: var(--glass);
-      border: 1px solid var(--stroke);
-      box-shadow: 0 18px 60px var(--shadow);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(255,255,255,.085), rgba(255,255,255,.035));
+      border:1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .soft{
+      box-shadow: 0 18px 65px rgba(0,0,0,.52);
+    }
+    .pill{
+      border-radius: 999px;
+    }
+    .card{
+      border-radius: var(--r22);
+    }
+    .panel{
+      border-radius: var(--r28);
     }
 
-    .glass.soft{
-      background: var(--glass2);
-      border: 1px solid var(--stroke2);
-      box-shadow: 0 14px 48px rgba(0,0,0,0.45);
-    }
-
-    /* Header */
-    .header{
-      position:sticky;
-      top: 14px;
-      z-index: 5;
-      padding: 12px 14px;
+    /* TOP NAV */
+    .topbar{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 12px;
+      gap:14px;
+      padding: 14px 16px;
+      border-radius: 999px;
     }
-
     .brand{
-      display:flex; align-items:center; gap: 10px;
-      min-width: 180px;
+      display:flex; align-items:center; gap:12px;
+      min-width: 210px;
     }
-    .brand img{
-      width: 34px; height: 34px;
-      border-radius: 10px;
-      border: 1px solid rgba(255,255,255,0.10);
-      object-fit: cover;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    .logo{
+      width: 36px; height:36px;
+      border-radius: 12px;
+      border:1px solid rgba(212,175,55,.28);
+      box-shadow: 0 12px 35px rgba(0,0,0,.45);
+      overflow:hidden;
+      background: rgba(0,0,0,.2);
+      flex: 0 0 auto;
     }
-    .brand .name{
-      font-weight: 700;
-      letter-spacing: 0.2px;
+    .logo img{ width:100%; height:100%; object-fit: cover; display:block }
+    .brand h1{
+      font-size: 16px;
+      margin:0;
+      letter-spacing:.2px;
     }
-    .brand .tag{
+    .brand .sub{
+      margin-top:2px;
       font-size: 12px;
-      color: var(--muted);
-      margin-top: 2px;
+      color: var(--muted2);
     }
-
     .nav{
       display:flex;
-      align-items:center;
-      gap: 8px;
+      gap:8px;
       padding: 6px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.12);
     }
     .nav button{
       appearance:none;
       border:0;
+      cursor:pointer;
+      color: var(--muted);
+      background: transparent;
       padding: 10px 14px;
       border-radius: 999px;
-      background: transparent;
-      color: var(--muted);
       font-weight: 600;
-      cursor:pointer;
-      transition: 160ms ease;
-      letter-spacing: 0.1px;
+      font-size: 13px;
+      transition: transform .15s ease, background .15s ease, color .15s ease;
+      user-select:none;
       white-space:nowrap;
     }
+    .nav button:hover{ transform: translateY(-1px); color: var(--text); background: rgba(255,255,255,.06); }
     .nav button.active{
-      color: var(--txt);
-      background: rgba(255,255,255,0.09);
-      box-shadow: inset 0 0 0 1px rgba(212,175,55,0.22);
+      color: var(--text);
+      background: radial-gradient(160px 50px at 50% 50%, rgba(212,175,55,.20), rgba(255,255,255,.06));
+      border: 1px solid rgba(212,175,55,.22);
     }
-    .nav button:hover{ color: var(--txt); background: rgba(255,255,255,0.07); }
 
     .quote{
       display:flex;
+      flex-direction:column;
+      gap:4px;
       align-items:flex-end;
-      gap: 10px;
-      min-width: 220px;
-      justify-content:flex-end;
-      text-align:right;
+      min-width: 210px;
     }
-    .quote .big{
-      font-weight: 700;
-      font-size: 14px;
-      letter-spacing: 0.2px;
-    }
-    .quote .sub{
-      font-size: 12px;
-      color: var(--muted2);
-      margin-top: 2px;
-    }
-    .quote .pill{
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    /* Views */
-    .views{ margin-top: 18px; }
-    .view{ display:none; }
-    .view.active{ display:block; animation: fadeIn 220ms ease; }
-
-    @keyframes fadeIn { from{opacity:0; transform: translateY(6px);} to{opacity:1; transform: translateY(0);} }
-
-    /* Hero */
-    .hero{
-      padding: 26px;
-      display:grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 18px;
-      overflow:hidden;
-    }
-
-    .kicker{
-      display:inline-flex;
+    .quote .row{
+      display:flex;
       align-items:center;
-      gap: 8px;
+      gap:10px;
       padding: 8px 12px;
       border-radius: 999px;
-      background: rgba(212,175,55,0.08);
-      border: 1px solid rgba(212,175,55,0.18);
-      color: rgba(255,255,255,0.88);
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.10);
+    }
+    .quote .k{
+      color: var(--muted2);
       font-size: 12px;
-      width: fit-content;
+      letter-spacing:.2px;
     }
-
-    h1{
-      font-family: "Cinzel", serif;
-      font-size: clamp(34px, 4.2vw, 56px);
-      line-height: 0.98;
-      margin: 14px 0 10px;
-      letter-spacing: -0.5px;
-    }
-    .lead{
-      color: var(--muted);
-      font-size: 16px;
-      line-height: 1.45;
-      max-width: 54ch;
-      margin: 0 0 18px;
-    }
-
-    .actions{ display:flex; gap: 10px; flex-wrap:wrap; }
-    .btn{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.07);
-      color: var(--txt);
-      padding: 12px 14px;
-      border-radius: 14px;
+    .quote .v{
       font-weight: 700;
-      cursor:pointer;
-      transition: 160ms ease;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+      font-size: 13px;
     }
-    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.09); }
-    .btn:active{ transform: translateY(0px); }
-    .btn.gold{
-      border-color: rgba(212,175,55,0.38);
-      background: linear-gradient(180deg, rgba(212,175,55,0.18), rgba(212,175,55,0.08));
+    .quote .meta{
+      color: var(--muted2);
+      font-size: 12px;
     }
-    .btn.ghost{
-      background: transparent;
+    .dot{
+      width:7px; height:7px; border-radius:999px;
+      background: rgba(212,175,55,.75);
+      box-shadow: 0 0 14px rgba(212,175,55,.35);
     }
 
-    .rightCard{
-      padding: 18px;
+    /* PANELS */
+    .hero{
+      margin-top: 18px;
+      padding: 28px;
+    }
+    .badge{
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .hero h2{
+      margin: 16px 0 10px;
+      font-size: clamp(44px, 5.2vw, 78px);
+      line-height: .92;
+      letter-spacing: -1.2px;
+    }
+    .hero p{
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .cta{
+      margin-top: 18px;
       display:flex;
-      flex-direction:column;
-      gap: 12px;
-      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
     }
-    .statRow{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
+    .btn{
+      appearance:none; border:0; cursor:pointer;
+      padding: 12px 16px;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--text);
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.10);
+      transition: transform .15s ease, filter .15s ease, background .15s ease;
+      user-select:none;
     }
-    .stat{
-      padding: 14px;
-      border-radius: 16px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
+    .btn:hover{ transform: translateY(-1px); filter: brightness(1.05); }
+    .btn.gold{
+      color: #151515;
+      background: radial-gradient(180px 60px at 20% 20%, rgba(255,244,210,.95), rgba(212,175,55,.95));
+      border: 1px solid rgba(255,212,118,.55);
+      box-shadow: 0 18px 55px rgba(212,175,55,.18);
     }
-    .stat .k{ color: var(--muted2); font-size: 12px; }
-    .stat .v{ font-weight: 800; margin-top: 6px; font-size: 16px; }
-    .stat .v .gold{ color: var(--gold2); }
 
-    /* Exploits grid */
-    .grid{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
+    .section{
+      margin-top: 18px;
+      padding: 20px;
     }
-    .card{
+    .sectionHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      margin-bottom: 14px;
+    }
+    .sectionHeader h3{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: .2px;
+    }
+    .sectionHeader .hint{
+      color: var(--muted2);
+      font-size: 12px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+    .tile{
+      grid-column: span 4;
       padding: 16px;
       display:flex;
       flex-direction:column;
       gap: 10px;
       min-height: 180px;
     }
-    .card h3{
+    .priceRow{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .tile h4{
       margin:0;
       font-size: 16px;
-      letter-spacing: 0.2px;
+      line-height: 1.15;
+      letter-spacing: -.2px;
     }
-    .meta{
-      display:flex;
-      gap: 8px;
-      flex-wrap:wrap;
+    .usd{
+      font-weight: 900;
+      font-size: 18px;
+      color: var(--gold2);
+    }
+    .usd span{
+      display:block;
+      margin-top: 2px;
+      font-size: 11px;
       color: var(--muted2);
-      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .8px;
     }
+    .chips{ display:flex; gap:8px; flex-wrap:wrap }
     .chip{
       padding: 6px 10px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .priceRow{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      margin-top: 4px;
-    }
-    .usd{
-      font-size: 22px;
-      font-weight: 900;
-      color: rgba(255,255,255,0.92);
-    }
-    .usd span{
-      color: var(--gold2);
-      font-size: 14px;
-      font-weight: 800;
-      margin-left: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.15);
     }
     .mini{
+      margin:0;
       color: var(--muted);
       font-size: 13px;
       line-height: 1.35;
-      margin: 0;
     }
+    .tile .actions{
+      margin-top:auto;
+      display:flex;
+      gap:10px;
+    }
+    .tile .actions .btn{ width: 100%; justify-content:center; display:flex; }
 
-    /* Terms */
-    .terms{
-      padding: 18px;
-      line-height: 1.55;
-      color: var(--muted);
-      font-size: 14px;
-    }
-    .terms h2{
-      margin: 0 0 10px;
-      color: var(--txt);
-      font-size: 18px;
-    }
-    .terms strong{ color: rgba(255,255,255,0.88); }
+    /* VIEWS */
+    .view{ display:none; }
+    .view.active{ display:block; }
 
-    /* Modal */
-    .overlay{
+    /* MODAL */
+    .modalBack{
       position:fixed; inset:0;
-      background: rgba(0,0,0,0.62);
       display:none;
-      align-items:center;
-      justify-content:center;
+      z-index: 50;
+      background: rgba(0,0,0,.62);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       padding: 18px;
-      z-index: 20;
     }
-    .overlay.show{ display:flex; }
+    .modalBack.show{ display:flex; align-items:center; justify-content:center; }
     .modal{
-      width: min(860px, 96vw);
-      border-radius: 22px;
-      overflow:hidden;
+      width: min(980px, 100%);
+      max-height: min(86vh, 860px);
+      overflow:auto;
+      border-radius: 26px;
+      padding: 16px;
     }
-    .modalHeader{
+    .modalTop{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap: 12px;
-      padding: 14px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      gap:12px;
+      padding: 8px 6px 12px;
     }
-    .modalTitle{
-      font-weight: 900;
-      letter-spacing: 0.2px;
-    }
-    .close{
-      appearance:none;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-      color: var(--txt);
-      border-radius: 12px;
-      padding: 10px 12px;
-      cursor:pointer;
-    }
-    .modalBody{
-      padding: 16px;
-      display:grid;
-      grid-template-columns: 1.05fr 0.95fr;
-      gap: 14px;
-    }
-    .box{
-      padding: 14px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-    .box h4{ margin: 0 0 8px; font-size: 14px; }
-    .box p{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
-
-    .checkoutGrid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-    .payRow{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .field label{
-      display:block;
-      font-size: 12px;
-      color: var(--muted2);
-      margin-bottom: 6px;
-    }
-    .field input{
-      width:100%;
-      padding: 12px 12px;
+    .modalTop h3{ margin:0; font-size: 16px; }
+    .xbtn{
+      width: 40px; height:40px;
       border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.22);
-      color: var(--txt);
-      outline:none;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      display:grid; place-items:center;
     }
-    .field input:focus{
-      border-color: rgba(212,175,55,0.35);
-      box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+    .modalGrid{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 12px;
+    }
+    .box{ padding: 16px; border-radius: 22px; }
+    .box h4{ margin:0 0 8px; font-size: 14px; color: var(--muted); letter-spacing:.2px }
+    .big{
+      font-size: 22px;
+      font-weight: 900;
+      margin: 0 0 4px;
+    }
+    .desc{ margin:0; color: var(--muted); font-size: 13px; line-height:1.45 }
+    .hr{
+      height:1px;
+      background: rgba(255,255,255,.08);
+      margin: 12px 0;
     }
 
-    .qrWrap{
+    .payRow{
       display:flex;
-      gap: 12px;
+      justify-content:space-between;
       align-items:center;
+      gap:10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
     }
+    .payRow .l{ color: var(--muted2); font-size: 12px; }
+    .payRow .r{ font-weight: 900; }
     .qr{
-      width: 132px; height: 132px;
-      border-radius: 18px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(255,255,255,0.05);
-      object-fit: cover;
+      width: 100%;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+      background: rgba(0,0,0,.14);
+      display:grid; place-items:center;
+      padding: 12px;
+    }
+    .qr img{
+      width: min(280px, 70vw);
+      height:auto;
+      display:block;
+      border-radius: 16px;
+      border: 1px solid rgba(212,175,55,.20);
+      box-shadow: 0 18px 55px rgba(0,0,0,.45);
     }
     .addr{
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.14);
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .addr code{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-size: 12px;
-      color: rgba(255,255,255,0.82);
+      color: rgba(233,234,238,.85);
       word-break: break-all;
-      line-height: 1.35;
     }
-    .copyBtn{
-      margin-top: 8px;
-      padding: 9px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(255,255,255,0.06);
-      color: var(--txt);
+    .smallBtn{
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-weight: 800;
       cursor:pointer;
-      font-weight: 700;
-      width: fit-content;
+      white-space:nowrap;
     }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top: 12px;
+    }
+    .field label{
+      font-size: 12px;
+      color: var(--muted2);
+      font-weight: 700;
+    }
+    input[type="email"]{
+      width:100%;
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      outline:none;
+      font-weight: 700;
+    }
+    input[type="email"]::placeholder{ color: rgba(233,234,238,.40) }
 
     .check{
-      display:flex; gap: 10px; align-items:flex-start;
-      color: var(--muted);
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.12);
+    }
+    .check input{ margin-top: 2px; }
+    .check .t{
       font-size: 12px;
+      color: var(--muted);
       line-height: 1.35;
     }
-    .check input{ margin-top: 3px; }
-
-    /* Toast */
-    .toast{
-      position:fixed;
-      right: 16px;
-      bottom: 16px;
-      z-index: 30;
-      display:none;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(18,20,26,0.78);
-      border: 1px solid rgba(255,255,255,0.10);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
-      color: rgba(255,255,255,0.9);
-      max-width: min(360px, calc(100vw - 32px));
-      font-size: 13px;
+    .payBtn{
+      margin-top: 12px;
+      width:100%;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
     }
-    .toast.show{ display:block; animation: pop 220ms ease; }
-    @keyframes pop { from{opacity:0; transform: translateY(10px);} to{opacity:1; transform: translateY(0);} }
 
-    /* Mobile */
+    /* TERMS */
+    .terms p, .terms li{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .terms ul{ margin: 8px 0 0 18px; padding:0 }
+
+    /* RESPONSIVE */
     @media (max-width: 940px){
-      .hero{ grid-template-columns: 1fr; }
       .quote{ display:none; }
-      .grid{ grid-template-columns: 1fr; }
-      .modalBody{ grid-template-columns: 1fr; }
-      .payRow{ grid-template-columns: 1fr; }
+      .brand{ min-width:auto; }
+      .tile{ grid-column: span 12; }
+      .modalGrid{ grid-template-columns: 1fr; }
+      .hero{ padding: 20px; }
+      .hero h2{ font-size: 48px; }
+      .nav button{ padding: 10px 12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      #fx{ display:none; }
     }
   </style>
 </head>
 
 <body>
   <canvas id="fx"></canvas>
+  <div class="vignette"></div>
 
-  <div class="app">
-    <div class="container">
-      <header class="header glass">
-        <div class="brand">
-          <img id="logoImg" src="logo.png" alt="EasyGoldGlitch logo" />
-          <div>
-            <div class="name">EasyGoldGlitch</div>
-            <div class="tag">Crypto-native · No sign-up</div>
-          </div>
+  <div class="wrap">
+    <!-- TOP -->
+    <div class="topbar glass pill soft">
+      <div class="brand">
+        <div class="logo">
+          <img src="./logo.png" alt="EasyGoldGlitch logo" onerror="this.style.display='none'">
         </div>
-
-        <nav class="nav" aria-label="Primary">
-          <button class="active" data-nav="home">Home</button>
-          <button data-nav="exploits">Exploits</button>
-          <button data-nav="terms">Terms</button>
-        </nav>
-
-        <div class="quote">
-          <div class="pill">
-            <div class="big">ETH: <span id="ethUsd">—</span></div>
-            <div class="sub">Weekly high: <span id="ethWeekHigh">—</span></div>
-          </div>
-          <div class="pill">
-            <div class="big">Quote refresh: <span id="quoteCountdown">—</span></div>
-            <div class="sub"><button class="btn" style="padding:8px 10px;border-radius:12px;font-weight:800" id="retryQuote">Retry</button></div>
-          </div>
+        <div>
+          <h1>EasyGoldGlitch</h1>
+          <div class="sub">Stop trading. Start printing.</div>
         </div>
-      </header>
+      </div>
 
-      <main class="views">
-        <!-- HOME -->
-        <section class="view active" id="view-home">
-          <div class="hero glass">
-            <div>
-              <div class="kicker">Stop trading. Start printing.</div>
-              <h1>Stop trading.<br/>Start printing.</h1>
-              <p class="lead">Pick an exploit. Pay in ETH. Get delivery.</p>
+      <div class="nav">
+        <button class="active" data-nav="home">Home</button>
+        <button data-nav="exploits">Exploits</button>
+        <button data-nav="terms">Terms</button>
+      </div>
 
-              <div class="actions">
-                <button class="btn gold" id="goExploits">Browse exploits</button>
-                <button class="btn ghost" id="goTerms">Read terms</button>
-              </div>
-            </div>
-
-            <div class="rightCard glass soft">
-              <div class="statRow">
-                <div class="stat">
-                  <div class="k">Pricing basis</div>
-                  <div class="v"><span class="gold">Weekly High</span> (7D)</div>
-                </div>
-                <div class="stat">
-                  <div class="k">Refresh</div>
-                  <div class="v">Every <span class="gold">10 min</span></div>
-                </div>
-              </div>
-
-              <div class="statRow">
-                <div class="stat">
-                  <div class="k">Delivery</div>
-                  <div class="v">Email link</div>
-                </div>
-                <div class="stat">
-                  <div class="k">Checkout</div>
-                  <div class="v">QR + Address</div>
-                </div>
-              </div>
-
-              <div class="stat" style="margin-top:10px">
-                <div class="k">Signal</div>
-                <div class="v">Low text · High intent</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="grid" style="margin-top:16px">
-            <div class="card glass soft">
-              <div class="priceRow">
-                <h3>Glitch 1.0 — Simple Sample</h3>
-                <div class="usd">$50 <span>demo</span></div>
-              </div>
-              <div class="meta">
-                <span class="chip">2 months</span>
-                <span class="chip">1 trade at a time</span>
-                <span class="chip">low noise</span>
-              </div>
-              <p class="mini">A calm baseline. One position. Minimal exposure.</p>
-              <div class="actions" style="margin-top:auto">
-                <button class="btn gold" data-open="g1">View</button>
-                <button class="btn" data-checkout="g1">Checkout</button>
-              </div>
-            </div>
-
-            <div class="card glass soft">
-              <div class="priceRow">
-                <h3>Glitch 2.0 — Wealth Builder</h3>
-                <div class="usd">$70 <span>demo</span></div>
-              </div>
-              <div class="meta">
-                <span class="chip">2 months</span>
-                <span class="chip">dip re-entry</span>
-                <span class="chip">measured recovery</span>
-              </div>
-              <p class="mini">Buy & hold with a second chance. Controlled recovery logic.</p>
-              <div class="actions" style="margin-top:auto">
-                <button class="btn gold" data-open="g2">View</button>
-                <button class="btn" data-checkout="g2">Checkout</button>
-              </div>
-            </div>
-
-            <div class="card glass soft">
-              <div class="priceRow">
-                <h3>Glitch PRO — F*ck Gold</h3>
-                <div class="usd">$100 <span>lifetime</span></div>
-              </div>
-              <div class="meta">
-                <span class="chip">one-time</span>
-                <span class="chip">aggressive</span>
-                <span class="chip">advanced recovery</span>
-              </div>
-              <p class="mini">Higher tempo. More tools. More responsibility.</p>
-              <div class="actions" style="margin-top:auto">
-                <button class="btn gold" data-open="g3">View</button>
-                <button class="btn" data-checkout="g3">Checkout</button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- EXPLOITS -->
-        <section class="view" id="view-exploits">
-          <div class="glass" style="padding:18px">
-            <div class="kicker">Pick fast. Pay clean. Receive.</div>
-            <h2 style="margin:10px 0 0; font-size:22px">Exploits</h2>
-            <p class="lead" style="margin-top:8px">Select one. We’ll show the ETH due using the weekly high quote.</p>
-
-            <div class="grid">
-              <div class="card glass soft">
-                <div class="priceRow">
-                  <h3>Glitch 1.0 — Simple Sample</h3>
-                  <div class="usd">$50</div>
-                </div>
-                <div class="meta">
-                  <span class="chip">Demo · 2 months</span><span class="chip">1 trade</span>
-                </div>
-                <p class="mini">Best for: calm markets, low leverage, simple execution.</p>
-                <div class="actions" style="margin-top:auto">
-                  <button class="btn gold" data-open="g1">View</button>
-                  <button class="btn" data-checkout="g1">Checkout</button>
-                </div>
-              </div>
-
-              <div class="card glass soft">
-                <div class="priceRow">
-                  <h3>Glitch 2.0 — Wealth Builder</h3>
-                  <div class="usd">$70</div>
-                </div>
-                <div class="meta">
-                  <span class="chip">Demo · 2 months</span><span class="chip">re-entry</span>
-                </div>
-                <p class="mini">Best for: trend bias + controlled dip entries.</p>
-                <div class="actions" style="margin-top:auto">
-                  <button class="btn gold" data-open="g2">View</button>
-                  <button class="btn" data-checkout="g2">Checkout</button>
-                </div>
-              </div>
-
-              <div class="card glass soft">
-                <div class="priceRow">
-                  <h3>Glitch PRO — F*ck Gold</h3>
-                  <div class="usd">$100</div>
-                </div>
-                <div class="meta">
-                  <span class="chip">Lifetime</span><span class="chip">advanced</span>
-                </div>
-                <p class="mini">Best for: experienced operators. Higher risk tolerance.</p>
-                <div class="actions" style="margin-top:auto">
-                  <button class="btn gold" data-open="g3">View</button>
-                  <button class="btn" data-checkout="g3">Checkout</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- TERMS -->
-        <section class="view" id="view-terms">
-          <div class="terms glass">
-            <h2>Terms & Risk</h2>
-            <p>
-              Trading is <strong>high risk</strong>. You can lose <strong>all</strong> of your capital.
-              Past performance does <strong>not</strong> guarantee future results.
-            </p>
-            <p>
-              These digital products are delivered “as-is”. You are responsible for setup, operation,
-              and compliance with your local laws. We do not provide investment advice.
-            </p>
-            <p>
-              Demo licenses run for <strong>2 months</strong>. Pro is a <strong>one-time</strong> purchase.
-              No refunds.
-            </p>
-            <p style="margin-top:12px; color:var(--muted2); font-size:12px">
-              Quote basis: ETH amount is computed using the <strong>weekly high</strong> (7D) and refreshes every <strong>10 minutes</strong>.
-            </p>
-          </div>
-        </section>
-      </main>
+      <div class="quote" aria-live="polite">
+        <div class="row">
+          <span class="dot"></span>
+          <div class="k">ETH:</div>
+          <div class="v" id="ethUsd">—</div>
+          <div class="k" style="margin-left:8px">Weekly high:</div>
+          <div class="v" id="ethWh">—</div>
+        </div>
+        <div class="meta">Quote refresh: <span id="quoteCd">—</span></div>
+      </div>
     </div>
+
+    <!-- HOME -->
+    <section id="view-home" class="view active">
+      <div class="hero glass panel soft">
+        <span class="badge"><i data-lucide="sparkles" style="width:14px;height:14px"></i> Crypto-native • No sign-up</span>
+        <h2>Stop trading.<br>Start printing.</h2>
+        <p>Pick a glitch. Pay in ETH. Get delivery.</p>
+
+        <div class="cta">
+          <button class="btn gold" id="goExploits">Browse exploits</button>
+          <button class="btn" id="goTerms">Terms</button>
+        </div>
+      </div>
+
+      <div class="section glass panel soft">
+        <div class="sectionHeader">
+          <div>
+            <h3>Fast picks</h3>
+            <div class="hint">Low text. High signal. ETH uses weekly high.</div>
+          </div>
+          <div class="hint">Tap/click the background for more gold.</div>
+        </div>
+
+        <div class="grid" id="homeGrid"></div>
+      </div>
+    </section>
+
+    <!-- EXPLOITS -->
+    <section id="view-exploits" class="view">
+      <div class="section glass panel soft">
+        <div class="sectionHeader">
+          <div>
+            <h3>Exploits</h3>
+            <div class="hint">Select • View • Checkout</div>
+          </div>
+          <div class="hint">Quote locks locally for 10 minutes.</div>
+        </div>
+
+        <div class="grid" id="exploitGrid"></div>
+      </div>
+    </section>
+
+    <!-- TERMS -->
+    <section id="view-terms" class="view">
+      <div class="section glass panel soft terms">
+        <div class="sectionHeader">
+          <div>
+            <h3>Terms & Risk</h3>
+            <div class="hint">Read before paying.</div>
+          </div>
+        </div>
+
+        <p><b>High risk.</b> Trading can result in partial or total loss of capital. Past performance does not guarantee future results.</p>
+        <p><b>No refunds.</b> Digital delivery, one-time payment.</p>
+        <p><b>Demo duration.</b> Demo products run for <b>2 months</b> per license. The “Little Glitcher” add-on can extend demo lifetime and replicate to multiple terminals.</p>
+
+        <div class="hr"></div>
+        <p><b>Operational note.</b> If an executable/terminal must remain open to manage positions, you are responsible for keeping it running and connected.</p>
+        <ul>
+          <li>You accept all market risk and execution risk.</li>
+          <li>You are responsible for broker conditions (spreads, slippage, outages).</li>
+          <li>We do not provide investment advice.</li>
+        </ul>
+      </div>
+    </section>
   </div>
 
   <!-- MODAL -->
-  <div class="overlay" id="overlay">
-    <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-      <div class="modalHeader">
-        <div class="modalTitle" id="modalTitle">Exploit</div>
-        <button class="close" id="closeModal">Close</button>
+  <div class="modalBack" id="modalBack" role="dialog" aria-modal="true" aria-label="Exploit details">
+    <div class="modal glass soft" id="modal">
+      <div class="modalTop">
+        <h3 id="mTitle">Exploit</h3>
+        <button class="xbtn" id="mClose" aria-label="Close">
+          <i data-lucide="x" style="width:18px;height:18px"></i>
+        </button>
       </div>
-      <div class="modalBody">
-        <div class="box">
+
+      <div class="modalGrid">
+        <div class="box glass card">
           <h4>Summary</h4>
-          <p id="modalSummary">—</p>
+          <div class="big" id="mName">—</div>
+          <p class="desc" id="mDesc">—</p>
+          <div class="hr"></div>
+          <div class="chips" id="mChips"></div>
         </div>
 
-        <div class="checkoutGrid">
-          <div class="box">
-            <h4>ETH due (weekly high)</h4>
-            <p style="margin-bottom:10px">
-              USD price: <strong id="usdPrice">—</strong><br/>
-              Weekly high (USD/ETH): <strong id="weeklyHigh">—</strong><br/>
-              ETH due: <strong id="ethDue" style="color:var(--gold2)">—</strong>
-            </p>
-            <button class="btn gold" id="openCheckout">Checkout</button>
+        <div class="box glass card">
+          <h4>Checkout</h4>
+
+          <div class="payRow">
+            <div class="l">USD price</div>
+            <div class="r" id="mUsd">—</div>
           </div>
 
-          <div class="box" id="checkoutBox" style="display:none">
-            <h4>Send ETH</h4>
+          <div class="payRow" style="margin-top:10px">
+            <div class="l">Pay in ETH (weekly high)</div>
+            <div class="r" id="mEth">—</div>
+          </div>
 
-            <div class="qrWrap">
-              <img class="qr" id="walletImg" src="wallet.png" alt="Wallet QR"/>
-              <div style="flex:1">
-                <div style="font-size:12px;color:var(--muted2)">Address</div>
-                <div class="addr" id="walletAddr">Loading…</div>
-                <button class="copyBtn" id="copyAddr">Copy</button>
-              </div>
+          <div class="qr" style="margin-top:12px">
+            <img src="./wallet.png" alt="Wallet QR" onerror="this.style.display='none'">
+          </div>
+
+          <div class="addr">
+            <code id="walletAddr">Loading address…</code>
+            <button class="smallBtn" id="copyAddr">Copy</button>
+          </div>
+
+          <div class="field">
+            <label for="email">Email (delivery)</label>
+            <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
+          </div>
+
+          <div class="check">
+            <input id="accept" type="checkbox" />
+            <div class="t">
+              I agree to the <b>Terms</b> and understand the <b>risk</b>. Demo products run for <b>2 months</b>.
             </div>
+          </div>
 
-            <div style="height:10px"></div>
+          <button class="btn gold payBtn" id="checkoutBtn">
+            <i data-lucide="credit-card" style="width:16px;height:16px"></i>
+            Show payment details
+          </button>
 
-            <div class="payRow">
-              <div class="field">
-                <label>Email (delivery)</label>
-                <input id="email" type="email" placeholder="you@domain.com" autocomplete="email"/>
-              </div>
-              <div class="field">
-                <label>TxHash (optional for now)</label>
-                <input id="tx" type="text" placeholder="0x…" autocomplete="off" spellcheck="false"/>
-              </div>
-            </div>
-
-            <div style="height:10px"></div>
-
-            <label class="check">
-              <input id="agree" type="checkbox"/>
-              <span>I agree to the Terms & acknowledge high risk.</span>
-            </label>
-
-            <div class="actions" style="margin-top:12px">
-              <button class="btn gold" id="submit">Request delivery</button>
-              <button class="btn" id="closeCheckout">Cancel</button>
-            </div>
-
-            <p style="margin:12px 0 0; font-size:12px; color:var(--muted2)">
-              Note: In the next step we’ll verify TxHash on-chain and generate a time-limited download link.
-            </p>
+          <div class="hint" style="margin-top:10px">
+            We’ll add TxHash verification next phase. For now: pay → keep TxHash → support delivery flow.
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="toast" id="toast">—</div>
+<script>
+/* -----------------------------
+   DATA
+------------------------------ */
+const EXPLOITS = [
+  {
+    id: "g1",
+    title: "Glitch 1.0 — Simple Sample",
+    usd: 50,
+    label: "Demo • 2 months",
+    chips: ["1 trade at a time", "low-noise", "demo license"],
+    desc: "Minimal exposure. One position at a time. Clean execution for trending / directional markets."
+  },
+  {
+    id: "g2",
+    title: "Glitch 2.0 — Wealth Builder",
+    usd: 70,
+    label: "Demo • 2 months",
+    chips: ["dip refill", "low stress", "demo license"],
+    desc: "Buy & hold logic with a controlled re-buy if price dips. Built for long-biased regimes."
+  },
+  {
+    id: "g3",
+    title: "Glitch Pro — F*ck Gold",
+    usd: 100,
+    label: "Pro • Lifetime",
+    chips: ["lifetime", "higher impact", "pro license"],
+    desc: "Full-strength execution. Designed for aggressive opportunity capture when volatility expands."
+  },
+  {
+    id: "g4",
+    title: "Little Glitcher — Demo Unlocker",
+    usd: 150,
+    label: "Addon • Lifetime",
+    chips: ["unlocks demo time", "up to 10 accounts", "copy engine"],
+    desc: "Extends demo glitches you own to run forever and replicate across up to 10 terminals. No lot/logic edits — it’s a copy-style printer."
+  }
+];
 
-  <script>
-    // -----------------------------
-    // Asset fallbacks (case-sensitive hosting)
-    // -----------------------------
-    (function(){
-      const logo = document.getElementById("logoImg");
-      logo.addEventListener("error", () => {
-        if (logo.getAttribute("data-tried") === "1") return;
-        logo.setAttribute("data-tried","1");
-        logo.src = "Logo.png";
-      });
+/* -----------------------------
+   NAV + VIEWS
+------------------------------ */
+const views = {
+  home: document.getElementById("view-home"),
+  exploits: document.getElementById("view-exploits"),
+  terms: document.getElementById("view-terms")
+};
 
-      const wallet = document.getElementById("walletImg");
-      wallet.addEventListener("error", () => {
-        if (wallet.getAttribute("data-tried") === "1") return;
-        wallet.setAttribute("data-tried","1");
-        wallet.src = "Wallet.png";
-      });
-    })();
+function setView(name){
+  Object.entries(views).forEach(([k, el]) => el.classList.toggle("active", k===name));
+  document.querySelectorAll(".nav button").forEach(b => b.classList.toggle("active", b.dataset.nav === name));
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
 
-    // -----------------------------
-    // Navigation (3 views)
-    // -----------------------------
-    const navButtons = Array.from(document.querySelectorAll("[data-nav]"));
-    const views = {
-      home: document.getElementById("view-home"),
-      exploits: document.getElementById("view-exploits"),
-      terms: document.getElementById("view-terms"),
+document.querySelectorAll(".nav button").forEach(btn => {
+  btn.addEventListener("click", () => setView(btn.dataset.nav));
+});
+document.getElementById("goExploits").addEventListener("click", ()=> setView("exploits"));
+document.getElementById("goTerms").addEventListener("click", ()=> setView("terms"));
+
+/* -----------------------------
+   RENDER CARDS
+------------------------------ */
+function exploitCardHTML(x){
+  return `
+    <div class="tile glass card">
+      <div class="priceRow">
+        <h4>${x.title}</h4>
+        <div class="usd">$${x.usd}<span>${x.label}</span></div>
+      </div>
+      <div class="chips">
+        ${x.chips.map(c => `<span class="chip">${c}</span>`).join("")}
+      </div>
+      <p class="mini">${x.desc}</p>
+      <div class="actions">
+        <button class="btn gold" data-open="${x.id}">View</button>
+        <button class="btn" data-checkout="${x.id}">Checkout</button>
+      </div>
+    </div>
+  `;
+}
+function renderExploitGrids(){
+  const homeGrid = document.getElementById("homeGrid");
+  const exploitGrid = document.getElementById("exploitGrid");
+
+  homeGrid.innerHTML = EXPLOITS.map(exploitCardHTML).join("");
+  exploitGrid.innerHTML = EXPLOITS.map(exploitCardHTML).join("");
+
+  document.querySelectorAll("[data-open]").forEach(b => b.addEventListener("click", () => openModal(b.dataset.open)));
+  document.querySelectorAll("[data-checkout]").forEach(b => b.addEventListener("click", () => openModal(b.dataset.checkout, true)));
+}
+renderExploitGrids();
+
+/* -----------------------------
+   MODAL
+------------------------------ */
+const modalBack = document.getElementById("modalBack");
+const mClose = document.getElementById("mClose");
+const mTitle = document.getElementById("mTitle");
+const mName  = document.getElementById("mName");
+const mDesc  = document.getElementById("mDesc");
+const mChips = document.getElementById("mChips");
+const mUsd   = document.getElementById("mUsd");
+const mEth   = document.getElementById("mEth");
+const email  = document.getElementById("email");
+const accept = document.getElementById("accept");
+
+let selected = null;
+
+function closeModal(){
+  modalBack.classList.remove("show");
+  selected = null;
+}
+mClose.addEventListener("click", closeModal);
+modalBack.addEventListener("click", (e) => { if(e.target === modalBack) closeModal(); });
+document.addEventListener("keydown", (e)=>{ if(e.key==="Escape" && modalBack.classList.contains("show")) closeModal(); });
+
+function openModal(id, goCheckout=false){
+  selected = EXPLOITS.find(x => x.id === id);
+  if(!selected) return;
+
+  mTitle.textContent = "Exploit details";
+  mName.textContent  = selected.title;
+  mDesc.textContent  = selected.desc;
+
+  mChips.innerHTML = selected.chips.map(c => `<span class="chip">${c}</span>`).join("");
+  mUsd.textContent = `$${selected.usd}`;
+
+  updatePayInEth(); // uses latest quote
+  email.value = "";
+  accept.checked = false;
+
+  modalBack.classList.add("show");
+  lucide.createIcons();
+
+  if(goCheckout){
+    // nothing special; modal already shows checkout
+  }
+}
+
+/* -----------------------------
+   WALLET ADDRESS LOADER
+------------------------------ */
+const walletAddrEl = document.getElementById("walletAddr");
+async function loadAddress(){
+  try{
+    // force fresh but allow browser caching semantics
+    const r = await fetch("./address.txt", { cache: "no-store" });
+    const t = (await r.text()).trim();
+    if(!t) throw new Error("empty address");
+    walletAddrEl.textContent = t;
+  }catch(err){
+    walletAddrEl.textContent = "Address not available. Check address.txt";
+  }
+}
+loadAddress();
+
+document.getElementById("copyAddr").addEventListener("click", async ()=>{
+  try{
+    await navigator.clipboard.writeText(walletAddrEl.textContent.trim());
+    toast("Copied");
+  }catch(e){
+    toast("Copy failed");
+  }
+});
+
+/* -----------------------------
+   ETH QUOTE (FIXED: NEVER BLANKS OUT)
+   - Refresh target: every 10 minutes
+   - If refresh fails: keep last good quote (UI stays)
+   - Prevent hammering: retry no more than every 30s when stale
+------------------------------ */
+const quoteEls = {
+  usd: document.getElementById("ethUsd"),
+  wh:  document.getElementById("ethWh"),
+  cd:  document.getElementById("quoteCd")
+};
+
+const QUOTE_TTL_MS = 10 * 60 * 1000;
+const RETRY_BACKOFF_MS = 30 * 1000;
+const LS_KEY = "egg_eth_quote_v2";
+
+let quote = null;
+let lastAttemptAt = 0;
+
+function fmtUsd(n){
+  if(typeof n !== "number" || !isFinite(n)) return "—";
+  return "$" + n.toLocaleString(undefined, { maximumFractionDigits: 0 });
+}
+function fmtEth(n){
+  if(typeof n !== "number" || !isFinite(n)) return "—";
+  // show up to 6 decimals for small amounts
+  return n.toLocaleString(undefined, { maximumFractionDigits: 6 });
+}
+function readCachedQuote(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return null;
+    const q = JSON.parse(raw);
+    if(!q || typeof q !== "object") return null;
+    return q;
+  }catch(e){ return null; }
+}
+function writeCachedQuote(q){
+  try{ localStorage.setItem(LS_KEY, JSON.stringify(q)); }catch(e){}
+}
+
+function renderQuote(q, {stale=false} = {}){
+  if(!q) return;
+  quoteEls.usd.textContent = fmtUsd(q.ethUsd);
+  quoteEls.wh.textContent  = fmtUsd(q.weekHighUsd);
+  // countdown text is handled by tickCountdown; if stale, it will show "stale"
+}
+
+async function refreshQuote({force=false} = {}){
+  const now = Date.now();
+  if(!force && quote && (now - quote.refreshedAt) < QUOTE_TTL_MS) return;
+
+  // prevent hammering when we are stale and Binance/edge fails
+  if(now - lastAttemptAt < RETRY_BACKOFF_MS) return;
+  lastAttemptAt = now;
+
+  const controller = new AbortController();
+  const t = setTimeout(()=>controller.abort(), 8000);
+
+  try{
+    const res = await fetch("/api/eth-quote", {
+      method: "GET",
+      cache: "no-store",
+      signal: controller.signal
+    });
+    clearTimeout(t);
+    if(!res.ok) throw new Error("quote http " + res.status);
+    const data = await res.json();
+
+    // expected: { ethUsd, weekHighUsd, refreshedAt }
+    const q = {
+      ethUsd: Number(data.ethUsd),
+      weekHighUsd: Number(data.weekHighUsd),
+      refreshedAt: Date.now()
     };
+    if(!isFinite(q.ethUsd) || !isFinite(q.weekHighUsd)) throw new Error("bad quote");
 
-    function toast(msg){
-      const t = document.getElementById("toast");
-      t.textContent = msg;
-      t.classList.add("show");
-      clearTimeout(window.__toastT);
-      window.__toastT = setTimeout(() => t.classList.remove("show"), 2400);
-    }
+    quote = q;
+    quote.__stale = false;
 
-    function setView(key){
-      for (const [k, el] of Object.entries(views)){
-        el.classList.toggle("active", k === key);
-      }
-      navButtons.forEach(b => b.classList.toggle("active", b.dataset.nav === key));
-      history.replaceState({}, "", "#" + key);
-    }
+    writeCachedQuote(quote);
+    renderQuote(quote);
+    updatePayInEth();
+  }catch(err){
+    clearTimeout(t);
 
-    navButtons.forEach(b => b.addEventListener("click", () => setView(b.dataset.nav)));
-    document.getElementById("goExploits").addEventListener("click", () => setView("exploits"));
-    document.getElementById("goTerms").addEventListener("click", () => setView("terms"));
-
-    // hash routing
-    (function(){
-      const h = (location.hash || "").replace("#","");
-      if (views[h]) setView(h);
-    })();
-
-    // -----------------------------
-    // Exploit data
-    // -----------------------------
-    const exploits = {
-      g1: {
-        title: "Glitch 1.0 — Simple Sample",
-        usd: 50,
-        summary: "A calm baseline. One trade at a time. Best in smoother conditions where noise is low."
-      },
-      g2: {
-        title: "Glitch 2.0 — Wealth Builder",
-        usd: 70,
-        summary: "Buy & hold bias with controlled dip re-entry. Designed for trend-friendly markets with pullbacks."
-      },
-      g3: {
-        title: "Glitch PRO — F*ck Gold",
-        usd: 100,
-        summary: "Advanced recovery + higher tempo. Built for experienced operators. Higher risk profile."
-      }
-    };
-
-    // -----------------------------
-    // Modal + checkout
-    // -----------------------------
-    const overlay = document.getElementById("overlay");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalSummary = document.getElementById("modalSummary");
-    const usdPriceEl = document.getElementById("usdPrice");
-    const weeklyHighEl = document.getElementById("weeklyHigh");
-    const ethDueEl = document.getElementById("ethDue");
-    const openCheckoutBtn = document.getElementById("openCheckout");
-    const checkoutBox = document.getElementById("checkoutBox");
-    const closeModalBtn = document.getElementById("closeModal");
-    const closeCheckoutBtn = document.getElementById("closeCheckout");
-    const submitBtn = document.getElementById("submit");
-
-    let selectedKey = "g1";
-    let quote = null;
-
-    function showModal(){
-      overlay.classList.add("show");
-      checkoutBox.style.display = "none";
-    }
-    function hideModal(){
-      overlay.classList.remove("show");
-      checkoutBox.style.display = "none";
-    }
-
-    closeModalBtn.addEventListener("click", hideModal);
-    overlay.addEventListener("click", (e) => { if (e.target === overlay) hideModal(); });
-
-    function computeDueUSDToETH(usd){
-      if (!quote || !quote.weeklyHighUsd) return null;
-      const eth = usd / quote.weeklyHighUsd;
-      return eth;
-    }
-
-    function renderModal(){
-      const ex = exploits[selectedKey];
-      modalTitle.textContent = ex.title;
-      modalSummary.textContent = ex.summary;
-
-      usdPriceEl.textContent = `$${ex.usd}`;
-      weeklyHighEl.textContent = quote?.weeklyHighUsd ? `$${quote.weeklyHighUsd.toFixed(2)}` : "—";
-
-      const due = computeDueUSDToETH(ex.usd);
-      ethDueEl.textContent = due ? `${due.toFixed(6)} ETH` : "—";
-    }
-
-    function openExploit(key){
-      selectedKey = key;
-      renderModal();
-      showModal();
-    }
-
-    function openCheckout(){
-      checkoutBox.style.display = "block";
-      loadAddress();
-      // Keep the due updated if quote refreshed
-      renderModal();
-    }
-
-    document.querySelectorAll("[data-open]").forEach(btn => {
-      btn.addEventListener("click", () => openExploit(btn.dataset.open));
-    });
-    document.querySelectorAll("[data-checkout]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        openExploit(btn.dataset.checkout);
-        openCheckout();
-      });
-    });
-
-    openCheckoutBtn.addEventListener("click", openCheckout);
-    closeCheckoutBtn.addEventListener("click", () => checkoutBox.style.display = "none");
-
-    document.getElementById("copyAddr").addEventListener("click", async () => {
-      const addr = document.getElementById("walletAddr").textContent.trim();
-      try{
-        await navigator.clipboard.writeText(addr);
-        toast("Address copied.");
-      }catch{
-        toast("Copy failed. Select & copy manually.");
-      }
-    });
-
-    submitBtn.addEventListener("click", () => {
-      const email = document.getElementById("email").value.trim();
-      const agree = document.getElementById("agree").checked;
-
-      if (!agree) return toast("Please accept the Terms.");
-      if (!email || !email.includes("@")) return toast("Enter a valid email.");
-
-      toast("Request saved. Next: on-chain verification + timed download link.");
-      // TODO: next step (backend) -> POST /api/order
-      checkoutBox.style.display = "none";
-    });
-
-    // -----------------------------
-    // Address loader (address.txt)
-    // -----------------------------
-    async function loadAddress(){
-      const el = document.getElementById("walletAddr");
-      el.textContent = "Loading…";
-
-      async function tryFetch(path){
-        const r = await fetch(path, { cache: "no-store" });
-        if (!r.ok) throw new Error("HTTP " + r.status);
-        return (await r.text()).trim();
-      }
-
-      try{
-        const addr = await tryFetch("/address.txt");
-        el.textContent = addr;
-      }catch(e1){
-        try{
-          const addr = await tryFetch("/Address.txt");
-          el.textContent = addr;
-        }catch(e2){
-          el.textContent = "Address file not found. Ensure address.txt is in repo root.";
-        }
+    // IMPORTANT FIX:
+    // - Do NOT blank the UI
+    // - Keep last good quote (memory) OR fallback to cached quote
+    if(!quote){
+      const cached = readCachedQuote();
+      if(cached){
+        quote = cached;
       }
     }
-
-    // -----------------------------
-    // ETH Quote (10 min TTL)
-    // -----------------------------
-    const QUOTE_TTL_MS = 10 * 60 * 1000;
-    const quoteEls = {
-      usd: document.getElementById("ethUsd"),
-      wh: document.getElementById("ethWeekHigh"),
-      cd: document.getElementById("quoteCountdown")
-    };
-
-    function fmtMoney(n){
-      if (!Number.isFinite(n)) return "—";
-      return "$" + n.toFixed(2);
+    if(quote){
+      quote.__stale = true;
+      renderQuote(quote, {stale:true});
+      updatePayInEth();
+    }else{
+      // only if we truly have nothing
+      quoteEls.usd.textContent = "—";
+      quoteEls.wh.textContent  = "—";
     }
+  }
+}
 
-    function tickCountdown(){
-      if (!quote || !quote.refreshedAt) {
-        quoteEls.cd.textContent = "—";
-        return;
+function tickCountdown(){
+  if(!quote){
+    quoteEls.cd.textContent = "—";
+    return;
+  }
+  const now = Date.now();
+  const age = now - quote.refreshedAt;
+  const left = Math.max(0, QUOTE_TTL_MS - age);
+
+  if(left === 0){
+    // stale: attempt refresh, but don’t spam
+    refreshQuote({force:true});
+    quoteEls.cd.textContent = quote.__stale ? "stale" : "00:00";
+    return;
+  }
+
+  const m = Math.floor(left / 60000);
+  const s = Math.floor((left % 60000) / 1000);
+  quoteEls.cd.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+}
+
+function getPayBasisUsd(){
+  // price basis: weekly high preferred (your rule)
+  if(quote && isFinite(quote.weekHighUsd) && quote.weekHighUsd > 0) return quote.weekHighUsd;
+  if(quote && isFinite(quote.ethUsd) && quote.ethUsd > 0) return quote.ethUsd;
+  return null;
+}
+
+function updatePayInEth(){
+  if(!selected) return;
+  const basis = getPayBasisUsd();
+  if(!basis){
+    mEth.textContent = "—";
+    return;
+  }
+  const eth = selected.usd / basis;
+  mEth.textContent = `${fmtEth(eth)} ETH`;
+}
+
+(async function initQuote(){
+  // load cached immediately (instant UI)
+  const cached = readCachedQuote();
+  if(cached){
+    quote = cached;
+    renderQuote(quote);
+  }
+  // fetch fresh
+  await refreshQuote({force:true});
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+  // also a soft refresh loop (in case tab sleeps)
+  setInterval(()=>refreshQuote({force:false}), 30 * 1000);
+})();
+
+/* -----------------------------
+   CHECKOUT BUTTON (MVP)
+------------------------------ */
+document.getElementById("checkoutBtn").addEventListener("click", ()=>{
+  if(!selected) return;
+
+  const em = email.value.trim();
+  if(!em || !em.includes("@")){
+    toast("Enter a valid email");
+    return;
+  }
+  if(!accept.checked){
+    toast("Accept terms to continue");
+    return;
+  }
+
+  const basis = getPayBasisUsd();
+  const eth = basis ? (selected.usd / basis) : null;
+
+  const msg = [
+    "PAYMENT DETAILS",
+    `Item: ${selected.title}`,
+    `USD: $${selected.usd}`,
+    eth ? `ETH (weekly high): ${eth.toFixed(6)} ETH` : "ETH: —",
+    `Address: ${walletAddrEl.textContent.trim()}`,
+    `Email: ${em}`,
+    "",
+    "After paying: save your TxHash."
+  ].join("\n");
+
+  navigator.clipboard.writeText(msg).then(()=>toast("Payment details copied"));
+});
+
+/* -----------------------------
+   TOAST
+------------------------------ */
+let toastTimer = null;
+function toast(text){
+  let el = document.getElementById("toast");
+  if(!el){
+    el = document.createElement("div");
+    el.id = "toast";
+    el.style.position = "fixed";
+    el.style.left = "50%";
+    el.style.bottom = "22px";
+    el.style.transform = "translateX(-50%)";
+    el.style.padding = "10px 14px";
+    el.style.borderRadius = "999px";
+    el.style.border = "1px solid rgba(255,255,255,.12)";
+    el.style.background = "rgba(0,0,0,.45)";
+    el.style.backdropFilter = "blur(10px)";
+    el.style.webkitBackdropFilter = "blur(10px)";
+    el.style.color = "rgba(233,234,238,.95)";
+    el.style.fontWeight = "800";
+    el.style.fontSize = "13px";
+    el.style.zIndex = "200";
+    el.style.boxShadow = "0 18px 55px rgba(0,0,0,.45)";
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+  el.style.opacity = "1";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ el.style.opacity = "0"; }, 1200);
+}
+
+/* -----------------------------
+   ICONS
+------------------------------ */
+lucide.createIcons();
+
+/* -----------------------------
+   PARTICLES FX (gold grains, free-floating, connected, click spawns more)
+------------------------------ */
+const canvas = document.getElementById("fx");
+const ctx = canvas.getContext("2d", { alpha: true });
+
+let W=0, H=0, DPR=1;
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  W = Math.floor(window.innerWidth);
+  H = Math.floor(window.innerHeight);
+  canvas.width  = Math.floor(W * DPR);
+  canvas.height = Math.floor(H * DPR);
+  canvas.style.width = W+"px";
+  canvas.style.height = H+"px";
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener("resize", resize, { passive:true });
+resize();
+
+const pointer = { x: W*0.5, y: H*0.5, active:false };
+window.addEventListener("pointermove", (e)=>{
+  pointer.x = e.clientX; pointer.y = e.clientY; pointer.active=true;
+}, { passive:true });
+
+window.addEventListener("pointerdown", (e)=>{
+  spawnBurst(e.clientX, e.clientY, 18);
+}, { passive:true });
+
+const particles = [];
+function rnd(a,b){ return a + Math.random()*(b-a); }
+
+function addParticle(x,y,boost=false){
+  const r = rnd(1.2, 3.2) * (boost ? 1.1 : 1.0);
+  particles.push({
+    x, y,
+    vx: rnd(-0.18, 0.18),
+    vy: rnd(-0.18, 0.18),
+    r,
+    a: rnd(0.55, 1.0),
+    tw: rnd(0, Math.PI*2),
+    m: rnd(0.7, 1.5)
+  });
+}
+
+function seed(){
+  particles.length = 0;
+  const base = Math.round((W*H)/18000);   // density
+  const n = Math.max(70, Math.min(170, base));
+  for(let i=0;i<n;i++){
+    addParticle(rnd(0,W), rnd(0,H));
+  }
+}
+seed();
+
+function spawnBurst(x,y,n){
+  for(let i=0;i<n;i++){
+    addParticle(x + rnd(-10,10), y + rnd(-10,10), true);
+    // give a little "kick" outward
+    const p = particles[particles.length-1];
+    const ang = rnd(0, Math.PI*2);
+    const sp = rnd(0.6, 1.6);
+    p.vx += Math.cos(ang)*sp;
+    p.vy += Math.sin(ang)*sp;
+  }
+  // cap
+  while(particles.length > 220) particles.shift();
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+
+  // subtle haze
+  const haze = ctx.createRadialGradient(W*0.28, H*0.20, 0, W*0.28, H*0.20, Math.max(W,H)*0.9);
+  haze.addColorStop(0, "rgba(212,175,55,0.06)");
+  haze.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = haze;
+  ctx.fillRect(0,0,W,H);
+
+  // physics
+  for(const p of particles){
+    // gentle wander
+    p.tw += 0.02 * p.m;
+    p.vx += Math.cos(p.tw) * 0.003;
+    p.vy += Math.sin(p.tw) * 0.003;
+
+    // pointer repel
+    if(pointer.active){
+      const dx = p.x - pointer.x;
+      const dy = p.y - pointer.y;
+      const d2 = dx*dx + dy*dy;
+      const rad = 140;
+      if(d2 < rad*rad){
+        const d = Math.sqrt(d2) || 1;
+        const f = (1 - d/rad) * 0.09;
+        p.vx += (dx/d) * f;
+        p.vy += (dy/d) * f;
       }
-      const next = quote.refreshedAt + QUOTE_TTL_MS;
-      const ms = Math.max(0, next - Date.now());
-      const m = Math.floor(ms / 60000);
-      const s = Math.floor((ms % 60000) / 1000);
-      quoteEls.cd.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
-      if (ms === 0) refreshQuote(true);
     }
 
-    async function refreshQuote(force=false){
-      try{
-        const cacheKey = "egg_quote_v1";
-        const cachedRaw = localStorage.getItem(cacheKey);
-        if (!force && cachedRaw){
-          const cached = JSON.parse(cachedRaw);
-          if (cached && cached.refreshedAt && (Date.now() - cached.refreshedAt) < QUOTE_TTL_MS){
-            quote = cached;
-            renderQuote();
-            renderModal();
-            return;
-          }
-        }
-
-        const r = await fetch("/api/eth", { cache: "no-store" });
-        if (!r.ok) throw new Error("Quote HTTP " + r.status);
-        const data = await r.json();
-        if (!data || !data.ok) throw new Error("Bad quote payload");
-
-        quote = data;
-        localStorage.setItem(cacheKey, JSON.stringify(quote));
-        renderQuote();
-        renderModal();
-      } catch (e){
-        console.error("ETH quote failed:", e);
-        quoteEls.usd.textContent = "—";
-        quoteEls.wh.textContent = "—";
-        quoteEls.cd.textContent = "offline";
+    // mild cohesion (forms "clusters")
+    // pick a few neighbors by sampling
+    for(let k=0;k<2;k++){
+      const q = particles[(Math.random()*particles.length)|0];
+      if(q === p) continue;
+      const dx = q.x - p.x;
+      const dy = q.y - p.y;
+      const d2 = dx*dx + dy*dy;
+      if(d2 > 0 && d2 < 160*160){
+        const d = Math.sqrt(d2);
+        const pull = (1 - d/160) * 0.002;
+        p.vx += (dx/d) * pull;
+        p.vy += (dy/d) * pull;
       }
     }
 
-    function renderQuote(){
-      quoteEls.usd.textContent = fmtMoney(quote?.usd);
-      quoteEls.wh.textContent = fmtMoney(quote?.weeklyHighUsd);
-    }
+    // integrate
+    p.x += p.vx;
+    p.y += p.vy;
 
-    document.getElementById("retryQuote").addEventListener("click", () => refreshQuote(true));
+    // damping
+    p.vx *= 0.985;
+    p.vy *= 0.985;
 
-    refreshQuote(true);
-    setInterval(tickCountdown, 1000);
+    // wrap
+    if(p.x < -20) p.x = W+20;
+    if(p.x > W+20) p.x = -20;
+    if(p.y < -20) p.y = H+20;
+    if(p.y > H+20) p.y = -20;
+  }
 
-    // -----------------------------
-    // GOLD DUST FX (interactive)
-    // -----------------------------
-    const canvas = document.getElementById("fx");
-    const ctx = canvas.getContext("2d");
-
-    let W = 0, H = 0, DPR = 1;
-    function resize(){
-      DPR = Math.min(2, window.devicePixelRatio || 1);
-      W = Math.floor(window.innerWidth);
-      H = Math.floor(window.innerHeight);
-      canvas.width = Math.floor(W * DPR);
-      canvas.height = Math.floor(H * DPR);
-      canvas.style.width = W + "px";
-      canvas.style.height = H + "px";
-      ctx.setTransform(DPR,0,0,DPR,0,0);
-    }
-    window.addEventListener("resize", resize, { passive:true });
-    resize();
-
-    const pointer = { x: W*0.5, y: H*0.35, active:false };
-    window.addEventListener("mousemove", (e)=>{ pointer.x=e.clientX; pointer.y=e.clientY; pointer.active=true; }, { passive:true });
-    window.addEventListener("mouseleave", ()=>{ pointer.active=false; }, { passive:true });
-
-    window.addEventListener("touchstart", (e)=> {
-      const t = e.touches[0];
-      if (!t) return;
-      pointer.x = t.clientX; pointer.y = t.clientY; pointer.active = true;
-      burst(pointer.x, pointer.y);
-    }, { passive:true });
-
-    window.addEventListener("touchmove", (e)=> {
-      const t = e.touches[0];
-      if (!t) return;
-      pointer.x = t.clientX; pointer.y = t.clientY; pointer.active = true;
-    }, { passive:true });
-
-    window.addEventListener("click", (e)=> burst(e.clientX, e.clientY), { passive:true });
-
-    const baseCount = Math.max(110, Math.min(220, Math.floor((W*H) / 12000)));
-    const particles = [];
-    function rand(a,b){ return a + Math.random()*(b-a); }
-
-    function makeParticle(x=rand(0,W), y=rand(0,H), boost=false){
-      const s = boost ? rand(1.6, 3.2) : rand(0.9, 2.4);
-      return {
-        x, y,
-        vx: rand(-0.18, 0.18),
-        vy: rand(-0.12, 0.12),
-        r: s,
-        tw: rand(0.6, 1.0),
-        ph: rand(0, Math.PI*2),
-        hue: rand(40, 52),  // gold-ish
-        life: boost ? rand(240, 520) : 999999
-      };
-    }
-
-    for (let i=0;i<baseCount;i++) particles.push(makeParticle());
-
-    function burst(x,y){
-      for (let i=0;i<14;i++){
-        const p = makeParticle(x + rand(-18,18), y + rand(-18,18), true);
-        p.vx += rand(-0.9, 0.9);
-        p.vy += rand(-0.9, 0.9);
-        particles.push(p);
+  // connections
+  ctx.lineWidth = 1;
+  for(let i=0;i<particles.length;i++){
+    const p = particles[i];
+    for(let j=i+1;j<particles.length;j++){
+      const q = particles[j];
+      const dx = q.x - p.x;
+      const dy = q.y - p.y;
+      const d2 = dx*dx + dy*dy;
+      const max = 120;
+      if(d2 < max*max){
+        const d = Math.sqrt(d2);
+        const a = (1 - d/max) * 0.10 * Math.min(p.a, q.a);
+        ctx.strokeStyle = `rgba(212,175,55,${a})`;
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(q.x, q.y);
+        ctx.stroke();
       }
-      toast("Gold dust spawned.");
     }
+  }
 
-    function drawSpark(p, a){
-      // tiny diamond “rock”
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.ph + (Date.now()*0.0003));
-      ctx.beginPath();
-      const r = p.r;
-      ctx.moveTo(0, -r*1.3);
-      ctx.lineTo(r*1.0, 0);
-      ctx.lineTo(0, r*1.3);
-      ctx.lineTo(-r*1.0, 0);
-      ctx.closePath();
+  // particles (gold grains / rocks)
+  for(const p of particles){
+    const glow = ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*6.0);
+    glow.addColorStop(0, `rgba(255, 240, 200, ${0.35*p.a})`);
+    glow.addColorStop(0.35, `rgba(255, 212, 118, ${0.22*p.a})`);
+    glow.addColorStop(1, `rgba(212, 175, 55, 0)`);
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r*6.0,0,Math.PI*2);
+    ctx.fill();
 
-      ctx.fillStyle = `hsla(${p.hue}, 90%, 62%, ${a})`;
-      ctx.fill();
+    // core
+    ctx.fillStyle = `rgba(255, 234, 190, ${0.72*p.a})`;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fill();
 
-      // highlight
-      ctx.beginPath();
-      ctx.arc(r*0.25, -r*0.25, r*0.35, 0, Math.PI*2);
-      ctx.fillStyle = `rgba(255, 232, 170, ${a*0.55})`;
-      ctx.fill();
-      ctx.restore();
-    }
+    // micro glint stroke
+    ctx.strokeStyle = `rgba(255, 244, 210, ${0.14*p.a})`;
+    ctx.beginPath();
+    ctx.arc(p.x+0.6, p.y-0.6, p.r*1.2, 0, Math.PI*2);
+    ctx.stroke();
+  }
 
-    function step(){
-      ctx.clearRect(0,0,W,H);
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
 
-      // subtle fog
-      const g = ctx.createRadialGradient(W*0.7, H*0.2, 0, W*0.7, H*0.2, Math.max(W,H)*0.95);
-      g.addColorStop(0, "rgba(212,175,55,0.06)");
-      g.addColorStop(1, "rgba(0,0,0,0)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0,0,W,H);
-
-      // update + draw
-      for (let i=0;i<particles.length;i++){
-        const p = particles[i];
-        p.ph += 0.006;
-
-        // gentle drift
-        p.vx += Math.sin(p.ph*0.9)*0.0006;
-        p.vy += Math.cos(p.ph*0.8)*0.0006;
-
-        // pointer repel
-        if (pointer.active){
-          const dx = p.x - pointer.x;
-          const dy = p.y - pointer.y;
-          const d2 = dx*dx + dy*dy;
-          const R = 140;
-          if (d2 < R*R){
-            const d = Math.max(8, Math.sqrt(d2));
-            const f = (1 - d/R) * 0.25;
-            p.vx += (dx/d) * f;
-            p.vy += (dy/d) * f;
-          }
-        }
-
-        // clamp velocity
-        p.vx *= 0.992;
-        p.vy *= 0.992;
-
-        p.x += p.vx;
-        p.y += p.vy;
-
-        // wrap
-        if (p.x < -20) p.x = W + 20;
-        if (p.x > W + 20) p.x = -20;
-        if (p.y < -20) p.y = H + 20;
-        if (p.y > H + 20) p.y = -20;
-
-        if (p.life !== 999999){
-          p.life -= 1;
-          if (p.life <= 0){
-            particles.splice(i,1);
-            i--;
-            continue;
-          }
-        }
-      }
-
-      // connections (light, only close neighbors; keeps it “present” but not ugly)
-      for (let i=0;i<particles.length;i++){
-        const a = particles[i];
-        for (let j=i+1;j<particles.length;j++){
-          const b = particles[j];
-          const dx = a.x - b.x;
-          const dy = a.y - b.y;
-          const d2 = dx*dx + dy*dy;
-          const max = 120;
-          if (d2 < max*max){
-            const d = Math.sqrt(d2);
-            const alpha = (1 - d/max) * 0.10;
-            ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // draw sparks on top
-      for (const p of particles){
-        const tw = (0.6 + 0.4*Math.sin(p.ph + Date.now()*0.002)) * p.tw;
-        drawSpark(p, 0.55 * tw);
-      }
-
-      requestAnimationFrame(step);
-    }
-    step();
-  </script>
 </body>
 </html>
