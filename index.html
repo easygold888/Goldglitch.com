@@ -975,28 +975,36 @@
     }
 
     /***********************
-     * ETH Quote (spot + 7D reference)
-     * - we keep last valid quote in localStorage
+     * ETH Quote (spot + reference)
+     * - keep last valid quote in localStorage
      * - if fetch returns 0/NaN/empty => DO NOT erase the UI
+     * - timer only in checkout
      ***********************/
-    const QUOTE_TTL_MS = 10 * 60 * 1000;
+    const QUOTE_TTL_MS = 10 * 60 * 1000;     // 10 minutes
+    const BG_REFRESH_MS = 120 * 1000;        // background refresh (2 min)
 
-    const LS_KEY = "egg_eth_quote_v2";
+    const LS_KEY = "egg_eth_quote_v3";
     let quote = {
-      spot: null,
-      ref: null,        // "Reference price" (7D high or computed server-side)
-      ts: 0,            // last valid update timestamp
-      srcTs: null       // optional server timestamp
+      spot: NaN,
+      ref: NaN,
+      ts: 0,
+      srcTs: null
     };
+
+    function isValidNum(n){
+      return Number.isFinite(n) && n > 0;
+    }
 
     function loadQuoteFromStorage(){
       try{
         const raw = localStorage.getItem(LS_KEY);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object"){
-          quote = { ...quote, ...parsed };
-        }
+        if (!parsed || typeof parsed !== "object") return;
+        if (typeof parsed.ts === "number") quote.ts = parsed.ts;
+        if (isValidNum(Number(parsed.spot))) quote.spot = Number(parsed.spot);
+        if (isValidNum(Number(parsed.ref))) quote.ref = Number(parsed.ref);
+        quote.srcTs = parsed.srcTs ?? quote.srcTs;
       }catch{}
     }
 
@@ -1017,58 +1025,64 @@
     }
 
     function paintHeaderQuote(){
-      if (Number.isFinite(quote.spot)) ethSpotEl.textContent = fmtUSD(quote.spot);
-      if (Number.isFinite(quote.ref)) ethRefEl.textContent = fmtUSD(quote.ref);
+      if (isValidNum(quote.spot)) ethSpotEl.textContent = fmtUSD(quote.spot);
+      if (isValidNum(quote.ref))  ethRefEl.textContent  = fmtUSD(quote.ref);
     }
 
     function paintQuoteStamp(){
-      const age = quote.ts ? Math.max(0, Date.now() - quote.ts) : null;
-      if (!quote.ts){
+      if (!quote.ts || !isValidNum(quote.ref)){
         quoteStamp.textContent = "Quote: —";
         return;
       }
-      const mins = Math.floor(age / 60000);
+      const ageMs = Math.max(0, Date.now() - quote.ts);
+      const mins = Math.floor(ageMs / 60000);
       quoteStamp.textContent = `Quote: ${fmtUSD(quote.ref)} (updated ${mins}m ago)`;
     }
 
+    function parseQuotePayload(j){
+      // Supports multiple possible shapes without breaking:
+      // Preferred: { spot, ref }
+      // Others: { spotUsdPerEth, referenceUsdPerEth } etc.
+      const spotCandidate = j?.spot ?? j?.spotUsd ?? j?.spot_usd ?? j?.spotUsdPerEth ?? j?.ethUsd ?? j?.price ?? j?.usd;
+      const refCandidate  = j?.ref  ?? j?.reference ?? j?.referenceUsd ?? j?.reference_usd ?? j?.referenceUsdPerEth ?? j?.weeklyHighUsd ?? j?.ath7d ?? j?.referencePrice;
+
+      const spot = Number(spotCandidate);
+      const ref  = Number(refCandidate);
+
+      const sourceTime = j?.sourceTime ?? j?.ts ?? j?.time ?? null;
+      return { spot, ref, sourceTime };
+    }
+
     async function fetchQuote(){
-      // Your existing working endpoint:
-      // /api/eth-quote should return: { spot, ref, sourceTime? }
       const r = await fetch("/api/eth-quote", { cache: "no-store" });
       if (!r.ok) throw new Error("quote http " + r.status);
       const j = await r.json();
 
-      const spot = Number(j.spot);
-      const ref  = Number(j.ref);
+      const { spot, ref, sourceTime } = parseQuotePayload(j);
 
-      // IMPORTANT RULE:
-      // If it's 0/NaN/empty => we DO NOT overwrite existing quote.
-      const validSpot = Number.isFinite(spot) && spot > 0;
-      const validRef  = Number.isFinite(ref)  && ref > 0;
+      // RULE: if 0/NaN/empty => do NOT overwrite current values.
+      const validSpot = isValidNum(spot);
+      const validRef  = isValidNum(ref);
 
       if (!validSpot || !validRef){
-        // keep current values
         return { updated: false };
       }
 
-      // If value isn't distinct, we still keep it (and refresh timestamp).
-      // That prevents "disappearing after 10 min" due to transient identical values.
+      // Even if values equal to current, refresh timestamp so it doesn't "expire to blank".
       quote.spot = spot;
-      quote.ref = ref;
-      quote.ts = Date.now();
-      quote.srcTs = j.sourceTime || null;
+      quote.ref  = ref;
+      quote.ts   = Date.now();
+      quote.srcTs = sourceTime;
 
       saveQuoteToStorage();
-      paintHeaderQuote();
-      paintQuoteStamp();
       return { updated: true };
     }
 
     async function ensureQuoteFresh(force=false){
-      // Load from storage once
+      // Load any stored value once
       if (!quote.ts) loadQuoteFromStorage();
 
-      // Paint any stored value immediately
+      // Paint stored value immediately (never blank UI)
       paintHeaderQuote();
       paintQuoteStamp();
 
@@ -1078,30 +1092,20 @@
       try{
         await fetchQuote();
       }catch{
-        // do nothing: we keep last valid quote displayed
-        paintHeaderQuote();
-        paintQuoteStamp();
+        // Keep last valid quote; do not blank UI
       }
-    }
 
-    async function ensureQuoteFreshUI(){
-      await ensureQuoteFresh(false);
       paintHeaderQuote();
-    }
-
-    async function ensureQuoteFreshOnInterval(){
-      // background refresh every ~2 minutes; the TTL is 10 minutes
-      // so we typically refresh before the user reaches checkout.
-      await ensureQuoteFresh(false);
+      paintQuoteStamp();
     }
 
     function renderCheckoutNumbers(){
       if (!selected) return;
 
       usdLine.textContent = "$" + selected.usd.toFixed(0);
-      refLine.textContent = Number.isFinite(quote.ref) ? fmtUSD(quote.ref) : "—";
+      refLine.textContent = isValidNum(quote.ref) ? fmtUSD(quote.ref) : "—";
 
-      if (Number.isFinite(quote.ref) && quote.ref > 0){
+      if (isValidNum(quote.ref)){
         const ethToSend = selected.usd / quote.ref;
         ethLine.textContent = fmtETH(ethToSend);
       }else{
@@ -1110,10 +1114,9 @@
       paintQuoteStamp();
     }
 
-    // initial load
-    ensureQuoteFreshUI();
-    // refresh in background
-    setInterval(ensureQuoteFreshOnInterval, 120 * 1000);
+    // initial paint + background refresh
+    ensureQuoteFresh(false);
+    setInterval(() => ensureQuoteFresh(false), BG_REFRESH_MS);
 
     /***********************
      * Checkout timer (ONLY shown in checkout)
@@ -1129,19 +1132,26 @@
 
     function startCheckoutTimer(){
       stopCheckoutTimer();
-      function tick(){
+
+      const tick = async () => {
         if (!overlay.classList.contains("active") || checkoutPanel.style.display === "none") return;
 
         // time until TTL expires based on last valid quote timestamp
-        const base = quote.ts || 0;
-        const remaining = (base + QUOTE_TTL_MS) - Date.now();
+        if (!quote.ts){
+          timerText.textContent = "10:00";
+          return;
+        }
+
+        const remaining = (quote.ts + QUOTE_TTL_MS) - Date.now();
         timerText.textContent = msToMMSS(remaining);
 
-        // If expired, we attempt refresh, but we never blank the UI
+        // If expired, force refresh; never blank UI
         if (remaining <= 0){
-          ensureQuoteFresh(true).then(() => renderCheckoutNumbers());
+          await ensureQuoteFresh(true);
+          renderCheckoutNumbers();
         }
-      }
+      };
+
       tick();
       checkoutTimer = setInterval(tick, 400);
     }
@@ -1150,65 +1160,6 @@
       if (checkoutTimer) clearInterval(checkoutTimer);
       checkoutTimer = null;
     }
-
-    async function ensureQuoteFresh(force){
-      // wrapper that keeps the same behavior, but used by checkout too
-      if (!quote.ts) loadQuoteFromStorage();
-      paintHeaderQuote();
-      paintQuoteStamp();
-
-      const isFresh = quote.ts && (Date.now() - quote.ts) < QUOTE_TTL_MS;
-      if (!force && isFresh) return;
-
-      try{
-        await fetchQuote();
-      }catch{
-        // keep last price
-      }
-      paintHeaderQuote();
-      paintQuoteStamp();
-    }
-
-    async function ensureQuoteFresh(force){
-      // avoid duplicate declarations (some browsers are strict)
-      return await window.__ensureQuoteFresh(force);
-    }
-
-    // Store the actual ensureQuoteFresh on window to prevent redeclare collisions
-    window.__ensureQuoteFresh = async (force=false) => {
-      if (!quote.ts) loadQuoteFromStorage();
-      paintHeaderQuote();
-      paintQuoteStamp();
-
-      const isFresh = quote.ts && (Date.now() - quote.ts) < QUOTE_TTL_MS;
-      if (!force && isFresh) return;
-
-      try{
-        await fetchQuote();
-      }catch{
-        // keep last valid quote
-      }
-      paintHeaderQuote();
-      paintQuoteStamp();
-    };
-
-    async function ensureQuoteFresh(force){
-      return await window.__ensureQuoteFresh(force);
-    }
-
-    async function ensureQuoteFreshOnCheckoutOpen(){
-      await ensureQuoteFresh(true);
-      renderCheckoutNumbers();
-    }
-
-    // replace the earlier handler call
-    openCheckoutBtn.addEventListener("click", async () => {
-      checkoutPanel.style.display = "block";
-      timerPill.style.display = "inline-flex";
-      await ensureQuoteFreshOnCheckoutOpen();
-      startCheckoutTimer();
-      updateConfirmState();
-    }, { once: false });
 
     /***********************
      * Background particles (more visible, hypnotic, gold-like)
@@ -1245,9 +1196,7 @@
         vx: Math.cos(ang)*speed,
         vy: Math.sin(ang)*speed,
         r: size,
-        // brighter alpha (requested)
         a: burst ? rand(0.55, 0.90) : rand(0.40, 0.78),
-        // warm gold hues
         hue: rand(38, 52),
         tw: rand(0.6, 1.4),
       };
@@ -1267,7 +1216,6 @@
       for (let i=0;i<n;i++){
         state.particles.push(makeParticle(px, py, true));
       }
-      // cap
       const cap = window.innerWidth < 600 ? 120 : 210;
       if (state.particles.length > cap){
         state.particles.splice(0, state.particles.length - cap);
@@ -1281,33 +1229,27 @@
 
       ctx.clearRect(0,0,state.w,state.h);
 
-      // draw particles + links
       const P = state.particles;
       const linkDist = 140 * state.dpr;
       const repelDist = 170 * state.dpr;
 
-      // subtle background wash for glow
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
 
       for (let i=0;i<P.length;i++){
         const p = P[i];
 
-        // movement
         p.x += p.vx * 90 * dt * state.dpr;
         p.y += p.vy * 90 * dt * state.dpr;
 
-        // gentle drift variation
         p.vx += Math.sin((now/1000 + p.tw)) * 0.0006;
         p.vy += Math.cos((now/1000 + p.tw)) * 0.0006;
 
-        // wrap
         if (p.x < -20) p.x = state.w + 20;
         if (p.x > state.w + 20) p.x = -20;
         if (p.y < -20) p.y = state.h + 20;
         if (p.y > state.h + 20) p.y = -20;
 
-        // repel from pointer
         if (state.pointer.active){
           const dx = p.x - state.pointer.x;
           const dy = p.y - state.pointer.y;
@@ -1320,11 +1262,9 @@
           }
         }
 
-        // slight damping
         p.vx *= 0.9992;
         p.vy *= 0.9992;
 
-        // particle glow (more visible)
         const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*10);
         grad.addColorStop(0, `hsla(${p.hue}, 85%, 70%, ${p.a})`);
         grad.addColorStop(0.35, `hsla(${p.hue}, 90%, 60%, ${p.a*0.45})`);
@@ -1335,7 +1275,6 @@
         ctx.arc(p.x, p.y, p.r*10, 0, Math.PI*2);
         ctx.fill();
 
-        // core dot
         ctx.globalAlpha = Math.min(1, p.a + 0.18);
         ctx.fillStyle = `hsla(${p.hue}, 92%, 72%, ${p.a})`;
         ctx.beginPath();
@@ -1344,7 +1283,6 @@
         ctx.globalAlpha = 1;
       }
 
-      // links (cluster feel)
       ctx.lineWidth = 1 * state.dpr;
       for (let i=0;i<P.length;i++){
         for (let j=i+1;j<P.length;j++){
@@ -1352,7 +1290,7 @@
           const dx = a.x - b.x, dy = a.y - b.y;
           const d = Math.sqrt(dx*dx + dy*dy);
           if (d < linkDist){
-            const alpha = (1 - d/linkDist) * 0.28; // more visible
+            const alpha = (1 - d/linkDist) * 0.28;
             ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
             ctx.beginPath();
             ctx.moveTo(a.x, a.y);
@@ -1363,11 +1301,9 @@
       }
 
       ctx.restore();
-
       requestAnimationFrame(draw);
     }
 
-    // pointer events
     function setPointerFromEvent(e){
       const rect = canvas.getBoundingClientRect();
       const x = (("touches" in e) ? e.touches[0].clientX : e.clientX) - rect.left;
@@ -1400,7 +1336,6 @@
 
     window.addEventListener("touchend", () => { state.pointer.active = false; });
 
-    // init
     resize();
     seed();
     draw();
