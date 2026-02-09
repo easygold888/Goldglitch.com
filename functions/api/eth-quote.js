@@ -1,107 +1,137 @@
 // functions/api/eth-quote.js
-// Returns: { ok:true, spot:<usd>, ref:<usd>, ts:<ms>, source:<string>, stale?:true }
+// ETH quote via Binance public market data.
+// Returns: { ok:true, spot:<number>, ref:<number>, ts:<ms>, source:"binance", symbol:"ETHUSDT", stale?:true }
 
-const TTL_SECONDS = 600; // 10 minutes
-const TTL_MS = TTL_SECONDS * 1000;
+const SYMBOL = "ETHUSDT";
+const KLINE_LIMIT = 8; // pull 8 daily candles, then take last 7 highs
+const TIMEOUT_MS = 6500;
 
-function json(data, { maxAge = 60 } = {}) {
-  return new Response(JSON.stringify(data), {
-    status: 200,
+// Binance base endpoints (official docs mention multiple; plus market-data-only endpoint)
+const BASES = [
+  "https://data-api.binance.vision",
+  "https://api.binance.com",
+  "https://api-gcp.binance.com",
+  "https://api1.binance.com",
+  "https://api2.binance.com",
+  "https://api3.binance.com",
+  "https://api4.binance.com",
+];
+
+// in-memory last good quote (survives within same isolate)
+let lastGood = null;
+
+function jsonResponse(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": `public, max-age=${maxAge}`,
+      // small edge caching to reduce Binance hits; browser won't cache
+      "cache-control": "public, max-age=0, s-maxage=60, stale-while-revalidate=600",
+      // optional CORS (safe even if same-origin)
       "access-control-allow-origin": "*",
     },
   });
 }
 
-async function fetchCoingecko7d() {
-  // 7-day hourly series. We'll compute:
-  // spot = last price, ref = max price in the window ("Reference price")
-  const url =
-    "https://api.coingecko.com/api/v3/coins/ethereum/market_chart?vs_currency=usd&days=7&interval=hourly";
+async function fetchJson(url) {
+  const controller = new AbortController();
+  const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-  const r = await fetch(url, {
-    headers: {
-      accept: "application/json",
-      // Some providers behave better with a UA set
-      "user-agent": "EasyGoldGlitch/1.0 (Cloudflare Pages Function)",
-    },
-  });
-
-  if (!r.ok) throw new Error(`coingecko_http_${r.status}`);
-
-  const j = await r.json();
-  const prices = j?.prices;
-
-  if (!Array.isArray(prices) || prices.length < 5) throw new Error("bad_prices_array");
-
-  let max = 0;
-  for (const p of prices) {
-    const v = Number(p?.[1]);
-    if (Number.isFinite(v) && v > max) max = v;
+  try {
+    const r = await fetch(url, {
+      method: "GET",
+      signal: controller.signal,
+      headers: {
+        "accept": "application/json",
+        // Some edges/providers behave better with a UA
+        "user-agent": "EasyGoldGlitch/1.0 (+https://easygoldglitch.com)",
+      },
+    });
+    if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
+    return await r.json();
+  } finally {
+    clearTimeout(t);
   }
-
-  const last = Number(prices[prices.length - 1]?.[1]);
-
-  if (!Number.isFinite(last) || last <= 0) throw new Error("bad_spot");
-  if (!Number.isFinite(max) || max <= 0) max = last;
-
-  return { spot: last, ref: max, source: "coingecko_market_chart_7d" };
 }
 
-export async function onRequestGet({ request, ctx }) {
-  const now = Date.now();
-  const origin = new URL(request.url).origin;
+function toNum(x) {
+  const n = Number(x);
+  return Number.isFinite(n) ? n : NaN;
+}
 
-  // Cache key independent of query params (stable key)
-  const cacheKey = new Request(`${origin}/api/__eth_quote_cache_key`);
+async function tryBinanceBase(base) {
+  const spotUrl = `${base}/api/v3/ticker/price?symbol=${SYMBOL}`;
+  const klineUrl = `${base}/api/v3/klines?symbol=${SYMBOL}&interval=1d&limit=${KLINE_LIMIT}`;
 
-  // 1) Try cache first
-  let cached = await caches.default.match(cacheKey);
-  if (cached) {
+  const [spotJ, klines] = await Promise.all([fetchJson(spotUrl), fetchJson(klineUrl)]);
+
+  const spot = toNum(spotJ?.price);
+
+  // klines: array of arrays, high price at index [2]
+  const highs = Array.isArray(klines)
+    ? klines.map(k => toNum(k?.[2])).filter(n => Number.isFinite(n) && n > 0)
+    : [];
+
+  if (!Number.isFinite(spot) || spot <= 0) throw new Error("bad spot");
+  if (highs.length < 2) throw new Error("bad klines");
+
+  // "weekly ATH": max high of last 7 daily candles
+  const last7 = highs.slice(-7);
+  const ref = Math.max(...last7);
+
+  if (!Number.isFinite(ref) || ref <= 0) throw new Error("bad ref");
+
+  return { spot, ref, base };
+}
+
+export async function onRequest(context) {
+  const { request } = context;
+
+  // Handle preflight
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET,OPTIONS",
+        "access-control-allow-headers": "content-type",
+      },
+    });
+  }
+
+  if (request.method !== "GET") {
+    return jsonResponse({ ok: false, error: "method_not_allowed", ts: Date.now() }, 405);
+  }
+
+  let lastErr = null;
+
+  for (const base of BASES) {
     try {
-      const c = await cached.clone().json();
-      const fresh = c?.ok === true && Number.isFinite(c.ts) && now - c.ts < TTL_MS;
-      if (fresh) return cached;
-    } catch {
-      // ignore cache parse issues and refresh below
+      const { spot, ref, base: usedBase } = await tryBinanceBase(base);
+      const payload = {
+        ok: true,
+        spot,
+        ref,
+        ts: Date.now(),
+        source: "binance",
+        symbol: SYMBOL,
+        base: usedBase,
+      };
+      lastGood = payload;
+      return jsonResponse(payload, 200);
+    } catch (e) {
+      lastErr = e;
+      // try next base
     }
   }
 
-  // 2) Fetch fresh
-  try {
-    const q = await fetchCoingecko7d();
-
-    const body = {
-      ok: true,
-      spot: q.spot,
-      ref: q.ref,
-      ts: now,
-      source: q.source,
-    };
-
-    const resp = json(body, { maxAge: TTL_SECONDS });
-
-    // Write cache async (so the request returns fast)
-    ctx.waitUntil(caches.default.put(cacheKey, resp.clone())); // Cache API + waitUntil :contentReference[oaicite:2]{index=2}
-    return resp;
-  } catch (e) {
-    // 3) If upstream fails, return cached if we have it (even if stale)
-    if (cached) {
-      try {
-        const c = await cached.clone().json();
-        // If cache was ok, serve it as stale ok:true instead of ok:false
-        if (c?.ok === true) {
-          const staleResp = json({ ...c, stale: true }, { maxAge: 60 });
-          return staleResp;
-        }
-      } catch {
-        // fall through
-      }
-    }
-
-    // 4) Nothing cached => explicit unavailable
-    return json({ ok: false, error: "quote_unavailable", ts: now }, { maxAge: 30 });
+  // If all bases failed, return last good if we have it (stale mode)
+  if (lastGood?.ok && Number.isFinite(lastGood.spot) && Number.isFinite(lastGood.ref)) {
+    return jsonResponse({ ...lastGood, stale: true, ts: Date.now() }, 200);
   }
+
+  return jsonResponse(
+    { ok: false, error: "quote_unavailable", detail: String(lastErr || ""), ts: Date.now() },
+    200
+  );
 }
