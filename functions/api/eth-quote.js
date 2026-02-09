@@ -1,23 +1,13 @@
 // functions/api/eth-quote.js
-// ETH quote via Binance public market data.
-// Returns: { ok:true, spot:<number>, ref:<number>, ts:<ms>, source:"binance", symbol:"ETHUSDT", stale?:true }
+// ETH quote via Kraken public market data (no API key).
+// Returns: { ok:true, spot:<number>, ref:<number>, ts:<ms>, source:"kraken", pair:<string>, stale?:true }
 
-const SYMBOL = "ETHUSDT";
-const KLINE_LIMIT = 8; // pull 8 daily candles, then take last 7 highs
+const PAIR = "ETHUSD";               // request pair; Kraken may respond with canonical key like "XETHZUSD"
+const INTERVAL_MIN = 1440;           // 1 day candles
+const DAYS_FOR_REF = 7;              // weekly reference = max high of last 7 daily candles
 const TIMEOUT_MS = 6500;
 
-// Binance base endpoints (official docs mention multiple; plus market-data-only endpoint)
-const BASES = [
-  "https://data-api.binance.vision",
-  "https://api.binance.com",
-  "https://api-gcp.binance.com",
-  "https://api1.binance.com",
-  "https://api2.binance.com",
-  "https://api3.binance.com",
-  "https://api4.binance.com",
-];
-
-// in-memory last good quote (survives within same isolate)
+// In-memory last good quote (best-effort within same isolate)
 let lastGood = null;
 
 function jsonResponse(obj, status = 200) {
@@ -25,9 +15,8 @@ function jsonResponse(obj, status = 200) {
     status,
     headers: {
       "content-type": "application/json; charset=utf-8",
-      // small edge caching to reduce Binance hits; browser won't cache
+      // Edge cache a bit to reduce upstream hits.
       "cache-control": "public, max-age=0, s-maxage=60, stale-while-revalidate=600",
-      // optional CORS (safe even if same-origin)
       "access-control-allow-origin": "*",
     },
   });
@@ -36,14 +25,12 @@ function jsonResponse(obj, status = 200) {
 async function fetchJson(url) {
   const controller = new AbortController();
   const t = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
   try {
     const r = await fetch(url, {
       method: "GET",
       signal: controller.signal,
       headers: {
         "accept": "application/json",
-        // Some edges/providers behave better with a UA
         "user-agent": "EasyGoldGlitch/1.0 (+https://easygoldglitch.com)",
       },
     });
@@ -59,35 +46,69 @@ function toNum(x) {
   return Number.isFinite(n) ? n : NaN;
 }
 
-async function tryBinanceBase(base) {
-  const spotUrl = `${base}/api/v3/ticker/price?symbol=${SYMBOL}`;
-  const klineUrl = `${base}/api/v3/klines?symbol=${SYMBOL}&interval=1d&limit=${KLINE_LIMIT}`;
+function pickFirstResultKey(obj) {
+  if (!obj || typeof obj !== "object") return null;
+  const keys = Object.keys(obj);
+  return keys.length ? keys[0] : null;
+}
 
-  const [spotJ, klines] = await Promise.all([fetchJson(spotUrl), fetchJson(klineUrl)]);
+async function krakenQuote() {
+  // Kraken REST base URL is https://api.kraken.com/0 and endpoints include /public/Ticker and /public/OHLC. :contentReference[oaicite:0]{index=0}
+  const base = "https://api.kraken.com/0";
 
-  const spot = toNum(spotJ?.price);
+  // Spot (ticker)
+  const tickerUrl = `${base}/public/Ticker?pair=${encodeURIComponent(PAIR)}`;
+  // OHLC: use "since" to reduce payload (last ~9 days)
+  const since = Math.floor(Date.now() / 1000) - (9 * 86400);
+  const ohlcUrl = `${base}/public/OHLC?pair=${encodeURIComponent(PAIR)}&interval=${INTERVAL_MIN}&since=${since}`;
 
-  // klines: array of arrays, high price at index [2]
-  const highs = Array.isArray(klines)
-    ? klines.map(k => toNum(k?.[2])).filter(n => Number.isFinite(n) && n > 0)
-    : [];
+  const [tickerJ, ohlcJ] = await Promise.all([fetchJson(tickerUrl), fetchJson(ohlcUrl)]);
 
-  if (!Number.isFinite(spot) || spot <= 0) throw new Error("bad spot");
-  if (highs.length < 2) throw new Error("bad klines");
+  if (Array.isArray(tickerJ?.error) && tickerJ.error.length) {
+    throw new Error(`kraken ticker error: ${tickerJ.error.join(",")}`);
+  }
+  if (Array.isArray(ohlcJ?.error) && ohlcJ.error.length) {
+    throw new Error(`kraken ohlc error: ${ohlcJ.error.join(",")}`);
+  }
 
-  // "weekly ATH": max high of last 7 daily candles
-  const last7 = highs.slice(-7);
-  const ref = Math.max(...last7);
+  const tickerRes = tickerJ?.result;
+  const ohlcRes = ohlcJ?.result;
 
-  if (!Number.isFinite(ref) || ref <= 0) throw new Error("bad ref");
+  const tickerKey = pickFirstResultKey(tickerRes);
+  if (!tickerKey) throw new Error("kraken ticker: no result key");
 
-  return { spot, ref, base };
+  // ticker.c[0] = last trade closed price (string)
+  const spot = toNum(tickerRes[tickerKey]?.c?.[0]);
+  if (!Number.isFinite(spot) || spot <= 0) throw new Error("kraken ticker: bad spot");
+
+  // OHLC result contains pair key(s) + "last"
+  const ohlcPairKey = Object.keys(ohlcRes || {}).find(k => k !== "last");
+  if (!ohlcPairKey) throw new Error("kraken ohlc: no pair key");
+
+  const bars = ohlcRes[ohlcPairKey];
+  if (!Array.isArray(bars) || bars.length < DAYS_FOR_REF) throw new Error("kraken ohlc: insufficient bars");
+
+  // bar format: [ time, open, high, low, close, vwap, volume, count ]
+  const highs = bars.map(b => toNum(b?.[2])).filter(n => Number.isFinite(n) && n > 0);
+  if (highs.length < DAYS_FOR_REF) throw new Error("kraken ohlc: bad highs");
+
+  const lastN = highs.slice(-DAYS_FOR_REF);
+  const ref = Math.max(...lastN);
+  if (!Number.isFinite(ref) || ref <= 0) throw new Error("kraken ohlc: bad ref");
+
+  return {
+    ok: true,
+    spot,
+    ref,
+    ts: Date.now(),
+    source: "kraken",
+    pair: ohlcPairKey,
+  };
 }
 
 export async function onRequest(context) {
   const { request } = context;
 
-  // Handle preflight
   if (request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -103,35 +124,38 @@ export async function onRequest(context) {
     return jsonResponse({ ok: false, error: "method_not_allowed", ts: Date.now() }, 405);
   }
 
-  let lastErr = null;
+  // Try edge cache first
+  try {
+    const cache = caches.default;
+    const cacheKey = new Request(request.url, request);
+    const cached = await cache.match(cacheKey);
+    if (cached) return cached;
+  } catch {
+    // ignore cache errors
+  }
 
-  for (const base of BASES) {
+  try {
+    const payload = await krakenQuote();
+    lastGood = payload;
+
+    const res = jsonResponse(payload, 200);
+
+    // Store in edge cache best-effort
     try {
-      const { spot, ref, base: usedBase } = await tryBinanceBase(base);
-      const payload = {
-        ok: true,
-        spot,
-        ref,
-        ts: Date.now(),
-        source: "binance",
-        symbol: SYMBOL,
-        base: usedBase,
-      };
-      lastGood = payload;
-      return jsonResponse(payload, 200);
-    } catch (e) {
-      lastErr = e;
-      // try next base
+      const cache = caches.default;
+      const cacheKey = new Request(request.url, request);
+      await cache.put(cacheKey, res.clone());
+    } catch {}
+
+    return res;
+  } catch (e) {
+    // stale fallback if we have something
+    if (lastGood?.ok && Number.isFinite(lastGood.spot) && Number.isFinite(lastGood.ref)) {
+      return jsonResponse({ ...lastGood, stale: true, ts: Date.now() }, 200);
     }
+    return jsonResponse(
+      { ok: false, error: "quote_unavailable", detail: String(e?.message || e), ts: Date.now() },
+      200
+    );
   }
-
-  // If all bases failed, return last good if we have it (stale mode)
-  if (lastGood?.ok && Number.isFinite(lastGood.spot) && Number.isFinite(lastGood.ref)) {
-    return jsonResponse({ ...lastGood, stale: true, ts: Date.now() }, 200);
-  }
-
-  return jsonResponse(
-    { ok: false, error: "quote_unavailable", detail: String(lastErr || ""), ts: Date.now() },
-    200
-  );
 }
