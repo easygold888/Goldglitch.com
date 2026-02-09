@@ -1,73 +1,43 @@
-// /functions/api/eth.js
-export async function onRequestGet(context) {
-  const url = new URL(context.request.url);
-
-  // Edge cache (10 min)
-  const cacheKey = new Request(url.toString(), context.request);
+export async function onRequestGet({ request }) {
+  const url = new URL(request.url);
+  const cacheKey = new Request(url.origin + "/api/eth-quote");
   const cache = caches.default;
-  const cached = await cache.match(cacheKey);
+
+  let cached = await cache.match(cacheKey);
   if (cached) return cached;
 
-  const bases = [
-    "https://data-api.binance.vision", // market-data-only mirror
-    "https://api.binance.com"
-  ];
+  // Binance Spot Market Data endpoints (public)
+  // docs: /api/v3/klines, /api/v3/ticker/price :contentReference[oaicite:3]{index=3}
+  const symbol = "ETHUSDT";
 
-  async function fetchJson(path) {
-    let lastErr;
-    for (const base of bases) {
-      try {
-        const r = await fetch(base + path, {
-          headers: {
-            "accept": "application/json",
-            "user-agent": "EasyGoldGlitch/1.0"
-          }
-        });
-        if (!r.ok) throw new Error(`HTTP ${r.status} from ${base}${path}`);
-        return await r.json();
-      } catch (e) {
-        lastErr = e;
-      }
-    }
-    throw lastErr || new Error("Failed to fetch from Binance bases");
-  }
+  // weekly high: use 1w kline, last candle high
+  const klineUrl = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1w&limit=2`;
+  const priceUrl = `https://api.binance.com/api/v3/ticker/price?symbol=${symbol}`;
 
-  // Current price (ETHUSDT)
-  // Binance supports GET /api/v3/ticker/price (symbol price ticker). :contentReference[oaicite:4]{index=4}
-  const priceJson = await fetchJson("/api/v3/ticker/price?symbol=ETHUSDT");
-  const usd = Number(priceJson?.price);
+  const [kRes, pRes] = await Promise.all([fetch(klineUrl), fetch(priceUrl)]);
+  if (!kRes.ok || !pRes.ok) return new Response(JSON.stringify({ error: "upstream" }), { status: 502 });
 
-  // Weekly high (last 7 days). We'll use 1h candles * 168
-  // Binance klines: GET /api/v3/klines. :contentReference[oaicite:5]{index=5}
-  const klines = await fetchJson("/api/v3/klines?symbol=ETHUSDT&interval=1h&limit=168");
+  const klines = await kRes.json(); // array
+  const price = await pRes.json();  // {symbol, price}
 
-  let weeklyHighUsd = 0;
-  for (const k of klines) {
-    // [ openTime, open, high, low, close, volume, ... ]
-    const high = Number(k?.[2]);
-    if (Number.isFinite(high)) weeklyHighUsd = Math.max(weeklyHighUsd, high);
-  }
+  // kline format: [ openTime, open, high, low, close, volume, ... ]
+  const last = klines[klines.length - 1];
+  const weekHighUsd = Number(last?.[2]);
+  const ethUsd = Number(price?.price);
 
-  const now = Date.now();
-  const payload = {
-    ok: true,
-    symbol: "ETH",
-    pair: "ETHUSDT",
-    usd,
-    weeklyHighUsd,
-    method: "binance",
-    refreshedAt: now,
-    ttlMs: 10 * 60 * 1000
-  };
+  const body = JSON.stringify({
+    ethUsd,
+    weekHighUsd,
+    refreshedAt: Date.now()
+  });
 
-  const res = new Response(JSON.stringify(payload), {
+  const resp = new Response(body, {
     headers: {
       "content-type": "application/json; charset=utf-8",
-      "cache-control": "public, max-age=600"
+      "cache-control": "public, max-age=600" // 10 minutes
     }
   });
 
-  // Cache it
-  context.waitUntil(cache.put(cacheKey, res.clone()));
-  return res;
+  await cache.put(cacheKey, resp.clone());
+  return resp;
 }
