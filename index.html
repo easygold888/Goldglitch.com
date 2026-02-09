@@ -966,7 +966,6 @@
       try{
         const r = await fetch("./address.txt", { cache: "no-store" });
         const t = (await r.text()).trim();
-        // If someone accidentally points to an HTML page, ignore it.
         if (!t || t.toLowerCase().includes("<!doctype") || t.length < 10) throw new Error("bad address content");
         addrValue.textContent = t;
       }catch{
@@ -976,9 +975,7 @@
 
     /***********************
      * ETH Quote (spot + reference)
-     * - keep last valid quote in localStorage
-     * - if fetch returns 0/NaN/empty => DO NOT erase the UI
-     * - timer only in checkout
+     * FIX: robust parsing + no undefined vars + never blank UI on failures
      ***********************/
     const QUOTE_TTL_MS = 10 * 60 * 1000;     // 10 minutes
     const BG_REFRESH_MS = 120 * 1000;        // background refresh (2 min)
@@ -1040,9 +1037,6 @@
     }
 
     function parseQuotePayload(j){
-      // Supports multiple possible shapes without breaking:
-      // Preferred: { spot, ref }
-      // Others: { spotUsdPerEth, referenceUsdPerEth } etc.
       const spotCandidate = j?.spot ?? j?.spotUsd ?? j?.spot_usd ?? j?.spotUsdPerEth ?? j?.ethUsd ?? j?.price ?? j?.usd;
       const refCandidate  = j?.ref  ?? j?.reference ?? j?.referenceUsd ?? j?.reference_usd ?? j?.referenceUsdPerEth ?? j?.weeklyHighUsd ?? j?.ath7d ?? j?.referencePrice;
 
@@ -1054,21 +1048,30 @@
     }
 
     async function fetchQuote(){
-      const r = await fetch("functions/api/eth-quote.js", { cache: "no-store" });
-      if (!r.ok) throw new Error("quote http " + r.status);
-      const j = await r.json();
+      const url = new URL("/api/eth-quote", window.location.origin).toString();
+      const r = await fetch(url, { cache: "no-store" });
+
+      let j;
+      try{
+        j = await r.json();
+      }catch{
+        throw new Error("bad_json");
+      }
+
+      // If function returns ok:false, we treat it as failure (UI keeps last valid)
+      if (!j || j.ok !== true) {
+        throw new Error(j?.error || "quote_unavailable");
+      }
 
       const { spot, ref, sourceTime } = parseQuotePayload(j);
 
-      // RULE: if 0/NaN/empty => do NOT overwrite current values.
       const validSpot = isValidNum(spot);
       const validRef  = isValidNum(ref);
-
-      if (!validSpot || !validRef){
-        return { updated: false };
+      if (!validSpot || !validRef) {
+        throw new Error("invalid_quote");
       }
 
-      // Even if values equal to current, refresh timestamp so it doesn't "expire to blank".
+      // refresh timestamp even if identical => prevents "expiry to blank"
       quote.spot = spot;
       quote.ref  = ref;
       quote.ts   = Date.now();
@@ -1079,10 +1082,9 @@
     }
 
     async function ensureQuoteFresh(force=false){
-      // Load any stored value once
       if (!quote.ts) loadQuoteFromStorage();
 
-      // Paint stored value immediately (never blank UI)
+      // Paint stored immediately (never blank)
       paintHeaderQuote();
       paintQuoteStamp();
 
@@ -1092,7 +1094,7 @@
       try{
         await fetchQuote();
       }catch{
-        // Keep last valid quote; do not blank UI
+        // keep last valid quote; do not blank UI
       }
 
       paintHeaderQuote();
@@ -1136,7 +1138,6 @@
       const tick = async () => {
         if (!overlay.classList.contains("active") || checkoutPanel.style.display === "none") return;
 
-        // time until TTL expires based on last valid quote timestamp
         if (!quote.ts){
           timerText.textContent = "10:00";
           return;
@@ -1145,7 +1146,6 @@
         const remaining = (quote.ts + QUOTE_TTL_MS) - Date.now();
         timerText.textContent = msToMMSS(remaining);
 
-        // If expired, force refresh; never blank UI
         if (remaining <= 0){
           await ensureQuoteFresh(true);
           renderCheckoutNumbers();
@@ -1162,7 +1162,7 @@
     }
 
     /***********************
-     * Background particles (more visible, hypnotic, gold-like)
+     * Background particles (unchanged)
      ***********************/
     const canvas = document.getElementById("bg");
     const ctx = canvas.getContext("2d", { alpha: true });
