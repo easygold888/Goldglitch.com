@@ -2,976 +2,1207 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>EasyGoldGlitch</title>
-  <meta name="theme-color" content="#0b0b10" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>EasyGoldGlitch — Stop trading. Start printing.</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
     :root{
-      --bg0:#07070a;
-      --bg1:#0b0c11;
-      --glass: rgba(255,255,255,.06);
-      --glass2: rgba(255,255,255,.09);
-      --stroke: rgba(255,255,255,.10);
-      --stroke2: rgba(255,255,255,.14);
-      --text: rgba(255,255,255,.92);
-      --muted: rgba(255,255,255,.62);
-      --muted2: rgba(255,255,255,.45);
-      --gold: #d7b56a;
-      --gold2:#ffebb8;
-      --shadow: 0 18px 70px rgba(0,0,0,.55);
-      --r: 22px;
-      --r2: 28px;
-      --max: 1080px;
+      --bg0:#050608;
+      --bg1:#0b0d11;
+      --glass: rgba(18, 20, 26, 0.52);
+      --glass2: rgba(18, 20, 26, 0.36);
+      --stroke: rgba(255,255,255,0.10);
+      --stroke2: rgba(255,255,255,0.08);
+      --txt: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --muted2: rgba(255,255,255,0.45);
+      --gold:#D4AF37;
+      --gold2:#FFD36A;
+      --shadow: rgba(0,0,0,0.55);
+      --radius: 22px;
     }
+
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0;
-      background:
-        radial-gradient(1200px 700px at 25% 10%, rgba(215,181,106,.11), transparent 55%),
-        radial-gradient(900px 600px at 70% 25%, rgba(110,130,255,.08), transparent 60%),
-        linear-gradient(180deg,var(--bg0),var(--bg1));
-      color: var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--txt);
+      background: radial-gradient(1200px 900px at 70% -10%, rgba(212,175,55,0.10), transparent 55%),
+                  radial-gradient(1000px 900px at 10% 20%, rgba(255,211,106,0.06), transparent 60%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
       overflow-x:hidden;
     }
 
     /* FX canvas */
     #fx{
       position:fixed; inset:0;
-      width:100%; height:100%;
+      width:100vw; height:100vh;
       z-index:0;
-      pointer-events:none; /* UI remains clickable */
+      pointer-events:none;
     }
-    .wrap{ position:relative; z-index:2; }
 
-    /* Top */
-    .top{
-      position:sticky; top:0; z-index:10;
-      padding: 14px 14px 10px;
-      backdrop-filter: blur(16px) saturate(1.2);
+    .app{
+      position:relative;
+      z-index:1;
+      min-height:100vh;
+      padding: 22px 16px 56px;
     }
-    .topbar{
-      max-width: var(--max);
+
+    .container{
+      width:min(1100px, calc(100vw - 32px));
       margin:0 auto;
-      border-radius: 999px;
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05));
-      border:1px solid var(--stroke);
-      box-shadow: var(--shadow);
-      padding: 10px 12px;
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:10px;
-      min-width:0;
-    }
-    .brand img{
-      width:34px; height:34px; border-radius: 12px;
-      border:1px solid rgba(215,181,106,.25);
-      background: rgba(0,0,0,.25);
-      object-fit: cover;
-    }
-    .brand b{ font-size:15px; letter-spacing:.4px; white-space:nowrap; }
-
-    .seg{
-      display:flex; gap:6px; align-items:center;
-      padding:6px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.18);
-      border-radius: 999px;
-    }
-    .seg button{
-      border:0; cursor:pointer;
-      padding: 9px 12px;
-      border-radius: 999px;
-      background: transparent;
-      color: rgba(255,255,255,.78);
-      font-weight: 750;
-      font-size: 13px;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .seg button.active{
-      background: rgba(215,181,106,.14);
-      border:1px solid rgba(215,181,106,.24);
-      color: var(--text);
     }
 
-    .quote{
-      display:flex; flex-direction:column; align-items:flex-end; gap:2px;
-      min-width: 170px;
-    }
-    .chip{
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      border-radius: 999px;
-      padding: 8px 12px;
-      color: rgba(255,255,255,.82);
-      font-size: 12.5px;
-      white-space:nowrap;
-    }
-    .chip strong{ color: rgba(215,181,106,.95); }
-    .tiny{
-      color: rgba(255,255,255,.55);
-      font-size: 11.5px;
-      white-space:nowrap;
+    .glass{
+      background: var(--glass);
+      border: 1px solid var(--stroke);
+      box-shadow: 0 18px 60px var(--shadow);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-radius: var(--radius);
     }
 
-    main{
-      max-width: var(--max);
-      margin:0 auto;
-      padding: 12px 14px 110px;
-    }
-    .panel{
-      border-radius: var(--r2);
-      border:1px solid rgba(255,255,255,.10);
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-      box-shadow: var(--shadow);
-      padding: 22px 18px;
-      overflow:hidden;
-    }
-    .kicker{
-      display:inline-flex; align-items:center; gap:10px;
-      padding: 8px 12px;
-      border-radius: 999px;
-      background: rgba(0,0,0,.22);
-      border:1px solid rgba(255,255,255,.10);
-      color: rgba(255,255,255,.78);
-      font-size: 13px;
-      margin-bottom: 12px;
-    }
-    h1{
-      margin:0;
-      font-size: clamp(34px, 5.5vw, 60px);
-      letter-spacing: -1px;
-      line-height: .98;
-    }
-    .sub{
-      margin: 10px 0 0;
-      color: var(--muted);
-      font-size: 15.5px;
-      max-width: 64ch;
+    .glass.soft{
+      background: var(--glass2);
+      border: 1px solid var(--stroke2);
+      box-shadow: 0 14px 48px rgba(0,0,0,0.45);
     }
 
-    .grid{
-      margin-top: 14px;
-      display:grid;
-      grid-template-columns: repeat(3, minmax(0,1fr));
+    /* Header */
+    .header{
+      position:sticky;
+      top: 14px;
+      z-index: 5;
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
       gap: 12px;
     }
-    .card{
-      border-radius: var(--r);
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      box-shadow: 0 16px 55px rgba(0,0,0,.45);
-      padding: 14px;
-      cursor:pointer;
-      transition: transform .15s ease, border-color .15s ease;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .card:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
-    .card:active{ transform: translateY(0px) scale(.99); }
-    .card b{ display:block; font-size: 14.5px; letter-spacing:.2px; }
-    .muted{ color: var(--muted); font-size: 13px; line-height:1.35; }
-    .price{ color: rgba(215,181,106,.92); font-weight: 900; margin-top: 10px; }
 
-    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 14px; }
-    .btn{
-      padding: 11px 14px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      color: var(--text);
-      font-weight: 800;
-      cursor:pointer;
-      transition: transform .15s ease, border-color .15s ease;
-      -webkit-tap-highlight-color: transparent;
+    .brand{
+      display:flex; align-items:center; gap: 10px;
+      min-width: 180px;
     }
-    .btn:hover{ transform: translateY(-1px); border-color: rgba(215,181,106,.22); }
-    .btn.primary{
-      background: linear-gradient(180deg, rgba(215,181,106,.22), rgba(215,181,106,.10));
-      border-color: rgba(215,181,106,.35);
+    .brand img{
+      width: 34px; height: 34px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.10);
+      object-fit: cover;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    .brand .name{
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .brand .tag{
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav button{
+      appearance:none;
+      border:0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 600;
+      cursor:pointer;
+      transition: 160ms ease;
+      letter-spacing: 0.1px;
+      white-space:nowrap;
+    }
+    .nav button.active{
+      color: var(--txt);
+      background: rgba(255,255,255,0.09);
+      box-shadow: inset 0 0 0 1px rgba(212,175,55,0.22);
+    }
+    .nav button:hover{ color: var(--txt); background: rgba(255,255,255,0.07); }
+
+    .quote{
+      display:flex;
+      align-items:flex-end;
+      gap: 10px;
+      min-width: 220px;
+      justify-content:flex-end;
+      text-align:right;
+    }
+    .quote .big{
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: 0.2px;
+    }
+    .quote .sub{
+      font-size: 12px;
+      color: var(--muted2);
+      margin-top: 2px;
+    }
+    .quote .pill{
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* Views */
+    .views{ margin-top: 18px; }
+    .view{ display:none; }
+    .view.active{ display:block; animation: fadeIn 220ms ease; }
+
+    @keyframes fadeIn { from{opacity:0; transform: translateY(6px);} to{opacity:1; transform: translateY(0);} }
+
+    /* Hero */
+    .hero{
+      padding: 26px;
+      display:grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 18px;
+      overflow:hidden;
+    }
+
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(212,175,55,0.08);
+      border: 1px solid rgba(212,175,55,0.18);
+      color: rgba(255,255,255,0.88);
+      font-size: 12px;
+      width: fit-content;
+    }
+
+    h1{
+      font-family: "Cinzel", serif;
+      font-size: clamp(34px, 4.2vw, 56px);
+      line-height: 0.98;
+      margin: 14px 0 10px;
+      letter-spacing: -0.5px;
+    }
+    .lead{
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.45;
+      max-width: 54ch;
+      margin: 0 0 18px;
+    }
+
+    .actions{ display:flex; gap: 10px; flex-wrap:wrap; }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.07);
+      color: var(--txt);
+      padding: 12px 14px;
+      border-radius: 14px;
+      font-weight: 700;
+      cursor:pointer;
+      transition: 160ms ease;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.25);
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.09); }
+    .btn:active{ transform: translateY(0px); }
+    .btn.gold{
+      border-color: rgba(212,175,55,0.38);
+      background: linear-gradient(180deg, rgba(212,175,55,0.18), rgba(212,175,55,0.08));
     }
     .btn.ghost{
       background: transparent;
-      border-color: rgba(255,255,255,.10);
-      color: rgba(255,255,255,.78);
     }
 
-    /* Modal */
-    .shade{
-      position:fixed; inset:0; z-index:30;
-      background: rgba(0,0,0,.45);
-      backdrop-filter: blur(10px);
-      display:none;
+    .rightCard{
+      padding: 18px;
+      display:flex;
+      flex-direction:column;
+      gap: 12px;
+      justify-content:space-between;
     }
-    .modal{
-      position:fixed; z-index:31;
-      left:50%; transform: translateX(-50%);
-      top: 14px;
-      width: min(740px, calc(100vw - 28px));
-      max-height: calc(100vh - 28px);
-      overflow:auto;
-      border-radius: 26px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(20,20,24,.74);
-      backdrop-filter: blur(18px) saturate(1.2);
-      box-shadow: var(--shadow);
-      display:none;
+    .statRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
     }
-    .modal .hd{
-      padding: 14px 16px;
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      border-bottom:1px solid rgba(255,255,255,.08);
-      position: sticky; top:0;
-      background: rgba(20,20,24,.74);
-      backdrop-filter: blur(18px) saturate(1.2);
+    .stat{
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
     }
-    .modal .bd{ padding: 14px 16px 16px; }
-    .x{
-      width:38px; height:38px; border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.06);
-      cursor:pointer;
+    .stat .k{ color: var(--muted2); font-size: 12px; }
+    .stat .v{ font-weight: 800; margin-top: 6px; font-size: 16px; }
+    .stat .v .gold{ color: var(--gold2); }
+
+    /* Exploits grid */
+    .grid{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
     }
-    .list{
-      margin: 10px 0 0;
-      padding-left: 18px;
+    .card{
+      padding: 16px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+      min-height: 180px;
+    }
+    .card h3{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: 0.2px;
+    }
+    .meta{
+      display:flex;
+      gap: 8px;
+      flex-wrap:wrap;
+      color: var(--muted2);
+      font-size: 12px;
+    }
+    .chip{
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .priceRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-top: 4px;
+    }
+    .usd{
+      font-size: 22px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.92);
+    }
+    .usd span{
+      color: var(--gold2);
+      font-size: 14px;
+      font-weight: 800;
+      margin-left: 6px;
+    }
+    .mini{
       color: var(--muted);
       font-size: 13px;
-      line-height: 1.5;
+      line-height: 1.35;
+      margin: 0;
     }
 
-    .walletBox{
-      display:flex; gap:12px; align-items:center;
-      padding: 12px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.05);
-      margin-top: 10px;
+    /* Terms */
+    .terms{
+      padding: 18px;
+      line-height: 1.55;
+      color: var(--muted);
+      font-size: 14px;
     }
-    .walletBox img{
-      width:96px; height:96px;
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.10);
-      background:#0b0b0f;
-      object-fit:cover;
+    .terms h2{
+      margin: 0 0 10px;
+      color: var(--txt);
+      font-size: 18px;
     }
-    .addr{
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    .terms strong{ color: rgba(255,255,255,0.88); }
+
+    /* Modal */
+    .overlay{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,0.62);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 20;
+    }
+    .overlay.show{ display:flex; }
+    .modal{
+      width: min(860px, 96vw);
+      border-radius: 22px;
+      overflow:hidden;
+    }
+    .modalHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .modalTitle{
+      font-weight: 900;
+      letter-spacing: 0.2px;
+    }
+    .close{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: var(--txt);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor:pointer;
+    }
+    .modalBody{
+      padding: 16px;
+      display:grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      gap: 14px;
+    }
+    .box{
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .box h4{ margin: 0 0 8px; font-size: 14px; }
+    .box p{ margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    .checkoutGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .payRow{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .field label{
+      display:block;
       font-size: 12px;
-      color: rgba(255,255,255,.82);
-      word-break: break-all;
-      margin-top: 6px;
+      color: var(--muted2);
+      margin-bottom: 6px;
     }
-    input{
+    .field input{
       width:100%;
       padding: 12px 12px;
       border-radius: 14px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.20);
-      color: var(--text);
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.22);
+      color: var(--txt);
       outline:none;
+    }
+    .field input:focus{
+      border-color: rgba(212,175,55,0.35);
+      box-shadow: 0 0 0 3px rgba(212,175,55,0.12);
+    }
+
+    .qrWrap{
+      display:flex;
+      gap: 12px;
+      align-items:center;
+    }
+    .qr{
+      width: 132px; height: 132px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      object-fit: cover;
+    }
+    .addr{
+      font-size: 12px;
+      color: rgba(255,255,255,0.82);
+      word-break: break-all;
+      line-height: 1.35;
+    }
+    .copyBtn{
       margin-top: 8px;
-    }
-    input:focus{ border-color: rgba(215,181,106,.28); }
-    .checkrow{
-      display:flex; gap:10px; align-items:flex-start;
-      margin-top: 12px;
-      color: rgba(255,255,255,.72);
-      font-size: 12.5px;
-    }
-    .checkrow input{ width:auto; margin-top: 2px; }
-
-    .hr{
-      height:1px;
-      background: rgba(255,255,255,.08);
-      margin: 12px 0;
+      padding: 9px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: var(--txt);
+      cursor:pointer;
+      font-weight: 700;
+      width: fit-content;
     }
 
+    .check{
+      display:flex; gap: 10px; align-items:flex-start;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .check input{ margin-top: 3px; }
+
+    /* Toast */
     .toast{
-      position:fixed; left:50%; transform: translateX(-50%);
-      bottom: 18px; z-index:40;
-      padding: 10px 12px;
-      border-radius: 16px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(15,15,18,.75);
-      backdrop-filter: blur(14px);
-      color: rgba(255,255,255,.86);
+      position:fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 30;
       display:none;
-      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(18,20,26,0.78);
+      border: 1px solid rgba(255,255,255,0.10);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+      color: rgba(255,255,255,0.9);
+      max-width: min(360px, calc(100vw - 32px));
       font-size: 13px;
     }
+    .toast.show{ display:block; animation: pop 220ms ease; }
+    @keyframes pop { from{opacity:0; transform: translateY(10px);} to{opacity:1; transform: translateY(0);} }
 
-    @media (max-width: 900px){
+    /* Mobile */
+    @media (max-width: 940px){
+      .hero{ grid-template-columns: 1fr; }
+      .quote{ display:none; }
       .grid{ grid-template-columns: 1fr; }
-      .quote{ display:none; } /* keep header ultra clean on mobile */
-      .modal{ top:auto; bottom: 14px; transform: translateX(-50%); }
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      #fx{ display:none; }
-      .card, .btn{ transition:none }
+      .modalBody{ grid-template-columns: 1fr; }
+      .payRow{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
+
 <body>
   <canvas id="fx"></canvas>
 
-  <div class="wrap">
-    <header class="top">
-      <div class="topbar">
+  <div class="app">
+    <div class="container">
+      <header class="header glass">
         <div class="brand">
-          <img id="brandLogo" src="/assets/logo.png" alt="logo">
-          <b>EasyGoldGlitch</b>
+          <img id="logoImg" src="logo.png" alt="EasyGoldGlitch logo" />
+          <div>
+            <div class="name">EasyGoldGlitch</div>
+            <div class="tag">Crypto-native · No sign-up</div>
+          </div>
         </div>
 
-        <div class="seg" aria-label="views">
-          <button id="tabHome" class="active">Home</button>
-          <button id="tabGlitches">Exploits</button>
-          <button id="tabTerms">Terms</button>
-        </div>
+        <nav class="nav" aria-label="Primary">
+          <button class="active" data-nav="home">Home</button>
+          <button data-nav="exploits">Exploits</button>
+          <button data-nav="terms">Terms</button>
+        </nav>
 
         <div class="quote">
-          <div class="chip" id="ethChip">ETH: <strong>—</strong></div>
-          <div class="tiny" id="quoteTiny">Quote refresh: —</div>
+          <div class="pill">
+            <div class="big">ETH: <span id="ethUsd">—</span></div>
+            <div class="sub">Weekly high: <span id="ethWeekHigh">—</span></div>
+          </div>
+          <div class="pill">
+            <div class="big">Quote refresh: <span id="quoteCountdown">—</span></div>
+            <div class="sub"><button class="btn" style="padding:8px 10px;border-radius:12px;font-weight:800" id="retryQuote">Retry</button></div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
-    <main>
-      <!-- VIEW: HOME -->
-      <section id="viewHome" class="panel">
-        <div class="kicker">Crypto-native • No sign-up</div>
-        <h1>Stop trading.<br/>Start printing.</h1>
-        <p class="sub">Pick a glitch. Pay in ETH. Get delivery.</p>
+      <main class="views">
+        <!-- HOME -->
+        <section class="view active" id="view-home">
+          <div class="hero glass">
+            <div>
+              <div class="kicker">Stop trading. Start printing.</div>
+              <h1>Stop trading.<br/>Start printing.</h1>
+              <p class="lead">Pick an exploit. Pay in ETH. Get delivery.</p>
 
-        <div class="btnrow">
-          <button class="btn primary" id="homeCta">Browse exploits</button>
-          <button class="btn ghost" id="homeTerms">Terms</button>
-        </div>
-      </section>
+              <div class="actions">
+                <button class="btn gold" id="goExploits">Browse exploits</button>
+                <button class="btn ghost" id="goTerms">Read terms</button>
+              </div>
+            </div>
 
-      <!-- VIEW: GLITCHES -->
-      <section id="viewGlitches" class="panel" style="display:none">
-        <div class="kicker">Exploits</div>
-        <h1>Choose your glitch.</h1>
-        <p class="sub">Demo license: 2 months, 1 account.</p>
+            <div class="rightCard glass soft">
+              <div class="statRow">
+                <div class="stat">
+                  <div class="k">Pricing basis</div>
+                  <div class="v"><span class="gold">Weekly High</span> (7D)</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Refresh</div>
+                  <div class="v">Every <span class="gold">10 min</span></div>
+                </div>
+              </div>
 
-        <div class="grid" id="glitchGrid"></div>
-      </section>
+              <div class="statRow">
+                <div class="stat">
+                  <div class="k">Delivery</div>
+                  <div class="v">Email link</div>
+                </div>
+                <div class="stat">
+                  <div class="k">Checkout</div>
+                  <div class="v">QR + Address</div>
+                </div>
+              </div>
 
-      <!-- VIEW: TERMS -->
-      <section id="viewTerms" class="panel" style="display:none">
-        <div class="kicker">Terms</div>
-        <h1>Risk disclosure.</h1>
-        <p class="sub">
-          Trading is high-risk. You can lose part or all of your capital. Past performance does not guarantee future results.
-          This site provides digital software and informational material only — not financial advice.
-        </p>
-        <div class="hr"></div>
-        <p class="sub">
-          Digital delivery: all sales are final (no refunds). Demo license lasts 2 months and is intended for one (1) account.
-          By purchasing, you accept these terms and assume all responsibility for your outcomes.
-        </p>
-      </section>
-    </main>
+              <div class="stat" style="margin-top:10px">
+                <div class="k">Signal</div>
+                <div class="v">Low text · High intent</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid" style="margin-top:16px">
+            <div class="card glass soft">
+              <div class="priceRow">
+                <h3>Glitch 1.0 — Simple Sample</h3>
+                <div class="usd">$50 <span>demo</span></div>
+              </div>
+              <div class="meta">
+                <span class="chip">2 months</span>
+                <span class="chip">1 trade at a time</span>
+                <span class="chip">low noise</span>
+              </div>
+              <p class="mini">A calm baseline. One position. Minimal exposure.</p>
+              <div class="actions" style="margin-top:auto">
+                <button class="btn gold" data-open="g1">View</button>
+                <button class="btn" data-checkout="g1">Checkout</button>
+              </div>
+            </div>
+
+            <div class="card glass soft">
+              <div class="priceRow">
+                <h3>Glitch 2.0 — Wealth Builder</h3>
+                <div class="usd">$70 <span>demo</span></div>
+              </div>
+              <div class="meta">
+                <span class="chip">2 months</span>
+                <span class="chip">dip re-entry</span>
+                <span class="chip">measured recovery</span>
+              </div>
+              <p class="mini">Buy & hold with a second chance. Controlled recovery logic.</p>
+              <div class="actions" style="margin-top:auto">
+                <button class="btn gold" data-open="g2">View</button>
+                <button class="btn" data-checkout="g2">Checkout</button>
+              </div>
+            </div>
+
+            <div class="card glass soft">
+              <div class="priceRow">
+                <h3>Glitch PRO — F*ck Gold</h3>
+                <div class="usd">$100 <span>lifetime</span></div>
+              </div>
+              <div class="meta">
+                <span class="chip">one-time</span>
+                <span class="chip">aggressive</span>
+                <span class="chip">advanced recovery</span>
+              </div>
+              <p class="mini">Higher tempo. More tools. More responsibility.</p>
+              <div class="actions" style="margin-top:auto">
+                <button class="btn gold" data-open="g3">View</button>
+                <button class="btn" data-checkout="g3">Checkout</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- EXPLOITS -->
+        <section class="view" id="view-exploits">
+          <div class="glass" style="padding:18px">
+            <div class="kicker">Pick fast. Pay clean. Receive.</div>
+            <h2 style="margin:10px 0 0; font-size:22px">Exploits</h2>
+            <p class="lead" style="margin-top:8px">Select one. We’ll show the ETH due using the weekly high quote.</p>
+
+            <div class="grid">
+              <div class="card glass soft">
+                <div class="priceRow">
+                  <h3>Glitch 1.0 — Simple Sample</h3>
+                  <div class="usd">$50</div>
+                </div>
+                <div class="meta">
+                  <span class="chip">Demo · 2 months</span><span class="chip">1 trade</span>
+                </div>
+                <p class="mini">Best for: calm markets, low leverage, simple execution.</p>
+                <div class="actions" style="margin-top:auto">
+                  <button class="btn gold" data-open="g1">View</button>
+                  <button class="btn" data-checkout="g1">Checkout</button>
+                </div>
+              </div>
+
+              <div class="card glass soft">
+                <div class="priceRow">
+                  <h3>Glitch 2.0 — Wealth Builder</h3>
+                  <div class="usd">$70</div>
+                </div>
+                <div class="meta">
+                  <span class="chip">Demo · 2 months</span><span class="chip">re-entry</span>
+                </div>
+                <p class="mini">Best for: trend bias + controlled dip entries.</p>
+                <div class="actions" style="margin-top:auto">
+                  <button class="btn gold" data-open="g2">View</button>
+                  <button class="btn" data-checkout="g2">Checkout</button>
+                </div>
+              </div>
+
+              <div class="card glass soft">
+                <div class="priceRow">
+                  <h3>Glitch PRO — F*ck Gold</h3>
+                  <div class="usd">$100</div>
+                </div>
+                <div class="meta">
+                  <span class="chip">Lifetime</span><span class="chip">advanced</span>
+                </div>
+                <p class="mini">Best for: experienced operators. Higher risk tolerance.</p>
+                <div class="actions" style="margin-top:auto">
+                  <button class="btn gold" data-open="g3">View</button>
+                  <button class="btn" data-checkout="g3">Checkout</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TERMS -->
+        <section class="view" id="view-terms">
+          <div class="terms glass">
+            <h2>Terms & Risk</h2>
+            <p>
+              Trading is <strong>high risk</strong>. You can lose <strong>all</strong> of your capital.
+              Past performance does <strong>not</strong> guarantee future results.
+            </p>
+            <p>
+              These digital products are delivered “as-is”. You are responsible for setup, operation,
+              and compliance with your local laws. We do not provide investment advice.
+            </p>
+            <p>
+              Demo licenses run for <strong>2 months</strong>. Pro is a <strong>one-time</strong> purchase.
+              No refunds.
+            </p>
+            <p style="margin-top:12px; color:var(--muted2); font-size:12px">
+              Quote basis: ETH amount is computed using the <strong>weekly high</strong> (7D) and refreshes every <strong>10 minutes</strong>.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 
-  <!-- DETAILS MODAL -->
-  <div class="shade" id="shade"></div>
-  <div class="modal" id="detailsModal">
-    <div class="hd">
-      <div>
-        <div style="font-weight:950" id="dTitle">Glitch</div>
-        <div class="muted" id="dPrice">—</div>
+  <!-- MODAL -->
+  <div class="overlay" id="overlay">
+    <div class="modal glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modalHeader">
+        <div class="modalTitle" id="modalTitle">Exploit</div>
+        <button class="close" id="closeModal">Close</button>
       </div>
-      <button class="x" id="closeDetails">✕</button>
-    </div>
-    <div class="bd">
-      <div class="muted" id="dDesc">—</div>
-      <ul class="list" id="dBullets"></ul>
+      <div class="modalBody">
+        <div class="box">
+          <h4>Summary</h4>
+          <p id="modalSummary">—</p>
+        </div>
 
-      <div class="btnrow">
-        <button class="btn primary" id="dCheckoutBtn">Proceed to pay</button>
-        <button class="btn" id="dBackBtn">Back</button>
-      </div>
+        <div class="checkoutGrid">
+          <div class="box">
+            <h4>ETH due (weekly high)</h4>
+            <p style="margin-bottom:10px">
+              USD price: <strong id="usdPrice">—</strong><br/>
+              Weekly high (USD/ETH): <strong id="weeklyHigh">—</strong><br/>
+              ETH due: <strong id="ethDue" style="color:var(--gold2)">—</strong>
+            </p>
+            <button class="btn gold" id="openCheckout">Checkout</button>
+          </div>
 
-      <div class="muted" style="margin-top:10px">
-        License: <b>Demo</b> (2 months, 1 account). Delivery via email after payment.
-      </div>
-    </div>
-  </div>
+          <div class="box" id="checkoutBox" style="display:none">
+            <h4>Send ETH</h4>
 
-  <!-- CHECKOUT MODAL -->
-  <div class="modal" id="checkoutModal">
-    <div class="hd">
-      <div>
-        <div style="font-weight:950">Checkout</div>
-        <div class="muted" id="cSub">Pay in ETH (quote refreshes every 10 min)</div>
-      </div>
-      <button class="x" id="closeCheckout">✕</button>
-    </div>
-    <div class="bd">
-      <div class="muted">
-        Selected: <b id="cItem">—</b><br/>
-        Price: <b id="cUsd">$0</b><br/>
-        ETH to send (weekly ATH): <b id="cEth">—</b>
-      </div>
+            <div class="qrWrap">
+              <img class="qr" id="walletImg" src="wallet.png" alt="Wallet QR"/>
+              <div style="flex:1">
+                <div style="font-size:12px;color:var(--muted2)">Address</div>
+                <div class="addr" id="walletAddr">Loading…</div>
+                <button class="copyBtn" id="copyAddr">Copy</button>
+              </div>
+            </div>
 
-      <div class="muted" style="margin-top:10px">
-        Quote: spot <b id="cSpot">—</b> · 7D ATH <b id="cAth">—</b> · refresh in <b id="cTtl">—</b>
-      </div>
+            <div style="height:10px"></div>
 
-      <div class="walletBox">
-        <img src="/assets/wallet.png" alt="wallet qr" onerror="this.style.opacity=.35;">
-        <div style="min-width:0">
-          <div class="muted">Send ETH to:</div>
-          <div class="addr" id="cAddr">Loading address…</div>
-          <div class="btnrow" style="margin-top:10px">
-            <button class="btn" id="copyAddr">Copy address</button>
+            <div class="payRow">
+              <div class="field">
+                <label>Email (delivery)</label>
+                <input id="email" type="email" placeholder="you@domain.com" autocomplete="email"/>
+              </div>
+              <div class="field">
+                <label>TxHash (optional for now)</label>
+                <input id="tx" type="text" placeholder="0x…" autocomplete="off" spellcheck="false"/>
+              </div>
+            </div>
+
+            <div style="height:10px"></div>
+
+            <label class="check">
+              <input id="agree" type="checkbox"/>
+              <span>I agree to the Terms & acknowledge high risk.</span>
+            </label>
+
+            <div class="actions" style="margin-top:12px">
+              <button class="btn gold" id="submit">Request delivery</button>
+              <button class="btn" id="closeCheckout">Cancel</button>
+            </div>
+
+            <p style="margin:12px 0 0; font-size:12px; color:var(--muted2)">
+              Note: In the next step we’ll verify TxHash on-chain and generate a time-limited download link.
+            </p>
           </div>
         </div>
       </div>
-
-      <div style="margin-top:12px">
-        <div class="muted">Email (delivery)</div>
-        <input id="cEmail" type="email" placeholder="you@domain.com" autocomplete="email" />
-      </div>
-
-      <div class="checkrow">
-        <input id="cAgree" type="checkbox" />
-        <div>I agree to the Terms & risk disclosure.</div>
-      </div>
-
-      <div class="btnrow">
-        <button class="btn primary" id="cPaidBtn">I sent ETH</button>
-        <button class="btn" id="cCloseBtn">Close</button>
-      </div>
-
-      <div class="muted" style="margin-top:10px">
-        (MVP: next step is TxHash verification + secure delivery link.)
-      </div>
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast">—</div>
 
   <script>
-    // --------------------
-    // Products (USD)
-    // --------------------
-    const PRODUCTS = [
-      {
-        id:"g1",
-        name:"Glitch 1.0 — Simple Sample",
-        usd: 50,
-        desc:"Conservative execution. One trade at a time.",
-        bullets:[
-          "Best for: calmer trends",
-          "Use on: gold / majors / indices",
-          "Goal: controlled exposure"
-        ]
-      },
-      {
-        id:"g2",
-        name:"Glitch 2.0 — Wealth Builder",
-        usd: 70,
-        desc:"Long-bias with smarter re-entries.",
-        bullets:[
-          "Best for: long-bias markets",
-          "Use on: indices / gold / strong majors",
-          "Goal: smoother compounding"
-        ]
-      },
-      {
-        id:"g3",
-        name:"Glitch PRO — F*ck Gold",
-        usd: 100,
-        desc:"Aggressive mode. Minimal opinion. Maximum execution.",
-        bullets:[
-          "Best for: high volatility",
-          "Use on: gold / crypto / fast FX pairs",
-          "Goal: capture expansion moves"
-        ]
-      }
-    ];
+    // -----------------------------
+    // Asset fallbacks (case-sensitive hosting)
+    // -----------------------------
+    (function(){
+      const logo = document.getElementById("logoImg");
+      logo.addEventListener("error", () => {
+        if (logo.getAttribute("data-tried") === "1") return;
+        logo.setAttribute("data-tried","1");
+        logo.src = "Logo.png";
+      });
 
-    const $ = (id)=>document.getElementById(id);
-
-    // Logo fallback: try /assets/logo.png then /logo.png
-    (() => {
-      const img = $("brandLogo");
-      if (!img) return;
-      img.onerror = () => {
-        if (img.dataset.fallbackDone) { img.style.display = "none"; return; }
-        img.dataset.fallbackDone = "1";
-        img.src = "/logo.png";
-      };
+      const wallet = document.getElementById("walletImg");
+      wallet.addEventListener("error", () => {
+        if (wallet.getAttribute("data-tried") === "1") return;
+        wallet.setAttribute("data-tried","1");
+        wallet.src = "Wallet.png";
+      });
     })();
 
-    // Toast
-    const toast = (msg)=>{
-      const t = $("toast");
+    // -----------------------------
+    // Navigation (3 views)
+    // -----------------------------
+    const navButtons = Array.from(document.querySelectorAll("[data-nav]"));
+    const views = {
+      home: document.getElementById("view-home"),
+      exploits: document.getElementById("view-exploits"),
+      terms: document.getElementById("view-terms"),
+    };
+
+    function toast(msg){
+      const t = document.getElementById("toast");
       t.textContent = msg;
-      t.style.display = "block";
-      clearTimeout(toast._k);
-      toast._k = setTimeout(()=> t.style.display="none", 2200);
+      t.classList.add("show");
+      clearTimeout(window.__toastT);
+      window.__toastT = setTimeout(() => t.classList.remove("show"), 2400);
+    }
+
+    function setView(key){
+      for (const [k, el] of Object.entries(views)){
+        el.classList.toggle("active", k === key);
+      }
+      navButtons.forEach(b => b.classList.toggle("active", b.dataset.nav === key));
+      history.replaceState({}, "", "#" + key);
+    }
+
+    navButtons.forEach(b => b.addEventListener("click", () => setView(b.dataset.nav)));
+    document.getElementById("goExploits").addEventListener("click", () => setView("exploits"));
+    document.getElementById("goTerms").addEventListener("click", () => setView("terms"));
+
+    // hash routing
+    (function(){
+      const h = (location.hash || "").replace("#","");
+      if (views[h]) setView(h);
+    })();
+
+    // -----------------------------
+    // Exploit data
+    // -----------------------------
+    const exploits = {
+      g1: {
+        title: "Glitch 1.0 — Simple Sample",
+        usd: 50,
+        summary: "A calm baseline. One trade at a time. Best in smoother conditions where noise is low."
+      },
+      g2: {
+        title: "Glitch 2.0 — Wealth Builder",
+        usd: 70,
+        summary: "Buy & hold bias with controlled dip re-entry. Designed for trend-friendly markets with pullbacks."
+      },
+      g3: {
+        title: "Glitch PRO — F*ck Gold",
+        usd: 100,
+        summary: "Advanced recovery + higher tempo. Built for experienced operators. Higher risk profile."
+      }
     };
 
-    // --------------------
-    // View router
-    // --------------------
-    let view = "home";
-    function setView(next){
-      view = next;
-      $("viewHome").style.display = (view==="home") ? "block" : "none";
-      $("viewGlitches").style.display = (view==="glitches") ? "block" : "none";
-      $("viewTerms").style.display = (view==="terms") ? "block" : "none";
+    // -----------------------------
+    // Modal + checkout
+    // -----------------------------
+    const overlay = document.getElementById("overlay");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalSummary = document.getElementById("modalSummary");
+    const usdPriceEl = document.getElementById("usdPrice");
+    const weeklyHighEl = document.getElementById("weeklyHigh");
+    const ethDueEl = document.getElementById("ethDue");
+    const openCheckoutBtn = document.getElementById("openCheckout");
+    const checkoutBox = document.getElementById("checkoutBox");
+    const closeModalBtn = document.getElementById("closeModal");
+    const closeCheckoutBtn = document.getElementById("closeCheckout");
+    const submitBtn = document.getElementById("submit");
 
-      $("tabHome").classList.toggle("active", view==="home");
-      $("tabGlitches").classList.toggle("active", view==="glitches");
-      $("tabTerms").classList.toggle("active", view==="terms");
+    let selectedKey = "g1";
+    let quote = null;
+
+    function showModal(){
+      overlay.classList.add("show");
+      checkoutBox.style.display = "none";
+    }
+    function hideModal(){
+      overlay.classList.remove("show");
+      checkoutBox.style.display = "none";
     }
 
-    // --------------------
-    // Modals
-    // --------------------
-    function openModal(id){
-      $("shade").style.display = "block";
-      $(id).style.display = "block";
-    }
-    function closeModals(){
-      $("shade").style.display = "none";
-      $("detailsModal").style.display = "none";
-      $("checkoutModal").style.display = "none";
-      stopQuoteCountdown();
+    closeModalBtn.addEventListener("click", hideModal);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) hideModal(); });
+
+    function computeDueUSDToETH(usd){
+      if (!quote || !quote.weeklyHighUsd) return null;
+      const eth = usd / quote.weeklyHighUsd;
+      return eth;
     }
 
-    // --------------------
-    // Render glitches
-    // --------------------
-    function renderGlitches(){
-      const grid = $("glitchGrid");
-      grid.innerHTML = "";
-      PRODUCTS.forEach(p=>{
-        const div = document.createElement("div");
-        div.className = "card";
-        div.onclick = ()=> openDetails(p.id);
-        div.innerHTML = `
-          <b>${p.name}</b>
-          <div class="muted">${p.desc}</div>
-          <div class="price">$${p.usd}</div>
-        `;
-        grid.appendChild(div);
+    function renderModal(){
+      const ex = exploits[selectedKey];
+      modalTitle.textContent = ex.title;
+      modalSummary.textContent = ex.summary;
+
+      usdPriceEl.textContent = `$${ex.usd}`;
+      weeklyHighEl.textContent = quote?.weeklyHighUsd ? `$${quote.weeklyHighUsd.toFixed(2)}` : "—";
+
+      const due = computeDueUSDToETH(ex.usd);
+      ethDueEl.textContent = due ? `${due.toFixed(6)} ETH` : "—";
+    }
+
+    function openExploit(key){
+      selectedKey = key;
+      renderModal();
+      showModal();
+    }
+
+    function openCheckout(){
+      checkoutBox.style.display = "block";
+      loadAddress();
+      // Keep the due updated if quote refreshed
+      renderModal();
+    }
+
+    document.querySelectorAll("[data-open]").forEach(btn => {
+      btn.addEventListener("click", () => openExploit(btn.dataset.open));
+    });
+    document.querySelectorAll("[data-checkout]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openExploit(btn.dataset.checkout);
+        openCheckout();
       });
-    }
+    });
 
-    // --------------------
-    // Details + Checkout
-    // --------------------
-    let selected = PRODUCTS[0];
+    openCheckoutBtn.addEventListener("click", openCheckout);
+    closeCheckoutBtn.addEventListener("click", () => checkoutBox.style.display = "none");
 
-    function openDetails(id){
-      selected = PRODUCTS.find(x=>x.id===id) || PRODUCTS[0];
-      $("dTitle").textContent = selected.name;
-      $("dPrice").textContent = `$${selected.usd} · Demo (2 months, 1 account)`;
-      $("dDesc").textContent = selected.desc;
-      $("dBullets").innerHTML = selected.bullets.map(x=>`<li>${x}</li>`).join("");
-      openModal("detailsModal");
-    }
-
-    // --------------------
-    // Quote logic (spot + weekly ATH) + 10-min refresh
-    // --------------------
-    let QUOTE = null;
-    let quoteTimer = null;
-
-    function msToMMSS(ms){
-      const sec = Math.max(0, Math.floor(ms/1000));
-      const mm = String(Math.floor(sec/60)).padStart(2,"0");
-      const ss = String(sec%60).padStart(2,"0");
-      return `${mm}:${ss}`;
-    }
-
-    async function fetchQuote(){
-      const r = await fetch("/api/eth-quote", { cache:"no-store" });
-      const j = await r.json();
-      if (!j.ok) throw new Error(j.error || "Quote error");
-
-      // expected fields from your function:
-      // ethUsdSpot, ethUsdWeeklyHigh, expiresAt, quoteTtlSeconds
-      QUOTE = {
-        ethUsdSpot: Number(j.ethUsdSpot),
-        ethUsdWeeklyHigh: Number(j.ethUsdWeeklyHigh),
-        expiresAt: j.expiresAt,
-        quoteTtlSeconds: Number(j.quoteTtlSeconds) || 600,
-        updatedAt: j.updatedAt
-      };
-
-      renderQuoteHeader();
-      return QUOTE;
-    }
-
-    function renderQuoteHeader(){
-      const chip = $("ethChip");
-      const tiny = $("quoteTiny");
-      if (!chip || !tiny) return;
-
-      const spot = QUOTE?.ethUsdSpot;
-      const ath = QUOTE?.ethUsdWeeklyHigh;
-
-      if (Number.isFinite(spot) && Number.isFinite(ath)){
-        chip.innerHTML = `ETH spot <strong>$${spot.toFixed(2)}</strong> · 7D ATH <strong>$${ath.toFixed(2)}</strong>`;
-        tiny.textContent = "Quote refresh: …";
-      } else {
-        chip.innerHTML = `ETH: <strong>—</strong>`;
-        tiny.textContent = "Quote refresh: —";
+    document.getElementById("copyAddr").addEventListener("click", async () => {
+      const addr = document.getElementById("walletAddr").textContent.trim();
+      try{
+        await navigator.clipboard.writeText(addr);
+        toast("Address copied.");
+      }catch{
+        toast("Copy failed. Select & copy manually.");
       }
-    }
+    });
 
-    function getExpiresAtMs(){
-      if (QUOTE?.expiresAt){
-        const ms = Date.parse(QUOTE.expiresAt);
-        if (Number.isFinite(ms)) return ms;
-      }
-      // fallback: updatedAt + ttl
-      const base = QUOTE?.updatedAt ? Date.parse(QUOTE.updatedAt) : Date.now();
-      const ttl = (QUOTE?.quoteTtlSeconds || 600) * 1000;
-      return base + ttl;
-    }
+    submitBtn.addEventListener("click", () => {
+      const email = document.getElementById("email").value.trim();
+      const agree = document.getElementById("agree").checked;
 
-    function stopQuoteCountdown(){
-      if (quoteTimer) clearInterval(quoteTimer);
-      quoteTimer = null;
-    }
+      if (!agree) return toast("Please accept the Terms.");
+      if (!email || !email.includes("@")) return toast("Enter a valid email.");
 
-    function startQuoteCountdown(onTick){
-      stopQuoteCountdown();
-      quoteTimer = setInterval(async () => {
-        const exp = getExpiresAtMs();
-        const left = exp - Date.now();
+      toast("Request saved. Next: on-chain verification + timed download link.");
+      // TODO: next step (backend) -> POST /api/order
+      checkoutBox.style.display = "none";
+    });
 
-        onTick?.(left);
-
-        // Header countdown (desktop)
-        const tiny = $("quoteTiny");
-        if (tiny && left > 0) tiny.textContent = `Quote refresh: ${msToMMSS(left)}`;
-        if (tiny && left <= 0) tiny.textContent = `Refreshing quote…`;
-
-        if (left <= 0){
-          stopQuoteCountdown();
-          try{
-            await fetchQuote();
-            // re-render checkout totals if checkout open
-            if ($("checkoutModal").style.display === "block") renderCheckoutTotals();
-            startQuoteCountdown(onTick);
-          } catch(e){
-            // retry soon
-            setTimeout(() => startQuoteCountdown(onTick), 10000);
-          }
-        }
-      }, 250);
-    }
-
-    function usdToEthUsingWeeklyAth(usd){
-      const ath = QUOTE?.ethUsdWeeklyHigh;
-      if (!Number.isFinite(ath) || ath <= 0) return null;
-      return usd / ath;
-    }
-
+    // -----------------------------
+    // Address loader (address.txt)
+    // -----------------------------
     async function loadAddress(){
+      const el = document.getElementById("walletAddr");
+      el.textContent = "Loading…";
+
+      async function tryFetch(path){
+        const r = await fetch(path, { cache: "no-store" });
+        if (!r.ok) throw new Error("HTTP " + r.status);
+        return (await r.text()).trim();
+      }
+
       try{
-        const r = await fetch("/assets/address.txt", { cache:"no-store" });
-        const t = (await r.text()).trim();
-
-        // protect against HTML (wrong path / fallback)
-        if (t.includes("<html") || t.includes("<!DOCTYPE")) throw new Error("address.txt returned HTML");
-
-        const m = t.match(/0x[a-fA-F0-9]{40}/);
-        if (!m) throw new Error("No 0x address found");
-        $("cAddr").textContent = m[0];
-      } catch(e){
-        $("cAddr").textContent = "Address unavailable — check /assets/address.txt";
-        console.warn(e);
+        const addr = await tryFetch("/address.txt");
+        el.textContent = addr;
+      }catch(e1){
+        try{
+          const addr = await tryFetch("/Address.txt");
+          el.textContent = addr;
+        }catch(e2){
+          el.textContent = "Address file not found. Ensure address.txt is in repo root.";
+        }
       }
     }
 
-    function renderCheckoutTotals(){
-      const spot = QUOTE?.ethUsdSpot;
-      const ath = QUOTE?.ethUsdWeeklyHigh;
-
-      $("cItem").textContent = selected.name;
-      $("cUsd").textContent = `$${selected.usd}`;
-
-      $("cSpot").textContent = Number.isFinite(spot) ? `$${spot.toFixed(2)}` : "—";
-      $("cAth").textContent  = Number.isFinite(ath)  ? `$${ath.toFixed(2)}`  : "—";
-
-      const eth = usdToEthUsingWeeklyAth(selected.usd);
-      $("cEth").textContent = eth ? `${eth.toFixed(6)} ETH` : "—";
-
-      // countdown
-      const exp = getExpiresAtMs();
-      const left = exp - Date.now();
-      $("cTtl").textContent = left > 0 ? msToMMSS(left) : "00:00";
-    }
-
-    async function openCheckout(){
-      // Ensure quote loaded
-      try{
-        if (!QUOTE) await fetchQuote();
-      } catch(e){
-        console.warn(e);
-      }
-
-      // Render totals immediately (even if quote missing)
-      renderCheckoutTotals();
-
-      // Load wallet address
-      await loadAddress();
-
-      openModal("checkoutModal");
-
-      // Start countdown (refresh quote if expires)
-      startQuoteCountdown(() => {
-        if ($("checkoutModal").style.display === "block") renderCheckoutTotals();
-      });
-    }
-
-    // --------------------
-    // Events
-    // --------------------
-    $("tabHome").onclick = ()=> setView("home");
-    $("tabGlitches").onclick = ()=> setView("glitches");
-    $("tabTerms").onclick = ()=> setView("terms");
-
-    $("homeCta").onclick = ()=> setView("glitches");
-    $("homeTerms").onclick = ()=> setView("terms");
-
-    $("closeDetails").onclick = closeModals;
-    $("dBackBtn").onclick = closeModals;
-    $("dCheckoutBtn").onclick = ()=> { closeModals(); openCheckout(); };
-
-    $("closeCheckout").onclick = closeModals;
-    $("cCloseBtn").onclick = closeModals;
-    $("shade").onclick = closeModals;
-
-    $("copyAddr").onclick = async ()=>{
-      const a = $("cAddr").textContent.trim();
-      if (!a.startsWith("0x")) return toast("No address to copy");
-      await navigator.clipboard.writeText(a);
-      toast("Address copied");
+    // -----------------------------
+    // ETH Quote (10 min TTL)
+    // -----------------------------
+    const QUOTE_TTL_MS = 10 * 60 * 1000;
+    const quoteEls = {
+      usd: document.getElementById("ethUsd"),
+      wh: document.getElementById("ethWeekHigh"),
+      cd: document.getElementById("quoteCountdown")
     };
 
-    $("cPaidBtn").onclick = ()=>{
-      const email = $("cEmail").value.trim();
-      if (!email) return toast("Email required");
-      if (!$("cAgree").checked) return toast("Accept Terms first");
-      toast("MVP: next step is TxHash verification + secure delivery");
-    };
+    function fmtMoney(n){
+      if (!Number.isFinite(n)) return "—";
+      return "$" + n.toFixed(2);
+    }
 
-    // --------------------
-    // Particles: free floating gold rocks
-    // - connected lines
-    // - repels pointer
-    // - click/tap spawns more
-    // --------------------
-    (function fx(){
-      const canvas = $("fx");
-      const ctx = canvas.getContext("2d", { alpha:true });
-
-      let W=0,H=0,DPR=1;
-      const pointer = { x:-9999, y:-9999, down:false };
-
-      const isMobile = matchMedia("(max-width: 900px)").matches;
-      const BASE = isMobile ? 62 : 110;
-      const LINK = isMobile ? 110 : 150;
-
-      function resize(){
-        DPR = Math.min(2, devicePixelRatio || 1);
-        W = canvas.width = Math.floor(innerWidth * DPR);
-        H = canvas.height = Math.floor(innerHeight * DPR);
-        canvas.style.width = innerWidth + "px";
-        canvas.style.height = innerHeight + "px";
+    function tickCountdown(){
+      if (!quote || !quote.refreshedAt) {
+        quoteEls.cd.textContent = "—";
+        return;
       }
-      function rnd(a,b){ return a + Math.random()*(b-a); }
+      const next = quote.refreshedAt + QUOTE_TTL_MS;
+      const ms = Math.max(0, next - Date.now());
+      const m = Math.floor(ms / 60000);
+      const s = Math.floor((ms % 60000) / 1000);
+      quoteEls.cd.textContent = `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+      if (ms === 0) refreshQuote(true);
+    }
 
-      function makeRockShape(){
-        const n = Math.floor(rnd(6, 10));
-        const pts = [];
-        for(let i=0;i<n;i++){
-          const ang = (i/n)*Math.PI*2 + rnd(-0.15, 0.15);
-          const rad = rnd(0.65, 1.0);
-          pts.push({ ang, rad });
-        }
-        return pts;
-      }
-
-      function particle(x=rnd(0,W), y=rnd(0,H), burst=false){
-        const sp = burst ? rnd(0.9, 2.6) : rnd(0.15, 0.85);
-        const ang = rnd(0, Math.PI*2);
-        return {
-          x, y,
-          vx: Math.cos(ang)*sp*DPR,
-          vy: Math.sin(ang)*sp*DPR,
-          s: rnd(3.4, 7.8)*DPR,
-          a: rnd(0.35, 0.95),
-          rot: rnd(0, Math.PI*2),
-          vr: rnd(-0.02, 0.02),
-          shape: makeRockShape(),
-          sparkle: rnd(0,1) < 0.20
-        };
-      }
-
-      const P = [];
-      function spawn(n, cx=rnd(0,W), cy=rnd(0,H), burst=false){
-        for(let i=0;i<n;i++) P.push(particle(cx + rnd(-70,70)*DPR, cy + rnd(-70,70)*DPR, burst));
-        while(P.length > BASE + 50) P.shift();
-      }
-
-      function drawRock(p){
-        const x=p.x, y=p.y, s=p.s;
-
-        // gold gradient (brighter)
-        const g = ctx.createRadialGradient(x - s*0.35, y - s*0.45, 0, x, y, s*2.4);
-        g.addColorStop(0, `rgba(255, 236, 180, ${0.28*p.a})`);
-        g.addColorStop(0.38, `rgba(215, 181, 106, ${0.36*p.a})`);
-        g.addColorStop(1, `rgba(90, 60, 18, ${0.07*p.a})`);
-
-        ctx.save();
-        ctx.translate(x,y);
-        ctx.rotate(p.rot);
-
-        ctx.beginPath();
-        for(let i=0;i<p.shape.length;i++){
-          const pt = p.shape[i];
-          const px = Math.cos(pt.ang)*pt.rad*s;
-          const py = Math.sin(pt.ang)*pt.rad*s;
-          if(i===0) ctx.moveTo(px,py);
-          else ctx.lineTo(px,py);
-        }
-        ctx.closePath();
-
-        ctx.fillStyle = g;
-        ctx.fill();
-
-        ctx.strokeStyle = `rgba(255,255,255,${0.06*p.a})`;
-        ctx.lineWidth = 1*DPR;
-        ctx.stroke();
-
-        if(p.sparkle){
-          ctx.globalCompositeOperation = "lighter";
-          ctx.fillStyle = `rgba(255,255,255,${0.22*p.a})`;
-          ctx.beginPath();
-          ctx.arc(-s*0.20, -s*0.22, s*0.28, 0, Math.PI*2);
-          ctx.fill();
-          ctx.globalCompositeOperation = "source-over";
+    async function refreshQuote(force=false){
+      try{
+        const cacheKey = "egg_quote_v1";
+        const cachedRaw = localStorage.getItem(cacheKey);
+        if (!force && cachedRaw){
+          const cached = JSON.parse(cachedRaw);
+          if (cached && cached.refreshedAt && (Date.now() - cached.refreshedAt) < QUOTE_TTL_MS){
+            quote = cached;
+            renderQuote();
+            renderModal();
+            return;
+          }
         }
 
-        ctx.restore();
+        const r = await fetch("/api/eth", { cache: "no-store" });
+        if (!r.ok) throw new Error("Quote HTTP " + r.status);
+        const data = await r.json();
+        if (!data || !data.ok) throw new Error("Bad quote payload");
+
+        quote = data;
+        localStorage.setItem(cacheKey, JSON.stringify(quote));
+        renderQuote();
+        renderModal();
+      } catch (e){
+        console.error("ETH quote failed:", e);
+        quoteEls.usd.textContent = "—";
+        quoteEls.wh.textContent = "—";
+        quoteEls.cd.textContent = "offline";
       }
+    }
 
-      function step(){
-        ctx.clearRect(0,0,W,H);
+    function renderQuote(){
+      quoteEls.usd.textContent = fmtMoney(quote?.usd);
+      quoteEls.wh.textContent = fmtMoney(quote?.weeklyHighUsd);
+    }
 
-        const mx = pointer.x*DPR, my = pointer.y*DPR;
+    document.getElementById("retryQuote").addEventListener("click", () => refreshQuote(true));
 
-        // Update
-        for(const p of P){
-          // free random drift (keeps them "alive")
-          p.vx += rnd(-0.02, 0.02)*DPR;
-          p.vy += rnd(-0.02, 0.02)*DPR;
+    refreshQuote(true);
+    setInterval(tickCountdown, 1000);
 
-          // repel pointer
-          const dx = p.x - mx, dy = p.y - my;
+    // -----------------------------
+    // GOLD DUST FX (interactive)
+    // -----------------------------
+    const canvas = document.getElementById("fx");
+    const ctx = canvas.getContext("2d");
+
+    let W = 0, H = 0, DPR = 1;
+    function resize(){
+      DPR = Math.min(2, window.devicePixelRatio || 1);
+      W = Math.floor(window.innerWidth);
+      H = Math.floor(window.innerHeight);
+      canvas.width = Math.floor(W * DPR);
+      canvas.height = Math.floor(H * DPR);
+      canvas.style.width = W + "px";
+      canvas.style.height = H + "px";
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+    window.addEventListener("resize", resize, { passive:true });
+    resize();
+
+    const pointer = { x: W*0.5, y: H*0.35, active:false };
+    window.addEventListener("mousemove", (e)=>{ pointer.x=e.clientX; pointer.y=e.clientY; pointer.active=true; }, { passive:true });
+    window.addEventListener("mouseleave", ()=>{ pointer.active=false; }, { passive:true });
+
+    window.addEventListener("touchstart", (e)=> {
+      const t = e.touches[0];
+      if (!t) return;
+      pointer.x = t.clientX; pointer.y = t.clientY; pointer.active = true;
+      burst(pointer.x, pointer.y);
+    }, { passive:true });
+
+    window.addEventListener("touchmove", (e)=> {
+      const t = e.touches[0];
+      if (!t) return;
+      pointer.x = t.clientX; pointer.y = t.clientY; pointer.active = true;
+    }, { passive:true });
+
+    window.addEventListener("click", (e)=> burst(e.clientX, e.clientY), { passive:true });
+
+    const baseCount = Math.max(110, Math.min(220, Math.floor((W*H) / 12000)));
+    const particles = [];
+    function rand(a,b){ return a + Math.random()*(b-a); }
+
+    function makeParticle(x=rand(0,W), y=rand(0,H), boost=false){
+      const s = boost ? rand(1.6, 3.2) : rand(0.9, 2.4);
+      return {
+        x, y,
+        vx: rand(-0.18, 0.18),
+        vy: rand(-0.12, 0.12),
+        r: s,
+        tw: rand(0.6, 1.0),
+        ph: rand(0, Math.PI*2),
+        hue: rand(40, 52),  // gold-ish
+        life: boost ? rand(240, 520) : 999999
+      };
+    }
+
+    for (let i=0;i<baseCount;i++) particles.push(makeParticle());
+
+    function burst(x,y){
+      for (let i=0;i<14;i++){
+        const p = makeParticle(x + rand(-18,18), y + rand(-18,18), true);
+        p.vx += rand(-0.9, 0.9);
+        p.vy += rand(-0.9, 0.9);
+        particles.push(p);
+      }
+      toast("Gold dust spawned.");
+    }
+
+    function drawSpark(p, a){
+      // tiny diamond “rock”
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.ph + (Date.now()*0.0003));
+      ctx.beginPath();
+      const r = p.r;
+      ctx.moveTo(0, -r*1.3);
+      ctx.lineTo(r*1.0, 0);
+      ctx.lineTo(0, r*1.3);
+      ctx.lineTo(-r*1.0, 0);
+      ctx.closePath();
+
+      ctx.fillStyle = `hsla(${p.hue}, 90%, 62%, ${a})`;
+      ctx.fill();
+
+      // highlight
+      ctx.beginPath();
+      ctx.arc(r*0.25, -r*0.25, r*0.35, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255, 232, 170, ${a*0.55})`;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function step(){
+      ctx.clearRect(0,0,W,H);
+
+      // subtle fog
+      const g = ctx.createRadialGradient(W*0.7, H*0.2, 0, W*0.7, H*0.2, Math.max(W,H)*0.95);
+      g.addColorStop(0, "rgba(212,175,55,0.06)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0,0,W,H);
+
+      // update + draw
+      for (let i=0;i<particles.length;i++){
+        const p = particles[i];
+        p.ph += 0.006;
+
+        // gentle drift
+        p.vx += Math.sin(p.ph*0.9)*0.0006;
+        p.vy += Math.cos(p.ph*0.8)*0.0006;
+
+        // pointer repel
+        if (pointer.active){
+          const dx = p.x - pointer.x;
+          const dy = p.y - pointer.y;
           const d2 = dx*dx + dy*dy;
-          const repelR = (260*DPR)*(260*DPR);
-          if(d2 < repelR){
-            const d = Math.sqrt(d2) + 0.001;
-            const k = pointer.down ? 0.14 : 0.08;
-            p.vx += (dx/d)*k;
-            p.vy += (dy/d)*k;
-          }
-
-          // damp
-          p.vx *= 0.985;
-          p.vy *= 0.985;
-
-          // integrate
-          p.x += p.vx;
-          p.y += p.vy;
-
-          // rotate
-          p.rot += p.vr;
-
-          // wrap
-          if(p.x < -60*DPR) p.x = W + 60*DPR;
-          if(p.x > W + 60*DPR) p.x = -60*DPR;
-          if(p.y < -60*DPR) p.y = H + 60*DPR;
-          if(p.y > H + 60*DPR) p.y = -60*DPR;
-        }
-
-        // Links (light)
-        for(let i=0;i<P.length;i++){
-          for(let j=i+1;j<P.length;j++){
-            const a=P[i], b=P[j];
-            const dx=a.x-b.x, dy=a.y-b.y;
-            const d=Math.hypot(dx,dy);
-            const max = LINK*DPR;
-            if(d < max){
-              const alpha = (1 - d/max) * 0.14;
-              ctx.strokeStyle = `rgba(215,181,106,${alpha})`;
-              ctx.lineWidth = 1*DPR;
-              ctx.beginPath();
-              ctx.moveTo(a.x,a.y);
-              ctx.lineTo(b.x,b.y);
-              ctx.stroke();
-            }
+          const R = 140;
+          if (d2 < R*R){
+            const d = Math.max(8, Math.sqrt(d2));
+            const f = (1 - d/R) * 0.25;
+            p.vx += (dx/d) * f;
+            p.vy += (dy/d) * f;
           }
         }
 
-        // Draw rocks
-        for(const p of P) drawRock(p);
+        // clamp velocity
+        p.vx *= 0.992;
+        p.vy *= 0.992;
 
-        requestAnimationFrame(step);
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // wrap
+        if (p.x < -20) p.x = W + 20;
+        if (p.x > W + 20) p.x = -20;
+        if (p.y < -20) p.y = H + 20;
+        if (p.y > H + 20) p.y = -20;
+
+        if (p.life !== 999999){
+          p.life -= 1;
+          if (p.life <= 0){
+            particles.splice(i,1);
+            i--;
+            continue;
+          }
+        }
       }
 
-      resize();
-      spawn(BASE);
-      addEventListener("resize", resize, { passive:true });
+      // connections (light, only close neighbors; keeps it “present” but not ugly)
+      for (let i=0;i<particles.length;i++){
+        const a = particles[i];
+        for (let j=i+1;j<particles.length;j++){
+          const b = particles[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const d2 = dx*dx + dy*dy;
+          const max = 120;
+          if (d2 < max*max){
+            const d = Math.sqrt(d2);
+            const alpha = (1 - d/max) * 0.10;
+            ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
 
-      addEventListener("pointermove",(e)=>{
-        pointer.x = e.clientX;
-        pointer.y = e.clientY;
-      }, { passive:true });
-
-      addEventListener("pointerdown",(e)=>{
-        pointer.down = true;
-        spawn(isMobile ? 14 : 22, e.clientX*DPR, e.clientY*DPR, true);
-      }, { passive:true });
-
-      addEventListener("pointerup",()=> pointer.down=false, { passive:true });
+      // draw sparks on top
+      for (const p of particles){
+        const tw = (0.6 + 0.4*Math.sin(p.ph + Date.now()*0.002)) * p.tw;
+        drawSpark(p, 0.55 * tw);
+      }
 
       requestAnimationFrame(step);
-    })();
-
-    // --------------------
-    // Init
-    // --------------------
-    renderGlitches();
-    setView("home");
-
-    // Load quote ASAP (header)
-    (async ()=>{
-      try{
-        await fetchQuote();
-        startQuoteCountdown();
-      } catch(e){
-        console.warn(e);
-        $("ethChip").innerHTML = `ETH: <strong>—</strong>`;
-        $("quoteTiny").textContent = "Quote refresh: —";
-      }
-    })();
+    }
+    step();
   </script>
 </body>
 </html>
