@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en"> 
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EasyGoldGlitch — Stop trading. Start printing.</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg0:#07070a;
+      --bg1:#0b0c12;
+      --glass: rgba(18, 18, 22, 0.46);
+      --glass2: rgba(18, 18, 22, 0.30);
+      --stroke: rgba(255,255,255,0.12);
+      --stroke2: rgba(212,175,55,0.22);
+      --text:#ECECEC;
+      --muted: rgba(236,236,236,0.68);
+      --muted2: rgba(236,236,236,0.52);
+      --gold:#D4AF37;
+      --gold2:#F0D27A;
+      --shadow: 0 18px 80px rgba(0,0,0,0.55);
+      --radius: 24px;
+      --radius2: 18px;
+      --ring: 0 0 0 1px rgba(255,255,255,0.10), 0 0 0 1px rgba(212,175,55,0.15) inset;
+    }
+
+    *{ box-sizing:border-box; }
+    html, body { height:100%; margin:0; }
+
+    /* Base dark background on html as well (prevents iOS white background flashes) */
+    html{
+      background: linear-gradient(180deg, var(--bg0), var(--bg1));
+      background-color: var(--bg0);
+    }
+
+    body{
+      font-family: "Space Grotesk", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 900px at 18% 18%, rgba(212,175,55,0.10), transparent 55%),
+                  radial-gradient(900px 700px at 78% 22%, rgba(120,140,255,0.08), transparent 55%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+      position: relative; /* ensures stable stacking on mobile */
+    }
+
+    /* Background canvas */
+    #bg{
+      position:fixed; inset:0;
+      width:100%; height:100%;
+      z-index:0;           /* changed from negative to prevent iOS stacking bug */
+      display:block;
+    }
+
+    /* soft vignette */
+    .vignette{
+      position:fixed; inset:0;
+      pointer-events:none;
+      z-index:1;           /* changed from negative to sit above canvas */
+      background: radial-gradient(900px 700px at 50% 40%, rgba(0,0,0,0.0), rgba(0,0,0,0.62));
+    }
+
+    .wrap{
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 22px 18px 90px;
+      position: relative;
+      z-index: 2;          /* ensures content is above canvas/vignette */
+    }
+
+    .topbar{
+      position: sticky;
+      top: 14px;
+      z-index: 50;
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 14px;
+
+      padding: 14px 14px;
+      border-radius: 999px;
+
+      background: linear-gradient(180deg, rgba(22,22,28,0.56), rgba(14,14,18,0.42));
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: var(--shadow);
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      padding-left: 6px;
+      min-width: 210px;
+    }
+    .brand img{
+      width: 34px; height:34px;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+      object-fit: cover;
+    }
+    .brand .name{
+      font-family: "Cinzel", serif;
+      letter-spacing: 0.6px;
+      font-weight: 700;
+      font-size: 16px;
+      line-height: 1.1;
+      margin:0;
+    }
+    .brand .tag{
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.1;
+    }
+
+    .nav{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .nav button{
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      cursor:pointer;
+      transition: 180ms ease;
+      outline: none;
+    }
+    .nav button:hover{
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+    }
+    .nav button.active{
+      color: var(--text);
+      background: linear-gradient(180deg, rgba(212,175,55,0.20), rgba(255,255,255,0.05));
+      box-shadow: 0 0 0 1px rgba(212,175,55,0.25) inset;
+    }
+
+    /* Header quote — no timer here */
+    .quote{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      min-width: 210px;
+      justify-content:flex-end;
+    }
+    .quote .k{
+      font-size: 12px;
+      color: var(--muted2);
+      white-space: nowrap;
+    }
+    .quote .v{
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .quote .dot{
+      width: 6px; height:6px; border-radius: 99px;
+      background: rgba(212,175,55,0.85);
+      box-shadow: 0 0 12px rgba(212,175,55,0.55);
+    }
+
+    .view{ display:none; margin-top: 20px; }
+    .view.active{ display:block; }
+
+    .card{
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.10);
+      background: linear-gradient(180deg, rgba(20,20,24,0.62), rgba(12,12,16,0.38));
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .hero{
+      padding: 26px 24px;
+      overflow:hidden;
+      position:relative;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: rgba(236,236,236,0.78);
+      font-size: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+    }
+    .pill .spark{
+      width: 7px; height:7px; border-radius: 99px;
+      background: rgba(212,175,55,0.90);
+      box-shadow: 0 0 14px rgba(212,175,55,0.55);
+    }
+
+    .hero h1{
+      margin: 16px 0 8px;
+      font-size: clamp(36px, 6vw, 72px);
+      line-height: 0.98;
+      letter-spacing: -1.2px;
+      font-weight: 800;
+    }
+    .hero p{
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      max-width: 58ch;
+    }
+    .actions{
+      display:flex;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+    .btn{
+      border: 0;
+      cursor:pointer;
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      transition: 160ms ease;
+    }
+    .btn.primary{
+      color: #0b0b0d;
+      background: linear-gradient(180deg, rgba(240,210,122,1), rgba(212,175,55,1));
+      box-shadow: 0 12px 32px rgba(212,175,55,0.22);
+    }
+    .btn.primary:hover{ transform: translateY(-1px); }
+    .btn.ghost{
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .btn.ghost:hover{ background: rgba(255,255,255,0.09); }
+
+    /* Exploits grid */
+    .sectionHead{
+      padding: 18px 18px 12px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .sectionHead h2{
+      margin:0;
+      font-size: 18px;
+      letter-spacing: 0.2px;
+    }
+    .sectionHead .sub{
+      margin:0;
+      color: var(--muted2);
+      font-size: 12px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      padding: 0 18px 18px;
+    }
+
+    .tile{
+      grid-column: span 6;
+      padding: 16px 16px;
+      border-radius: var(--radius2);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      cursor:pointer;
+      transition: 160ms ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .tile:hover{
+      transform: translateY(-2px);
+      border-color: rgba(212,175,55,0.22);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.44);
+    }
+    .tile .row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+    }
+    .tile h3{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: 0.2px;
+      line-height:1.15;
+    }
+    .tile .price{
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--gold2);
+      white-space: nowrap;
+    }
+    .tile .meta{
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .chips{
+      display:flex; gap:8px; flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .chip{
+      font-size: 12px;
+      color: rgba(236,236,236,0.78);
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+    }
+
+    /* Modal */
+    .modalOverlay{
+      position:fixed; inset:0;
+      display:none;
+      z-index: 100;
+      background: rgba(0,0,0,0.62);
+      backdrop-filter: blur(10px);
+      padding: 18px;
+      overflow:auto;
+    }
+    .modalOverlay.active{ display:block; }
+    .modal{
+      max-width: 980px;
+      margin: 30px auto;
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(180deg, rgba(18,18,22,0.76), rgba(10,10,14,0.55));
+      box-shadow: 0 24px 90px rgba(0,0,0,0.6);
+      overflow:hidden;
+    }
+    .modalTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 16px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .modalTop .t{
+      display:flex;
+      flex-direction:column;
+      gap: 4px;
+    }
+    .modalTop h3{
+      margin:0;
+      font-size: 18px;
+      letter-spacing: 0.2px;
+    }
+    .modalTop .s{
+      margin:0;
+      color: var(--muted2);
+      font-size: 12px;
+    }
+    .x{
+      border:0;
+      cursor:pointer;
+      width: 40px; height: 40px;
+      border-radius: 999px;
+      color: var(--text);
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      font-size: 16px;
+    }
+    .x:hover{ background: rgba(255,255,255,0.10); }
+
+    .modalBody{
+      display:grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    .panel{
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      padding: 16px;
+    }
+
+    .kpi{
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .kpi .kbox{
+      flex: 1;
+      min-width: 170px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      padding: 12px;
+    }
+    .kbox .k{ font-size: 12px; color: var(--muted2); margin:0; }
+    .kbox .v{ font-size: 14px; font-weight: 800; margin:4px 0 0; color: var(--text); }
+
+    .checkoutHead{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .checkoutHead .left{
+      display:flex; flex-direction:column; gap:3px;
+    }
+    .checkoutHead .left .t{
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      margin:0;
+    }
+    .checkoutHead .left .s{
+      margin:0;
+      color: var(--muted2);
+      font-size: 12px;
+    }
+    .timer{
+      display:none; /* shown only in checkout (we toggle) */
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: rgba(236,236,236,0.82);
+      white-space: nowrap;
+    }
+    .timer .gold{ color: var(--gold2); font-weight: 800; }
+
+    .qr{
+      width: 100%;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.25);
+      padding: 12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height: 220px;
+    }
+    .qr img{
+      width: 100%;
+      max-width: 260px;
+      height: auto;
+      display:block;
+      border-radius: 14px;
+    }
+
+    .addr{
+      margin-top: 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      padding: 12px;
+    }
+    .addr .label{
+      font-size: 12px; color: var(--muted2);
+      margin:0 0 6px;
+    }
+    .addr .value{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      color: rgba(236,236,236,0.88);
+      word-break: break-all;
+      margin:0;
+    }
+
+    .field{
+      margin-top: 10px;
+    }
+    .field label{
+      display:block;
+      font-size: 12px;
+      color: var(--muted2);
+      margin-bottom: 6px;
+    }
+    .field input{
+      width:100%;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      padding: 12px 12px;
+      outline:none;
+      font-weight: 600;
+    }
+    .field input:focus{
+      box-shadow: 0 0 0 3px rgba(212,175,55,0.14);
+      border-color: rgba(212,175,55,0.26);
+    }
+
+    .checkRow{
+      display:flex; gap: 10px;
+      align-items:flex-start;
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.05);
+    }
+    .checkRow input{ margin-top: 3px; }
+    .checkRow .txt{
+      font-size: 12px;
+      color: rgba(236,236,236,0.74);
+      line-height: 1.35;
+    }
+    .checkRow a{
+      color: rgba(240,210,122,0.95);
+      text-decoration:none;
+      border-bottom: 1px dashed rgba(240,210,122,0.45);
+    }
+
+    .payBtn{
+      width:100%;
+      margin-top: 10px;
+      padding: 12px 14px;
+      border-radius: 999px;
+      border:0;
+      cursor:pointer;
+      font-weight: 900;
+      letter-spacing: 0.2px;
+      color: #0b0b0d;
+      background: linear-gradient(180deg, rgba(240,210,122,1), rgba(212,175,55,1));
+      box-shadow: 0 12px 32px rgba(212,175,55,0.18);
+    }
+    .payBtn:disabled{
+      opacity: 0.5;
+      cursor:not-allowed;
+      box-shadow: none;
+    }
+
+    .miniNote{
+      margin: 10px 0 0;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height: 1.35;
+    }
+
+    /* Philosophy/Terms */
+    .content{
+      padding: 18px;
+    }
+    .content h2{ margin: 0 0 10px; font-size: 18px; }
+    .content p{ margin: 0 0 10px; color: var(--muted); line-height: 1.55; }
+    .content ul{ margin: 10px 0 0; padding-left: 18px; color: var(--muted); line-height: 1.6; }
+    .content li{ margin: 6px 0; }
+
+    /* Responsive */
+    @media (max-width: 920px){
+      .brand{ min-width: auto; }
+      .quote{ display:none; }
+      .modalBody{ grid-template-columns: 1fr; }
+      .tile{ grid-column: span 12; }
+    }
+
+    @media (max-width: 520px){
+      .topbar{ border-radius: 22px; position: relative; top: 0; }
+      .nav{ width: 100%; justify-content: space-between; }
+      .brand .tag{ display:none; }
+      .wrap{ padding-bottom: 70px; }
+      html, body { overflow-x: hidden; max-width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="bg"></canvas>
+  <div class="vignette"></div>
+
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand" role="button" tabindex="0" id="brandHome" title="Home">
+        <img src="./logo.png" alt="EasyGoldGlitch logo"
+             onerror="this.style.display='none';" />
+        <div>
+          <p class="name">EasyGoldGlitch</p>
+          <p class="tag">Stop trading. Start printing.</p>
+        </div>
+      </div>
+
+      <!-- TOP NAV REMOVED (requested): keep only hero buttons (Browse exploits / Philosophy / Terms) -->
+
+      <div class="quote" title="ETH quote (kept even if the refresh fails)">
+        <span class="dot"></span>
+        <span class="k">ETH:</span>
+        <span class="v" id="ethSpot">$—</span>
+        <span class="k">Reference price:</span>
+        <span class="v" id="ethRef">$—</span>
+      </div>
+    </header>
+
+    <!-- HOME -->
+    <section class="view active" id="view-home">
+      <div class="card hero">
+        <div class="pill"><span class="spark"></span> Crypto-native • No sign-up</div>
+        <h1>Stop trading.<br/>Start printing.</h1>
+        <p>Pick an exploit. Pay in ETH. Get delivery.</p>
+        <div class="actions">
+          <button class="btn primary" id="goExploits">Browse exploits</button>
+          <button class="btn ghost" id="goPhilosophy">Philosophy</button>
+          <button class="btn ghost" id="goTerms">Terms</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXPLOITS -->
+    <section class="view" id="view-exploits">
+      <div class="card">
+        <div class="sectionHead">
+          <div>
+            <h2>Exploits</h2>
+            <p class="sub">Low text. High signal.</p>
+          </div>
+          <p class="sub">Pay in ETH using the Reference price.</p>
+        </div>
+
+        <div class="grid" id="exploitGrid"></div>
+      </div>
+    </section>
+
+    <!-- PHILOSOPHY -->
+    <section class="view" id="view-philosophy">
+      <div class="card content">
+        <h2>Philosophy</h2>
+        <p>
+          Most market flow is machine-driven. Manual traders get hunted by speed, spread, and precision.
+          EasyGoldGlitch is built for the new reality: automated “glitches” that stay calm while the tape tries to shake you out.
+        </p>
+        <p>
+          We don’t sell hope. We sell a repeatable process. Clean execution. Controlled exposure. Crypto-native delivery.
+        </p>
+        <ul>
+          <li>Algorithms don’t feel fear. Your edge is removing emotion.</li>
+          <li>We focus on simple behaviors that survive regime changes.</li>
+          <li>Reference pricing refreshes every 10 minutes at checkout.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- TERMS -->
+    <section class="view" id="view-terms">
+      <div class="card content">
+        <h2>Terms</h2>
+        <p><strong>Risk disclosure:</strong> Trading is high-risk. You can lose part or all of your capital. Past performance does not guarantee future results.</p>
+        <p><strong>No refunds:</strong> Digital goods delivered via encrypted links are non-refundable.</p>
+        <p><strong>Demo duration:</strong> Demo licenses run for <strong>2 months</strong> (single account). “Little Glitcher” extends demo access and enables up to <strong>10 accounts</strong>.</p>
+        <p><strong>Execution note:</strong> These tools require your trading terminal / environment to remain active for proper management and monitoring.</p>
+        <p><strong>Not financial advice:</strong> Nothing on this website is investment advice. You are responsible for your decisions and risk management.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modalOverlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <div class="modalTop">
+        <div class="t">
+          <h3 id="mTitle">Exploit</h3>
+          <p class="s" id="mSub">Summary</p>
+        </div>
+        <button class="x" id="closeModal" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="panel">
+          <p class="pill" style="margin:0;"><span class="spark"></span> Minimal setup • Clean execution</p>
+          <div style="margin-top:12px;">
+            <p id="mDesc" style="margin:0; color: rgba(236,236,236,0.74); line-height:1.55;"></p>
+          </div>
+
+          <div class="kpi" id="kpiRow"></div>
+
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn primary" id="openCheckout">Checkout</button>
+            <button class="btn ghost" id="backToExploits">Back</button>
+          </div>
+
+          <p class="miniNote">
+            You’ll pay in ETH using the <strong>Reference price</strong>. If the quote refresh fails, we keep the last valid price (no blank resets).
+          </p>
+        </div>
+
+        <div class="panel" id="checkoutPanel" style="display:none;">
+          <div class="checkoutHead">
+            <div class="left">
+              <p class="t">Checkout</p>
+              <p class="s">Pay in ETH • Delivered by email</p>
+            </div>
+
+            <!-- TIMER ONLY HERE -->
+            <div class="timer" id="timerPill">
+              Refresh in <span class="gold" id="timerText">10:00</span>
+            </div>
+          </div>
+
+          <div class="kpi" style="margin-top:0;">
+            <div class="kbox">
+              <p class="k">USD</p>
+              <p class="v" id="usdLine">$—</p>
+            </div>
+            <div class="kbox">
+              <p class="k">Reference price</p>
+              <p class="v" id="refLine">$—</p>
+            </div>
+            <div class="kbox">
+              <p class="k">You send (ETH)</p>
+              <p class="v" id="ethLine">—</p>
+            </div>
+          </div>
+
+          <div class="qr" style="margin-top:12px;">
+            <img src="./wallet.png" alt="Wallet QR"
+                 onerror="this.style.display='none';" />
+          </div>
+
+          <div class="addr">
+            <p class="label">Wallet address</p>
+            <p class="value" id="addrValue">Loading…</p>
+          </div>
+
+          <div class="field">
+            <label for="email">Email (delivery)</label>
+            <input id="email" type="email" placeholder="you@domain.com" autocomplete="email" />
+          </div>
+
+          <div class="checkRow">
+            <input id="agree" type="checkbox"/>
+            <div class="txt">
+              I agree to the <a href="#" id="openTermsInline">Terms</a> and understand the risk disclosure.
+            </div>
+          </div>
+
+          <button class="payBtn" id="confirmBtn" disabled>I sent the payment</button>
+
+          <p class="miniNote" id="quoteStamp">Quote: —</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * Views (tabs)
+     ***********************/
+    const views = ["home","exploits","philosophy","terms"];
+    const brandHome = document.getElementById("brandHome");
+
+    function setView(v){
+      for (const id of views){
+        document.getElementById("view-" + id).classList.toggle("active", id === v);
+      }
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    brandHome.addEventListener("click", () => setView("home"));
+    brandHome.addEventListener("keydown", (e) => { if(e.key==="Enter") setView("home"); });
+
+    document.getElementById("goExploits").addEventListener("click", () => setView("exploits"));
+    document.getElementById("goPhilosophy").addEventListener("click", () => setView("philosophy"));
+    document.getElementById("goTerms").addEventListener("click", () => setView("terms"));
+
+    /***********************
+     * Exploit catalog
+     ***********************/
+    const exploits = [
+      {
+        id: "g1",
+        name: "Glitch 1.0 — Simple Sample",
+        usd: 50,
+        badge: "Demo • 2 months",
+        desc: "One trade at a time. Low-noise execution. Built for calm trend capture in liquid markets.",
+        kpis: [
+          ["Mode", "Demo (2 months)"],
+          ["Concurrency", "1 trade at a time"],
+          ["Best for", "Liquid majors / gold"],
+        ]
+      },
+      {
+        id: "g2",
+        name: "Glitch 2.0 — Wealth Builder",
+        usd: 70,
+        badge: "Demo • 2 months",
+        desc: "Buy & hold bias with smart re-entries. Designed to accumulate through dips without overtrading.",
+        kpis: [
+          ["Mode", "Demo (2 months)"],
+          ["Style", "Accumulate dips"],
+          ["Best for", "Up-trending regimes"],
+        ]
+      },
+      {
+        id: "g3",
+        name: "Glitch Pro — F*ck Gold",
+        usd: 100,
+        badge: "One-time • Lifetime",
+        desc: "Full access. Built for aggressive regimes with layered entries and recovery logic. Use responsibly.",
+        kpis: [
+          ["License", "Lifetime"],
+          ["Style", "High intent"],
+          ["Note", "Risk-managed usage"],
+        ]
+      },
+      {
+        id: "lg",
+        name: "Little Glitcher",
+        usd: 150,
+        badge: "Addon • 10 accounts",
+        desc: "Extends demo access and enables up to 10 accounts. Copy-style scaling—no parameter edits required.",
+        kpis: [
+          ["Unlocks", "Demo extension"],
+          ["Accounts", "Up to 10"],
+          ["Type", "Copy / multiplier"],
+        ]
+      }
+    ];
+
+    const exploitGrid = document.getElementById("exploitGrid");
+    function renderGrid(){
+      exploitGrid.innerHTML = "";
+      for (const ex of exploits){
+        const el = document.createElement("div");
+        el.className = "tile";
+        el.innerHTML = `
+          <div class="row">
+            <div>
+              <h3>${ex.name}</h3>
+              <div class="meta">${ex.badge}</div>
+            </div>
+            <div class="price">$${ex.usd}</div>
+          </div>
+          <div class="meta" style="margin-top:10px;">${ex.desc}</div>
+          <div class="chips">
+            ${ex.kpis.slice(0,3).map(k => `<span class="chip">${k[1]}</span>`).join("")}
+          </div>
+        `;
+        el.addEventListener("click", () => openExploit(ex.id));
+        exploitGrid.appendChild(el);
+      }
+    }
+    renderGrid();
+
+    /***********************
+     * Modal + Checkout
+     ***********************/
+    const overlay = document.getElementById("overlay");
+    const closeModal = document.getElementById("closeModal");
+    const openCheckoutBtn = document.getElementById("openCheckout");
+    const backToExploitsBtn = document.getElementById("backToExploits");
+    const checkoutPanel = document.getElementById("checkoutPanel");
+
+    const mTitle = document.getElementById("mTitle");
+    const mSub = document.getElementById("mSub");
+    const mDesc = document.getElementById("mDesc");
+    const kpiRow = document.getElementById("kpiRow");
+
+    const usdLine = document.getElementById("usdLine");
+    const refLine = document.getElementById("refLine");
+    const ethLine = document.getElementById("ethLine");
+
+    const ethSpotEl = document.getElementById("ethSpot");
+    const ethRefEl = document.getElementById("ethRef");
+
+    const timerPill = document.getElementById("timerPill");
+    const timerText = document.getElementById("timerText");
+    const quoteStamp = document.getElementById("quoteStamp");
+
+    const addrValue = document.getElementById("addrValue");
+    const emailInput = document.getElementById("email");
+    const agree = document.getElementById("agree");
+    const confirmBtn = document.getElementById("confirmBtn");
+    const openTermsInline = document.getElementById("openTermsInline");
+
+    let selected = null;
+
+    function openExploit(id){
+      selected = exploits.find(x => x.id === id);
+      if (!selected) return;
+
+      mTitle.textContent = selected.name;
+      mSub.textContent = selected.badge + " • $" + selected.usd;
+      mDesc.textContent = selected.desc;
+
+      kpiRow.innerHTML = selected.kpis.map(([k,v]) => `
+        <div class="kbox">
+          <p class="k">${k}</p>
+          <p class="v">${v}</p>
+        </div>
+      `).join("");
+
+      checkoutPanel.style.display = "none";
+      timerPill.style.display = "none"; // timer only in checkout
+      overlay.classList.add("active");
+      overlay.setAttribute("aria-hidden", "false");
+
+      // pre-load address
+      loadAddress();
+    }
+
+    function close(){
+      overlay.classList.remove("active");
+      overlay.setAttribute("aria-hidden", "true");
+      stopCheckoutTimer();
+    }
+
+    closeModal.addEventListener("click", close);
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && overlay.classList.contains("active")) close(); });
+
+    backToExploitsBtn.addEventListener("click", () => {
+      checkoutPanel.style.display = "none";
+      timerPill.style.display = "none";
+      stopCheckoutTimer();
+    });
+
+    openCheckoutBtn.addEventListener("click", async () => {
+      checkoutPanel.style.display = "block";
+      timerPill.style.display = "inline-flex"; // timer only here
+      await ensureQuoteFresh(true);
+      renderCheckoutNumbers();
+      startCheckoutTimer();
+      updateConfirmState();
+    });
+
+    openTermsInline.addEventListener("click", (e) => {
+      e.preventDefault();
+      close();
+      setView("terms");
+    });
+
+    agree.addEventListener("change", updateConfirmState);
+    emailInput.addEventListener("input", updateConfirmState);
+
+    function updateConfirmState(){
+      const okEmail = emailInput.value.trim().includes("@");
+      confirmBtn.disabled = !(agree.checked && okEmail);
+    }
+
+    confirmBtn.addEventListener("click", () => {
+      // Placeholder: later here goes TxHash verification flow + delivery
+      confirmBtn.textContent = "Payment received (manual step next)";
+      confirmBtn.disabled = true;
+      setTimeout(() => { confirmBtn.textContent = "I sent the payment"; updateConfirmState(); }, 2200);
+    });
+
+    /***********************
+     * Address loader (safe)
+     ***********************/
+    async function loadAddress(){
+      try{
+        const r = await fetch("./address.txt", { cache: "no-store" });
+        const t = (await r.text()).trim();
+        if (!t || t.toLowerCase().includes("<!doctype") || t.length < 10) throw new Error("bad address content");
+        addrValue.textContent = t;
+      }catch{
+        addrValue.textContent = "Address unavailable (check ./address.txt)";
+      }
+    }
+
+    /***********************
+     * ETH Quote (spot + reference)
+     * FIX: robust parsing + no undefined vars + never blank UI on failures
+     ***********************/
+    const QUOTE_TTL_MS = 10 * 60 * 1000;     // 10 minutes
+    const BG_REFRESH_MS = 120 * 1000;        // background refresh (2 min)
+
+    const LS_KEY = "egg_eth_quote_v3";
+    let quote = {
+      spot: NaN,
+      ref: NaN,
+      ts: 0,
+      srcTs: null
+    };
+
+    function isValidNum(n){
+      return Number.isFinite(n) && n > 0;
+    }
+
+    function loadQuoteFromStorage(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return;
+        if (typeof parsed.ts === "number") quote.ts = parsed.ts;
+        if (isValidNum(Number(parsed.spot))) quote.spot = Number(parsed.spot);
+        if (isValidNum(Number(parsed.ref))) quote.ref = Number(parsed.ref);
+        quote.srcTs = parsed.srcTs ?? quote.srcTs;
+      }catch{}
+    }
+
+    function saveQuoteToStorage(){
+      try{
+        localStorage.setItem(LS_KEY, JSON.stringify(quote));
+      }catch{}
+    }
+
+    function fmtUSD(n){
+      if (!Number.isFinite(n)) return "—";
+      return "$" + n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+
+    function fmtETH(n){
+      if (!Number.isFinite(n)) return "—";
+      return n.toFixed(6);
+    }
+
+    function paintHeaderQuote(){
+      if (isValidNum(quote.spot)) ethSpotEl.textContent = fmtUSD(quote.spot);
+      if (isValidNum(quote.ref))  ethRefEl.textContent  = fmtUSD(quote.ref);
+    }
+
+    function paintQuoteStamp(){
+      if (!quote.ts || !isValidNum(quote.ref)){
+        quoteStamp.textContent = "Quote: —";
+        return;
+      }
+      const ageMs = Math.max(0, Date.now() - quote.ts);
+      const mins = Math.floor(ageMs / 60000);
+      quoteStamp.textContent = `Quote: ${fmtUSD(quote.ref)} (updated ${mins}m ago)`;
+    }
+
+    function parseQuotePayload(j){
+      const spotCandidate = j?.spot ?? j?.spotUsd ?? j?.spot_usd ?? j?.spotUsdPerEth ?? j?.ethUsd ?? j?.price ?? j?.usd;
+      const refCandidate  = j?.ref  ?? j?.reference ?? j?.referenceUsd ?? j?.reference_usd ?? j?.referenceUsdPerEth ?? j?.weeklyHighUsd ?? j?.ath7d ?? j?.referencePrice;
+
+      const spot = Number(spotCandidate);
+      const ref  = Number(refCandidate);
+
+      const sourceTime = j?.sourceTime ?? j?.ts ?? j?.time ?? null;
+      return { spot, ref, sourceTime };
+    }
+
+    async function fetchQuote(){
+      const url = new URL("/api/eth-quote", window.location.origin).toString();
+      const r = await fetch(url, { cache: "no-store" });
+
+      let j;
+      try{
+        j = await r.json();
+      }catch{
+        throw new Error("bad_json");
+      }
+
+      // If function returns ok:false, we treat it as failure (UI keeps last valid)
+      if (!j || j.ok !== true) {
+        throw new Error(j?.error || "quote_unavailable");
+      }
+
+      const { spot, ref, sourceTime } = parseQuotePayload(j);
+
+      const validSpot = isValidNum(spot);
+      const validRef  = isValidNum(ref);
+      if (!validSpot || !validRef) {
+        throw new Error("invalid_quote");
+      }
+
+      // refresh timestamp even if identical => prevents "expiry to blank"
+      quote.spot = spot;
+      quote.ref  = ref;
+      quote.ts   = Date.now();
+      quote.srcTs = sourceTime;
+
+      saveQuoteToStorage();
+      return { updated: true };
+    }
+
+    async function ensureQuoteFresh(force=false){
+      if (!quote.ts) loadQuoteFromStorage();
+
+      // Paint stored immediately (never blank)
+      paintHeaderQuote();
+      paintQuoteStamp();
+
+      const isFresh = quote.ts && (Date.now() - quote.ts) < QUOTE_TTL_MS;
+      if (!force && isFresh) return;
+
+      try{
+        await fetchQuote();
+      }catch{
+        // keep last valid quote; do not blank UI
+      }
+
+      paintHeaderQuote();
+      paintQuoteStamp();
+    }
+
+    function renderCheckoutNumbers(){
+      if (!selected) return;
+
+      usdLine.textContent = "$" + selected.usd.toFixed(0);
+      refLine.textContent = isValidNum(quote.ref) ? fmtUSD(quote.ref) : "—";
+
+      if (isValidNum(quote.ref)){
+        const ethToSend = selected.usd / quote.ref;
+        ethLine.textContent = fmtETH(ethToSend);
+      }else{
+        ethLine.textContent = "—";
+      }
+      paintQuoteStamp();
+    }
+
+    // initial paint + background refresh
+    ensureQuoteFresh(false);
+    setInterval(() => ensureQuoteFresh(false), BG_REFRESH_MS);
+
+    /***********************
+     * Checkout timer (ONLY shown in checkout)
+     ***********************/
+    let checkoutTimer = null;
+
+    function msToMMSS(ms){
+      const s = Math.max(0, Math.floor(ms / 1000));
+      const mm = String(Math.floor(s / 60)).padStart(2,"0");
+      const ss = String(s % 60).padStart(2,"0");
+      return `${mm}:${ss}`;
+    }
+
+    function startCheckoutTimer(){
+      stopCheckoutTimer();
+
+      const tick = async () => {
+        if (!overlay.classList.contains("active") || checkoutPanel.style.display === "none") return;
+
+        if (!quote.ts){
+          timerText.textContent = "10:00";
+          return;
+        }
+
+        const remaining = (quote.ts + QUOTE_TTL_MS) - Date.now();
+        timerText.textContent = msToMMSS(remaining);
+
+        if (remaining <= 0){
+          await ensureQuoteFresh(true);
+          renderCheckoutNumbers();
+        }
+      };
+
+      tick();
+      checkoutTimer = setInterval(tick, 400);
+    }
+
+    function stopCheckoutTimer(){
+      if (checkoutTimer) clearInterval(checkoutTimer);
+      checkoutTimer = null;
+    }
+
+    /***********************
+     * Background particles (unchanged)
+     ***********************/
+    const canvas = document.getElementById("bg");
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    const state = {
+      w: 0, h: 0, dpr: 1,
+      particles: [],
+      pointer: { x: 0, y: 0, active: false },
+      last: performance.now()
+    };
+
+    function resize(){
+      state.dpr = Math.min(2, window.devicePixelRatio || 1);
+      state.w = Math.floor(window.innerWidth * state.dpr);
+      state.h = Math.floor(window.innerHeight * state.dpr);
+      canvas.width = state.w;
+      canvas.height = state.h;
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+    }
+    window.addEventListener("resize", resize);
+
+    function rand(a,b){ return a + Math.random()*(b-a); }
+
+    function makeParticle(x, y, burst=false){
+      const speed = burst ? rand(0.25, 0.9) : rand(0.12, 0.45);
+      const ang = rand(0, Math.PI*2);
+      const size = burst ? rand(1.4, 3.2) : rand(1.2, 2.6);
+      const p = {
+        x, y,
+        vx: Math.cos(ang)*speed,
+        vy: Math.sin(ang)*speed,
+        r: size,
+        a: burst ? rand(0.55, 0.90) : rand(0.40, 0.78),
+        hue: rand(38, 52),
+        tw: rand(0.6, 1.4),
+      };
+      return p;
+    }
+
+    function seed(){
+      state.particles.length = 0;
+      const baseCount = window.innerWidth < 600 ? 68 : 120;
+      for (let i=0;i<baseCount;i++){
+        state.particles.push(makeParticle(rand(0,state.w), rand(0,state.h)));
+      }
+    }
+
+    function addBurst(px, py){
+      const n = window.innerWidth < 600 ? 16 : 26;
+      for (let i=0;i<n;i++){
+        state.particles.push(makeParticle(px, py, true));
+      }
+      const cap = window.innerWidth < 600 ? 120 : 210;
+      if (state.particles.length > cap){
+        state.particles.splice(0, state.particles.length - cap);
+      }
+    }
+
+    function draw(){
+      const now = performance.now();
+      const dt = Math.min(0.033, (now - state.last)/1000);
+      state.last = now;
+
+      ctx.clearRect(0,0,state.w,state.h);
+
+      const P = state.particles;
+      const linkDist = 140 * state.dpr;
+      const repelDist = 170 * state.dpr;
+
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+
+      for (let i=0;i<P.length;i++){
+        const p = P[i];
+
+        p.x += p.vx * 90 * dt * state.dpr;
+        p.y += p.vy * 90 * dt * state.dpr;
+
+        p.vx += Math.sin((now/1000 + p.tw)) * 0.0006;
+        p.vy += Math.cos((now/1000 + p.tw)) * 0.0006;
+
+        if (p.x < -20) p.x = state.w + 20;
+        if (p.x > state.w + 20) p.x = -20;
+        if (p.y < -20) p.y = state.h + 20;
+        if (p.y > state.h + 20) p.y = -20;
+
+        if (state.pointer.active){
+          const dx = p.x - state.pointer.x;
+          const dy = p.y - state.pointer.y;
+          const d2 = dx*dx + dy*dy;
+          if (d2 < repelDist*repelDist){
+            const d = Math.sqrt(d2) || 1;
+            const force = (1 - d/repelDist) * 0.9;
+            p.vx += (dx/d) * force * 0.022;
+            p.vy += (dy/d) * force * 0.022;
+          }
+        }
+
+        p.vx *= 0.9992;
+        p.vy *= 0.9992;
+
+        const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*10);
+        grad.addColorStop(0, `hsla(${p.hue}, 85%, 70%, ${p.a})`);
+        grad.addColorStop(0.35, `hsla(${p.hue}, 90%, 60%, ${p.a*0.45})`);
+        grad.addColorStop(1, `hsla(${p.hue}, 90%, 50%, 0)`);
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r*10, 0, Math.PI*2);
+        ctx.fill();
+
+        ctx.globalAlpha = Math.min(1, p.a + 0.18);
+        ctx.fillStyle = `hsla(${p.hue}, 92%, 72%, ${p.a})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      ctx.lineWidth = 1 * state.dpr;
+      for (let i=0;i<P.length;i++){
+        for (let j=i+1;j<P.length;j++){
+          const a = P[i], b = P[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const d = Math.sqrt(dx*dx + dy*dy);
+          if (d < linkDist){
+            const alpha = (1 - d/linkDist) * 0.28;
+            ctx.strokeStyle = `rgba(212,175,55,${alpha})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      ctx.restore();
+      requestAnimationFrame(draw);
+    }
+
+    function setPointerFromEvent(e){
+      const rect = canvas.getBoundingClientRect();
+      const x = (("touches" in e) ? e.touches[0].clientX : e.clientX) - rect.left;
+      const y = (("touches" in e) ? e.touches[0].clientY : e.clientY) - rect.top;
+      state.pointer.x = x * state.dpr;
+      state.pointer.y = y * state.dpr;
+    }
+
+    window.addEventListener("mousemove", (e) => {
+      state.pointer.active = true;
+      setPointerFromEvent(e);
+    });
+    window.addEventListener("mouseleave", () => { state.pointer.active = false; });
+
+    window.addEventListener("click", (e) => {
+      setPointerFromEvent(e);
+      addBurst(state.pointer.x, state.pointer.y);
+    });
+
+    window.addEventListener("touchstart", (e) => {
+      state.pointer.active = true;
+      setPointerFromEvent(e);
+      addBurst(state.pointer.x, state.pointer.y);
+    }, { passive:true });
+
+    window.addEventListener("touchmove", (e) => {
+      state.pointer.active = true;
+      setPointerFromEvent(e);
+    }, { passive:true });
+
+    window.addEventListener("touchend", () => { state.pointer.active = false; });
+
+    resize();
+    seed();
+    draw();
+  </script>
+</body>
+</html>
