@@ -1,4 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { D1Database } from "@cloudflare/workers-types";
 
 const ORDER_TTL_MS = 10 * 60 * 1000;
 
@@ -60,12 +61,19 @@ export async function POST(request: Request) {
 
     const { env } = getCloudflareContext();
 
-    await env.EGG_DB.prepare(
-      `INSERT INTO orders
-        (id, created_at, email, product_id, usd_amount, ref_price_usd, eth_expected, expires_at, status)
-       VALUES
-        (?, ?, ?, ?, ?, ?, ?, ?, 'CREATED')`
-    )
+    // ✅ Fix TS: CloudflareEnv doesn't know about EGG_DB at build time
+    const db = (env as unknown as { EGG_DB: D1Database }).EGG_DB;
+    if (!db) {
+      return Response.json({ ok: false, error: "EGG_DB_binding_missing" }, { status: 500 });
+    }
+
+    await db
+      .prepare(
+        `INSERT INTO orders
+          (id, created_at, email, product_id, usd_amount, ref_price_usd, eth_expected, expires_at, status)
+         VALUES
+          (?, ?, ?, ?, ?, ?, ?, ?, 'CREATED')`
+      )
       .bind(orderId, now, email, productId, usdAmount, refPriceUsd, ethExpected, expiresAt)
       .run();
 
@@ -83,3 +91,4 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "server_error" }, { status: 500 });
   }
 }
+
