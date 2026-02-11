@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "easygoldglitch-next",
   "main": ".open-next/worker.js",
@@ -7,5 +7,12 @@
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "EGG_DB",
+      "database_name": "easygoldglitch-db",
+      "database_id": "9fdab209-da16-4d01-bd46-79b2fbf69df1"
+    }
+  ]
 }
