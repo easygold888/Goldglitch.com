@@ -1,0 +1,25 @@
+# Next / build outputs
+next/.next/
+next/.open-next/
+next/.wrangler/
+next/node_modules/
+next/.turbo/
+next/out/
+
+# Logs
+next/npm-debug.log*
+next/yarn-debug.log*
+next/yarn-error.log*
+next/pnpm-debug.log*
+
+# Node / Next
+node_modules/
+.next/
+.open-next/
+.wrangler/
+
+# If Next lives in /next
+next/node_modules/
+next/.next/
+next/.open-next/
+next/.wrangler/
