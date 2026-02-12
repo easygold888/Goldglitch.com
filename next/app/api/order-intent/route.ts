@@ -1,9 +1,15 @@
-﻿export const runtime = "edge";
-
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+﻿import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { D1Database } from "@cloudflare/workers-types";
 
+type Env = {
+  EGG_DB: D1Database;
+};
+
 const ORDER_TTL_MS = 10 * 60 * 1000;
+
+// Si quieres, luego lo movemos a un secret/env.
+// Por ahora lo dejo hardcodeado para eliminar variables en debugging.
+const WALLET_ADDRESS = "0xeCa7db8547Fbe9d6E4B7fbcE12439e03eb00AFEf";
 
 const CATALOG: Record<string, { usd: number; name: string }> = {
   g1: { usd: 50, name: "Glitch 1.0 — Simple Sample" },
@@ -11,8 +17,6 @@ const CATALOG: Record<string, { usd: number; name: string }> = {
   g3: { usd: 100, name: "Glitch Pro — F*ck Gold" },
   lg: { usd: 150, name: "Little Glitcher" },
 };
-
-const COINBASE_URL = "https://api.coinbase.com/v2/prices/ETH-USD/spot";
 
 function isEmailLoose(email: string) {
   const e = email.trim();
@@ -24,24 +28,25 @@ function asNum(v: any) {
   return Number.isFinite(n) ? n : NaN;
 }
 
-async function fetchEthUsd(): Promise<number | null> {
-  const r = await fetch(COINBASE_URL, {
-    headers: {
-      accept: "application/json",
-      "user-agent": "easygoldglitch/1.0",
-    },
-  }).catch(() => null);
+async function fetchEthUsdFromCoinbase(): Promise<number | null> {
+  try {
+    const r = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot", {
+      headers: {
+        "accept": "application/json",
+        "user-agent": "easygoldglitch/1.0",
+      },
+    });
 
-  if (!r || !r.ok) return null;
+    if (!r.ok) return null;
 
-  const j = await r.json().catch(() => null);
-  const amount = asNum(j?.data?.amount);
-  if (!Number.isFinite(amount) || amount <= 0) return null;
-  return amount;
-}
+    const j: any = await r.json().catch(() => null);
+    const amount = asNum(j?.data?.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return null;
 
-export async function GET() {
-  return Response.json({ ok: true, hint: "POST /api/order-intent" });
+    return amount;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(request: Request) {
@@ -57,29 +62,27 @@ export async function POST(request: Request) {
       return Response.json({ ok: false, error: "invalid_email" }, { status: 400 });
     }
 
-    const refPriceUsd = await fetchEthUsd();
-    if (!refPriceUsd) {
+    const refPriceUsd = await fetchEthUsdFromCoinbase();
+    if (!Number.isFinite(refPriceUsd as any) || (refPriceUsd as number) <= 0) {
       return Response.json({ ok: false, error: "quote_unavailable" }, { status: 503 });
     }
 
     const usdAmount = CATALOG[productId].usd;
-    const ethExpected = usdAmount / refPriceUsd;
+    const ethExpected = usdAmount / (refPriceUsd as number);
 
     const orderId = crypto.randomUUID();
     const now = Date.now();
     const expiresAt = now + ORDER_TTL_MS;
 
-    const { env } = getCloudflareContext() as any;
-    const db = env.EGG_DB as D1Database;
+    const { env } = (getCloudflareContext() as unknown as { env: Env });
 
-    await db
-      .prepare(
-        `INSERT INTO orders
-          (id, created_at, email, product_id, usd_amount, ref_price_usd, eth_expected, expires_at, status)
-         VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, 'CREATED')`
-      )
-      .bind(orderId, now, email, productId, usdAmount, refPriceUsd, ethExpected, expiresAt)
+    await env.EGG_DB.prepare(
+      `INSERT INTO orders
+        (id, created_at, email, product_id, usd_amount, ref_price_usd, eth_expected, expires_at, status, wallet_address)
+       VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, 'CREATED', ?)`
+    )
+      .bind(orderId, now, email, productId, usdAmount, refPriceUsd, ethExpected, expiresAt, WALLET_ADDRESS)
       .run();
 
     return Response.json({
@@ -89,11 +92,15 @@ export async function POST(request: Request) {
       usdAmount,
       refPriceUsd,
       ethExpected,
+      walletAddress: WALLET_ADDRESS,
       createdAt: now,
       expiresAt,
     });
   } catch (e: any) {
-    console.error("order-intent failed:", e?.message || e, e?.stack);
-    return new Response("Internal Server Error", { status: 500 });
+    // Devolvemos JSON para poder debugear rápido sin texto plano
+    return Response.json(
+      { ok: false, error: "server_error", detail: String(e?.message ?? e ?? "unknown") },
+      { status: 500 }
+    );
   }
 }

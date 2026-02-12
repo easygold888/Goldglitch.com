@@ -1,7 +1,4 @@
-﻿export const runtime = "edge";
-
-const ADDRESS = "0xeCa7db8547Fbe9d6E4B7fbcE12439e03eb00AFEf";
-const COINBASE_URL = "https://api.coinbase.com/v2/prices/ETH-USD/spot";
+﻿const WALLET_ADDRESS = "0xeCa7db8547Fbe9d6E4B7fbcE12439e03eb00AFEf";
 
 function asNum(v: any) {
   const n = Number(v);
@@ -9,40 +6,50 @@ function asNum(v: any) {
 }
 
 async function fetchEthUsdFromCoinbase(): Promise<number | null> {
-  const r = await fetch(COINBASE_URL, {
-    headers: {
-      accept: "application/json",
-      "user-agent": "easygoldglitch/1.0",
-    },
-  }).catch(() => null);
+  try {
+    const r = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot", {
+      headers: {
+        "accept": "application/json",
+        "user-agent": "easygoldglitch/1.0",
+      },
+    });
 
-  if (!r || !r.ok) return null;
+    if (!r.ok) return null;
 
-  const j = await r.json().catch(() => null);
-  const amount = asNum(j?.data?.amount);
-  if (!Number.isFinite(amount) || amount <= 0) return null;
+    const j: any = await r.json().catch(() => null);
+    const amount = asNum(j?.data?.amount);
+    if (!Number.isFinite(amount) || amount <= 0) return null;
 
-  return amount;
+    return amount;
+  } catch {
+    return null;
+  }
 }
 
 export async function GET() {
-  try {
-    const ref = await fetchEthUsdFromCoinbase();
-
-    if (!ref) {
-      return Response.json(
-        { ok: false, error: "quote_unavailable" },
-        { status: 503, headers: { "cache-control": "no-store" } }
-      );
-    }
-
+  const ref = await fetchEthUsdFromCoinbase();
+  if (!Number.isFinite(ref as any) || (ref as number) <= 0) {
+    // Respuesta JSON, no texto plano (más fácil de debuggear)
     return Response.json(
-      { ok: true, ref, address: ADDRESS, source: "coinbase", ts: Date.now() },
-      { headers: { "cache-control": "public, max-age=15" } }
+      { ok: false, error: "quote_unavailable" },
+      { status: 503, headers: { "cache-control": "no-store" } }
     );
-  } catch (e: any) {
-    // Para poder ver el error en logs de Cloudflare
-    console.error("eth-quote failed:", e?.message || e, e?.stack);
-    return new Response("Internal Server Error", { status: 500 });
   }
+
+  return Response.json(
+    {
+      ok: true,
+      ref,
+      address: WALLET_ADDRESS,
+      source: "coinbase",
+      ts: Date.now(),
+    },
+    {
+      status: 200,
+      headers: {
+        // Cache corto para que no te tumbe Coinbase y siga “snappy”
+        "cache-control": "public, max-age=15",
+      },
+    }
+  );
 }
