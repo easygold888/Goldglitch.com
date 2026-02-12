@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import type { D1Database } from "@cloudflare/workers-types";
+
+export const runtime = "edge";
 
 const ORDER_TTL_MS = 10 * 60 * 1000;
 
@@ -20,6 +21,30 @@ function asNum(v: any) {
   return Number.isFinite(n) ? n : NaN;
 }
 
+async function fetchEthUsdFromInternal(request: Request): Promise<number | null> {
+  const quoteUrl = new URL("/api/eth-quote", request.url);
+  const r = await fetch(quoteUrl.toString(), { cache: "no-store" });
+  const j = await r.json().catch(() => null);
+  if (!j || j.ok !== true) return null;
+
+  const ref = asNum(j.ref);
+  return Number.isFinite(ref) && ref > 0 ? ref : null;
+}
+
+async function fetchEthUsdFromCoinbase(): Promise<number | null> {
+  const r = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot", {
+    cf: { cacheTtl: 15, cacheEverything: true } as any,
+    headers: {
+      "accept": "application/json",
+      "user-agent": "easygoldglitch/1.0",
+    },
+  });
+  if (!r.ok) return null;
+  const j = await r.json().catch(() => null);
+  const amount = asNum(j?.data?.amount);
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => null);
@@ -33,23 +58,16 @@ export async function POST(request: Request) {
       return Response.json({ ok: false, error: "invalid_email" }, { status: 400 });
     }
 
-    // Use your existing quote endpoint as source of truth
-    const quoteUrl = new URL("/api/eth-quote", request.url);
-    const qr = await fetch(quoteUrl.toString(), { cache: "no-store" });
-    const qj = await qr.json().catch(() => null);
+    // 1) Intento con eth-quote interno
+    let refPriceUsd = await fetchEthUsdFromInternal(request);
 
-    if (!qj || qj.ok !== true) {
-      return Response.json({ ok: false, error: "quote_unavailable" }, { status: 503 });
+    // 2) Fallback externo
+    if (!refPriceUsd) {
+      refPriceUsd = await fetchEthUsdFromCoinbase();
     }
 
-    const refPriceUsd =
-      asNum(qj.ref) ||
-      asNum(qj.reference) ||
-      asNum(qj.referenceUsd) ||
-      asNum(qj.reference_usd);
-
-    if (!Number.isFinite(refPriceUsd) || refPriceUsd <= 0) {
-      return Response.json({ ok: false, error: "invalid_quote" }, { status: 503 });
+    if (!refPriceUsd) {
+      return Response.json({ ok: false, error: "quote_unavailable" }, { status: 503 });
     }
 
     const usdAmount = CATALOG[productId].usd;
@@ -61,19 +79,12 @@ export async function POST(request: Request) {
 
     const { env } = getCloudflareContext();
 
-    // ✅ Fix TS: CloudflareEnv doesn't know about EGG_DB at build time
-    const db = (env as unknown as { EGG_DB: D1Database }).EGG_DB;
-    if (!db) {
-      return Response.json({ ok: false, error: "EGG_DB_binding_missing" }, { status: 500 });
-    }
-
-    await db
-      .prepare(
-        `INSERT INTO orders
-          (id, created_at, email, product_id, usd_amount, ref_price_usd, eth_expected, expires_at, status)
-         VALUES
-          (?, ?, ?, ?, ?, ?, ?, ?, 'CREATED')`
-      )
+    await env.EGG_DB.prepare(
+      `INSERT INTO orders
+        (id, created_at, email, product_id, usd_amount, ref_price_usd, eth_expected, expires_at, status)
+       VALUES
+        (?, ?, ?, ?, ?, ?, ?, ?, 'CREATED')`
+    )
       .bind(orderId, now, email, productId, usdAmount, refPriceUsd, ethExpected, expiresAt)
       .run();
 
@@ -91,4 +102,3 @@ export async function POST(request: Request) {
     return Response.json({ ok: false, error: "server_error" }, { status: 500 });
   }
 }
-
