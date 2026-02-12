@@ -9,18 +9,12 @@ function asNum(v: any) {
 }
 
 async function fetchEthUsdFromCoinbase(): Promise<number | null> {
-  const r = await fetch(
-    COINBASE_URL,
-    ({
-      // Cloudflare Workers-specific fetch options:
-      // TS no lo reconoce en RequestInit, por eso casteamos el objeto completo.
-      cf: { cacheTtl: 15, cacheEverything: true },
-      headers: {
-        accept: "application/json",
-        "user-agent": "easygoldglitch/1.0",
-      },
-    } as unknown as RequestInit)
-  ).catch(() => null);
+  const r = await fetch(COINBASE_URL, {
+    headers: {
+      accept: "application/json",
+      "user-agent": "easygoldglitch/1.0",
+    },
+  }).catch(() => null);
 
   if (!r || !r.ok) return null;
 
@@ -32,17 +26,23 @@ async function fetchEthUsdFromCoinbase(): Promise<number | null> {
 }
 
 export async function GET() {
-  const ref = await fetchEthUsdFromCoinbase();
+  try {
+    const ref = await fetchEthUsdFromCoinbase();
 
-  if (!ref) {
+    if (!ref) {
+      return Response.json(
+        { ok: false, error: "quote_unavailable" },
+        { status: 503, headers: { "cache-control": "no-store" } }
+      );
+    }
+
     return Response.json(
-      { ok: false, error: "quote_unavailable" },
-      { status: 503, headers: { "cache-control": "no-store" } }
+      { ok: true, ref, address: ADDRESS, source: "coinbase", ts: Date.now() },
+      { headers: { "cache-control": "public, max-age=15" } }
     );
+  } catch (e: any) {
+    // Para poder ver el error en logs de Cloudflare
+    console.error("eth-quote failed:", e?.message || e, e?.stack);
+    return new Response("Internal Server Error", { status: 500 });
   }
-
-  return Response.json(
-    { ok: true, ref, address: ADDRESS, source: "coinbase", ts: Date.now() },
-    { headers: { "cache-control": "public, max-age=15" } }
-  );
 }

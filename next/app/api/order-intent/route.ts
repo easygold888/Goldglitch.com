@@ -25,16 +25,12 @@ function asNum(v: any) {
 }
 
 async function fetchEthUsd(): Promise<number | null> {
-  const r = await fetch(
-    COINBASE_URL,
-    ({
-      cf: { cacheTtl: 15, cacheEverything: true },
-      headers: {
-        accept: "application/json",
-        "user-agent": "easygoldglitch/1.0",
-      },
-    } as unknown as RequestInit)
-  ).catch(() => null);
+  const r = await fetch(COINBASE_URL, {
+    headers: {
+      accept: "application/json",
+      "user-agent": "easygoldglitch/1.0",
+    },
+  }).catch(() => null);
 
   if (!r || !r.ok) return null;
 
@@ -45,7 +41,6 @@ async function fetchEthUsd(): Promise<number | null> {
 }
 
 export async function GET() {
-  // Health check para que GET no te devuelva 500 nunca más
   return Response.json({ ok: true, hint: "POST /api/order-intent" });
 }
 
@@ -97,7 +92,8 @@ export async function POST(request: Request) {
       createdAt: now,
       expiresAt,
     });
-  } catch {
-    return Response.json({ ok: false, error: "server_error" }, { status: 500 });
+  } catch (e: any) {
+    console.error("order-intent failed:", e?.message || e, e?.stack);
+    return new Response("Internal Server Error", { status: 500 });
   }
 }
