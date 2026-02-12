@@ -1,8 +1,10 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
+﻿import { getCloudflareContext } from "@opennextjs/cloudflare";
+import type { D1Database } from "@cloudflare/workers-types";
 
 export const runtime = "edge";
 
 const ORDER_TTL_MS = 10 * 60 * 1000;
+const COINBASE_URL = "https://api.coinbase.com/v2/prices/ETH-USD/spot";
 
 const CATALOG: Record<string, { usd: number; name: string }> = {
   g1: { usd: 50, name: "Glitch 1.0 — Simple Sample" },
@@ -21,28 +23,67 @@ function asNum(v: any) {
   return Number.isFinite(n) ? n : NaN;
 }
 
-async function fetchEthUsdFromInternal(request: Request): Promise<number | null> {
-  const quoteUrl = new URL("/api/eth-quote", request.url);
-  const r = await fetch(quoteUrl.toString(), { cache: "no-store" });
-  const j = await r.json().catch(() => null);
-  if (!j || j.ok !== true) return null;
-
-  const ref = asNum(j.ref);
-  return Number.isFinite(ref) && ref > 0 ? ref : null;
-}
-
 async function fetchEthUsdFromCoinbase(): Promise<number | null> {
-  const r = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot", {
-    cf: { cacheTtl: 15, cacheEverything: true } as any,
-    headers: {
-      "accept": "application/json",
-      "user-agent": "easygoldglitch/1.0",
-    },
-  });
-  if (!r.ok) return null;
-  const j = await r.json().catch(() => null);
-  const amount = asNum(j?.data?.amount);
-  return Number.isFinite(amount) && amount > 0 ? amount : null;
+  const cacheKey = new Request("https://cache.easygoldglitch.com/eth-usd");
+
+  try {
+    // @ts-ignore
+    const cache = (globalThis as any).caches?.default;
+    if (cache) {
+      const hit = await cache.match(cacheKey);
+      if (hit) {
+        const j = await hit.json().catch(() => null);
+        const ref = asNum(j?.ref);
+        if (Number.isFinite(ref) && ref > 0) return ref;
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), 5000);
+
+  try {
+    const r = await fetch(COINBASE_URL, {
+      signal: ac.signal,
+      headers: {
+        accept: "application/json",
+        "user-agent": "easygoldglitch/1.0",
+      },
+      cache: "no-store",
+    });
+
+    if (!r.ok) return null;
+
+    const j = await r.json().catch(() => null);
+    const ref = asNum(j?.data?.amount);
+    if (!Number.isFinite(ref) || ref <= 0) return null;
+
+    try {
+      // @ts-ignore
+      const cache = (globalThis as any).caches?.default;
+      if (cache) {
+        await cache.put(
+          cacheKey,
+          new Response(JSON.stringify({ ref }), {
+            headers: {
+              "content-type": "application/json",
+              "cache-control": "public, max-age=15",
+            },
+          })
+        );
+      }
+    } catch {
+      // ignore
+    }
+
+    return ref;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 export async function POST(request: Request) {
@@ -58,14 +99,7 @@ export async function POST(request: Request) {
       return Response.json({ ok: false, error: "invalid_email" }, { status: 400 });
     }
 
-    // 1) Intento con eth-quote interno
-    let refPriceUsd = await fetchEthUsdFromInternal(request);
-
-    // 2) Fallback externo
-    if (!refPriceUsd) {
-      refPriceUsd = await fetchEthUsdFromCoinbase();
-    }
-
+    const refPriceUsd = await fetchEthUsdFromCoinbase();
     if (!refPriceUsd) {
       return Response.json({ ok: false, error: "quote_unavailable" }, { status: 503 });
     }
@@ -77,7 +111,8 @@ export async function POST(request: Request) {
     const now = Date.now();
     const expiresAt = now + ORDER_TTL_MS;
 
-    const { env } = getCloudflareContext();
+    // Tipado local para evitar errores TS en build
+    const { env } = getCloudflareContext() as unknown as { env: { EGG_DB: D1Database } };
 
     await env.EGG_DB.prepare(
       `INSERT INTO orders

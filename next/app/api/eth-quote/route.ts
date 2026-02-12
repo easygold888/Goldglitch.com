@@ -1,125 +1,84 @@
-﻿import { NextResponse } from "next/server";
+﻿export const runtime = "edge";
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
+const PAYMENT_ADDRESS = "0xeCa7db8547Fbe9d6E4B7fbcE12439e03eb00AFEf";
+const COINBASE_URL = "https://api.coinbase.com/v2/prices/ETH-USD/spot";
 
-const CACHE_TTL_SECONDS = 15;
-
-type QuoteOk = {
-  ok: true;
-  ref: number;      // ETH/USD
-  address: string;  // from /public/address.txt
-  source: "coinbase";
-  ts: number;
-};
-
-type QuoteErr = {
-  ok: false;
-  error: "quote_unavailable";
-};
+function asNum(v: any) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : NaN;
+}
 
 async function fetchEthUsdFromCoinbase(): Promise<number | null> {
-  const r = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot", {
-    headers: {
-      accept: "application/json",
-      "user-agent": "easygoldglitch/1.0",
-    },
-    cache: "no-store",
-  });
+  const cacheKey = new Request("https://cache.easygoldglitch.com/eth-usd");
 
-  if (!r.ok) return null;
-
-  const j = (await r.json().catch(() => null)) as any;
-  const n = Number(j?.data?.amount);
-
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-async function readAddress(requestUrl: string): Promise<string> {
   try {
-    // address.txt está en /public/address.txt (tu build lo sube como asset)
-    const u = new URL("/address.txt", requestUrl);
-    const r = await fetch(u.toString(), { cache: "no-store" });
-    if (!r.ok) return "";
-    return (await r.text()).trim();
+    // @ts-ignore
+    const cache = (globalThis as any).caches?.default;
+    if (cache) {
+      const hit = await cache.match(cacheKey);
+      if (hit) {
+        const j = await hit.json().catch(() => null);
+        const ref = asNum(j?.ref);
+        if (Number.isFinite(ref) && ref > 0) return ref;
+      }
+    }
   } catch {
-    return "";
+    // ignore cache errors
   }
-}
 
-async function cacheGet<T>(key: string): Promise<T | null> {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), 5000);
+
   try {
-    // En Cloudflare Workers existe caches.default; en dev local (Node) no.
-    // Si no existe, simplemente no cacheamos.
-    // @ts-ignore
-    if (typeof caches === "undefined" || !caches?.default) return null;
+    const r = await fetch(COINBASE_URL, {
+      signal: ac.signal,
+      headers: {
+        accept: "application/json",
+        "user-agent": "easygoldglitch/1.0",
+      },
+      cache: "no-store",
+    });
 
-    const req = new Request(key, { method: "GET" });
-    // @ts-ignore
-    const hit = await caches.default.match(req);
-    if (!hit) return null;
+    if (!r.ok) return null;
 
-    return (await hit.json().catch(() => null)) as T | null;
+    const j = await r.json().catch(() => null);
+    const ref = asNum(j?.data?.amount);
+    if (!Number.isFinite(ref) || ref <= 0) return null;
+
+    try {
+      // @ts-ignore
+      const cache = (globalThis as any).caches?.default;
+      if (cache) {
+        await cache.put(
+          cacheKey,
+          new Response(JSON.stringify({ ref }), {
+            headers: {
+              "content-type": "application/json",
+              "cache-control": "public, max-age=15",
+            },
+          })
+        );
+      }
+    } catch {
+      // ignore
+    }
+
+    return ref;
   } catch {
     return null;
+  } finally {
+    clearTimeout(t);
   }
 }
 
-async function cachePut(key: string, data: any): Promise<void> {
-  try {
-    // @ts-ignore
-    if (typeof caches === "undefined" || !caches?.default) return;
-
-    const req = new Request(key, { method: "GET" });
-    const res = new Response(JSON.stringify(data), {
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        "cache-control": `public, max-age=${CACHE_TTL_SECONDS}`,
-      },
-    });
-
-    // @ts-ignore
-    await caches.default.put(req, res);
-  } catch {
-    // no-op
-  }
-}
-
-export async function GET(request: Request) {
-  // Cache key estable (sin query params)
-  const cacheKey = new URL(request.url);
-  cacheKey.pathname = "/__cache/eth-quote";
-  cacheKey.search = "";
-  const key = cacheKey.toString();
-
-  const cached = await cacheGet<QuoteOk>(key);
-  if (cached?.ok === true && typeof cached.ref === "number") {
-    return NextResponse.json(cached, {
-      headers: { "cache-control": `public, max-age=${CACHE_TTL_SECONDS}` },
-    });
+export async function GET() {
+  const ref = await fetchEthUsdFromCoinbase();
+  if (!ref) {
+    return Response.json({ ok: false, error: "quote_unavailable" }, { status: 503 });
   }
 
-  const [price, address] = await Promise.all([
-    fetchEthUsdFromCoinbase(),
-    readAddress(request.url),
-  ]);
-
-  if (!price) {
-    const err: QuoteErr = { ok: false, error: "quote_unavailable" };
-    return NextResponse.json(err, { status: 503 });
-  }
-
-  const payload: QuoteOk = {
-    ok: true,
-    ref: price,
-    address,
-    source: "coinbase",
-    ts: Date.now(),
-  };
-
-  await cachePut(key, payload);
-
-  return NextResponse.json(payload, {
-    headers: { "cache-control": `public, max-age=${CACHE_TTL_SECONDS}` },
-  });
+  return Response.json(
+    { ok: true, ref, address: PAYMENT_ADDRESS, source: "coinbase", ts: Date.now() },
+    { headers: { "cache-control": "public, max-age=15" } }
+  );
 }
