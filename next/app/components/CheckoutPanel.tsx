@@ -16,17 +16,38 @@ export default function CheckoutPanel() {
 
   const selected = useMemo(() => CATALOG.find((x) => x.id === productId), [productId]);
 
-  return (
-    <section style={{ display: "grid", gap: 12, padding: 16, borderRadius: 16, border: "1px solid rgba(255,255,255,0.10)" }}>
-      <div style={{ fontWeight: 700, fontSize: 16 }}>Checkout (ETH mainnet)</div>
+  const inputStyle: React.CSSProperties = {
+    padding: 12,
+    borderRadius: 14,
+    background: "rgba(0,0,0,0.35)",
+    color: "white",
+    border: "1px solid rgba(255,255,255,0.14)",
+    outline: "none",
+  };
 
-      <label style={{ display: "grid", gap: 6, fontSize: 13, opacity: 0.9 }}>
+  return (
+    <section
+      style={{
+        display: "grid",
+        gap: 14,
+        padding: 18,
+        borderRadius: 18,
+        border: "1px solid rgba(255,255,255,0.14)",
+        background: "rgba(255,255,255,0.06)",
+        backdropFilter: "blur(14px)",
+        boxShadow: "0 20px 80px rgba(0,0,0,0.45)",
+      }}
+    >
+      <div style={{ display: "grid", gap: 6 }}>
+        <div style={{ fontWeight: 800, fontSize: 18, letterSpacing: 0.2 }}>Checkout (ETH mainnet)</div>
+        <div style={{ fontSize: 12, opacity: 0.78 }}>
+          Pay on Ethereum mainnet. We lock price for ~10 minutes and deliver to your email after verification.
+        </div>
+      </div>
+
+      <label style={{ display: "grid", gap: 8, fontSize: 13, opacity: 0.9 }}>
         Product
-        <select
-          value={productId}
-          onChange={(e) => setProductId(e.target.value)}
-          style={{ padding: 10, borderRadius: 12, background: "rgba(255,255,255,0.06)", color: "white", border: "1px solid rgba(255,255,255,0.12)" }}
-        >
+        <select value={productId} onChange={(e) => setProductId(e.target.value)} style={inputStyle as any}>
           {CATALOG.map((p) => (
             <option key={p.id} value={p.id} style={{ color: "black" }}>
               {p.name} — ${p.usd}
@@ -35,19 +56,15 @@ export default function CheckoutPanel() {
         </select>
       </label>
 
-      <label style={{ display: "grid", gap: 6, fontSize: 13, opacity: 0.9 }}>
+      <label style={{ display: "grid", gap: 8, fontSize: 13, opacity: 0.9 }}>
         Email (delivery)
         <input
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="you@domain.com"
-          style={{ padding: 10, borderRadius: 12, background: "rgba(255,255,255,0.06)", color: "white", border: "1px solid rgba(255,255,255,0.12)" }}
+          style={inputStyle}
         />
       </label>
-
-      <div style={{ fontSize: 12, opacity: 0.8 }}>
-        You’ll pay on Ethereum mainnet. After payment we’ll verify and deliver to your email.
-      </div>
 
       <PayWithMetaMask productId={productId} email={email} />
 
