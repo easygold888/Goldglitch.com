@@ -1,4 +1,7 @@
-﻿const WALLET_ADDRESS = "0xeCa7db8547Fbe9d6E4B7fbcE12439e03eb00AFEf";
+﻿export const runtime = "edge";
+
+const WALLET_ADDRESS = "0xeCa7db8547Fbe9d6E4B7fbcE12439e03eb00AFEf";
+const CACHE_SECONDS = 15;
 
 function asNum(v: any) {
   const n = Number(v);
@@ -6,50 +9,54 @@ function asNum(v: any) {
 }
 
 async function fetchEthUsdFromCoinbase(): Promise<number | null> {
-  try {
-    const r = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot", {
-      headers: {
-        "accept": "application/json",
-        "user-agent": "easygoldglitch/1.0",
-      },
-    });
+  const r = await fetch("https://api.coinbase.com/v2/prices/ETH-USD/spot", {
+    headers: {
+      "accept": "application/json",
+      "user-agent": "easygoldglitch/1.0",
+    },
+    cache: "no-store",
+  });
 
-    if (!r.ok) return null;
+  if (!r.ok) return null;
+  const j = await r.json().catch(() => null);
 
-    const j: any = await r.json().catch(() => null);
-    const amount = asNum(j?.data?.amount);
-    if (!Number.isFinite(amount) || amount <= 0) return null;
+  const amt =
+    j?.data?.amount ??
+    j?.data?.rates?.USD ??
+    j?.amount ??
+    j?.price;
 
-    return amount;
-  } catch {
-    return null;
-  }
+  const n = asNum(amt);
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 export async function GET() {
-  const ref = await fetchEthUsdFromCoinbase();
-  if (!Number.isFinite(ref as any) || (ref as number) <= 0) {
-    // Respuesta JSON, no texto plano (más fácil de debuggear)
-    return Response.json(
-      { ok: false, error: "quote_unavailable" },
-      { status: 503, headers: { "cache-control": "no-store" } }
-    );
-  }
+  try {
+    const ref = await fetchEthUsdFromCoinbase();
 
-  return Response.json(
-    {
-      ok: true,
-      ref,
-      address: WALLET_ADDRESS,
-      source: "coinbase",
-      ts: Date.now(),
-    },
-    {
-      status: 200,
-      headers: {
-        // Cache corto para que no te tumbe Coinbase y siga “snappy”
-        "cache-control": "public, max-age=15",
-      },
+    if (!ref) {
+      return Response.json(
+        { ok: false, error: "quote_unavailable" },
+        { status: 503, headers: { "cache-control": "no-store" } }
+      );
     }
-  );
+
+    return Response.json(
+      {
+        ok: true,
+        ref,
+        address: WALLET_ADDRESS,
+        source: "coinbase",
+        ts: Date.now(),
+      },
+      {
+        headers: {
+          "cache-control": `public, max-age=${CACHE_SECONDS}`,
+          "content-type": "application/json",
+        },
+      }
+    );
+  } catch {
+    return new Response("Internal Server Error", { status: 500 });
+  }
 }
